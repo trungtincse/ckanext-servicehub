@@ -50,7 +50,7 @@ def requestCallBatch(instance,data,files=None):
     # url= '%s/execute/batch/%s'%(appserver_host,instance.call_id)
     # print data
     # print type(files)
-    url= 'http://%s/execute/batch/%s'%(appserver_host,instance.call_id)
+    url= '%s/execute/batch/%s'%(appserver_host,instance.call_id)
     file_data = {
         'json':(None,json.dumps(data)),
     }

@@ -60,8 +60,8 @@ def requestCallBatch(instance,data,files=None):
     }
     if files!=None:
         file_data['binary']=(None,files.read())
-    headers={"Content-Type":'multipart/form-data'}
-    rps=requests.post(url,data=file_data,headers=headers)
+    # headers={"Content-Type":'multipart/form-data'}
+    rps=requests.post(url,files=file_data)
     pretty_print_POST(rps.request)
 # @call_blueprint.route('/empty',methods=["POST"])
 

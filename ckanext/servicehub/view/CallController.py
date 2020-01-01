@@ -37,7 +37,11 @@ def create():
     ))
 
     json=dict(zip(data_dict['custom_key'], data_dict['custom_value']))
-    files=data_dict['binary_input'] if 'binary_input' in data_dict else None
+    files= data_dict['binary_input'] if 'binary_input' in data_dict else None
+    if 'binary_input' in data_dict:
+        if data_dict['binary_input']=="":
+            files = None
+
     # print data_dict
     ins=Call(user,data_dict["app_id"],"Pending");
     session.add(ins)
@@ -56,7 +60,8 @@ def requestCallBatch(instance,data,files=None):
     }
     if files!=None:
         file_data['binary']=files.read()
-    rps=requests.post(url,data=file_data)
+    headers={"Content-Type":'multipart/form-data'}
+    rps=requests.post(url,data=file_data,headers=headers)
     pretty_print_POST(rps.request)
 # @call_blueprint.route('/empty',methods=["POST"])
 

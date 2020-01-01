@@ -41,8 +41,8 @@ def create():
     # print data_dict
     ins=Call(user,data_dict["app_id"],"Pending");
     session.add(ins)
-    requestCallBatch(ins,data,files)
     session.commit()
+    requestCallBatch(ins,data,files)
     # return helpers.redirect_to('service.read',id=data_dict["app_id"])
     # return helpers.redirect_to('service.index')
     return helpers.redirect_to('service_user.user_service_request',user=user)
@@ -50,13 +50,13 @@ def requestCallBatch(instance,data,files=None):
     # url= '%s/execute/batch/%s'%(appserver_host,instance.call_id)
     # print data
     # print type(files)
-    url= 'http://0.0.0.0:5000/test/empty'
+    url= 'http://%s/execute/batch/%s'%(appserver_host,instance.call_id)
     file_data = {
         'json':(None,json.dumps(data)),
     }
     if files!=None:
         file_data['binary']=(None,files,'application/octet-stream')
-    rps=requests.post(url,files=file_data)
+    rps=requests.post(url,data=file_data)
     pretty_print_POST(rps.request)
 # @call_blueprint.route('/empty',methods=["POST"])
 

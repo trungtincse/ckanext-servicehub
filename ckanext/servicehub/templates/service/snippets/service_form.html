@@ -1,0 +1,38 @@
+{% import 'macros/form.html' as form %}
+
+<form id="service-edit" class="dataset-form" method="post" data-module="basic-form" enctype="multipart/form-data">
+  {% block error_summary %}
+    {{ form.errors(error_summary) }}
+  {% endblock %}
+
+  {% block basic_fields %}
+    {% set attrs = {'data-module': 'slug-preview-target', 'class': 'form-control'} %}
+    {{ form.input('app_name', label=_('Name'), id='field-name', placeholder=_('Service A or Stack A'), value=data.title, error=errors.title, classes=['control-full'], attrs=attrs,is_required=True) }}
+
+    {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('A little information about my group...'), value=data.description, error=errors.description) }}
+
+{#    {% set is_upload = data.image_url and not data.image_url.startswith('http') %}#}
+{#    {% set is_url = data.image_url and data.image_url.startswith('http') %}#}
+{#    {{ form.image_upload(data, errors, is_upload_enabled=h.uploads_enabled(), is_url=is_url, is_upload=is_upload) }}#}
+  {% endblock %}
+
+{#    {% block kubernetes_fields %}#}
+{#          {{ form.input('pod_json', label='Pod yaml file', id='pod-json-upload', type='file', placeholder='', value='', error='', classes=['control-full'],is_required=True) }}#}
+{#          {{ form.input('service_json', label='Service yaml file', id='service-json-upload', type='file', placeholder='', value='', error='', classes=['control-full'],is_required=True) }}#}
+{#          {{ form.input('api_json', label='API description yaml file', id='api-json-upload', type='file', placeholder='', value='', error='', classes=['control-full'],is_required=True) }}#}
+{#    {% endblock %}#}
+<label class="control-label" for="image"><span title="This field is required" class="control-required">*</span> Image link</label>
+  <input type="text" name="image" id="image" class="form-control">
+<label class="control-label" for="port"><span title="This field is required" class="control-required">*</span> Port</label>
+  <input type="text" name="port" id="port" class="form-control">
+  {{ form.required_message() }}
+
+  <div class="form-actions">
+    {% block delete_button %}
+      {% if h.check_access('group_delete', {'id': data.id})  %}
+        <a class="btn btn-danger pull-left" href="{% url_for group_type+'.delete', id=data.id %}" data-module="confirm-action" data-module-content="{{ _('Are you sure you want to delete this Group?') }}">{% block delete_button_text %}{{ _('Delete') }}{% endblock %}</a>
+      {% endif %}
+    {% endblock %}
+    <button class="btn btn-primary" name="save" type="submit">{% block save_text %}{{ _('Save Service') }}{% endblock %}</button>
+  </div>
+</form>

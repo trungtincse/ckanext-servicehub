@@ -1,0 +1,39 @@
+{% import 'macros/form.html' as form %}
+<form id="service-edit" class="dataset-form" method="post" data-module="basic-form" enctype="multipart/form-data">
+  {% block error_summary %}
+    {{ form.errors(error_summary) }}
+  {% endblock %}
+
+  {% block basic_fields %}
+    {% set attrs = {'data-module': 'slug-preview-target', 'class': 'form-control'} %}
+    {{ form.input('app_name', label=_('Name'), id='field-name', placeholder=_('Service A or Stack A'), value=data.title, error=errors.title, classes=['control-full'], attrs=attrs,is_required=True) }}
+
+    {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('A little information about my group...'), value=data.description, error=errors.description) }}
+
+  {% endblock %}
+
+    {% block code_fields %}
+          {{ form.select('language', label='Choose program language', id='programmingLanguage', options=[{'value':'Python','text':'Python'},{'text':'Java','value':'Java'},{'text':'Javascript','value':'Javascript'}], classes=['control-full'],is_required=True) }}
+{#          {{ form.input('appName', label='File name', id='appName', type='text', classes=['control-full'],is_required=True) }}#}
+          {{ form.input('codeFile', label='Upload code here', id='codeFile', type='file', classes=['control-full'],is_required=True) }}
+          <div class="custom-control custom-switch">
+            <label class="custom-control-label" for="">Use Json input (default)</label>
+            <input type="checkbox" class="custom-control-input" name="json_input" value="True">
+          </div>
+          <div class="custom-control custom-switch">
+            <label class="custom-control-label" for="">Use Binary input </label>
+            <input type="checkbox" class="custom-control-input" name="binary_input" value="True">
+          </div>
+    {% endblock %}
+
+  {{ form.required_message() }}
+
+  <div class="form-actions">
+    {% block delete_button %}
+      {% if h.check_access('group_delete', {'id': data.id})  %}
+        <a class="btn btn-danger pull-left" href="{% url_for group_type+'.delete', id=data.id %}" data-module="confirm-action" data-module-content="{{ _('Are you sure you want to delete this Group?') }}">{% block delete_button_text %}{{ _('Delete') }}{% endblock %}</a>
+      {% endif %}
+    {% endblock %}
+    <button class="btn btn-primary" name="save" type="submit">{% block save_text %}{{ _('Save Service') }}{% endblock %}</button>
+  </div>
+</form>

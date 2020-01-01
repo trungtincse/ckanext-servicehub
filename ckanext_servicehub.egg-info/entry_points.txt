@@ -1,0 +1,7 @@
+
+        [ckan.plugins]
+        servicehub=ckanext.servicehub.plugin:ServicehubPlugin
+
+        [babel.extractors]
+        ckan = ckan.lib.extract:extract_ckan
+    

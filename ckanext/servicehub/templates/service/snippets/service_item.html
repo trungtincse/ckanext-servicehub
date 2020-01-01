@@ -1,0 +1,50 @@
+{#
+Renders a media item for a service. This should be used in a list.
+
+service - A service dict.
+
+Example:
+
+    <ul class="media-grid">
+      {% for service in groups %}
+        {% snippet "service/snippets/group_item.html", service=service %}
+      {% endfor %}
+    </ul>
+#}
+{% set type ='service' %}
+{% set url = h.url_for(type ~ '.read', id=service.app_id) %}
+{% block item %}
+<li class="media-item">
+  {% block item_inner %}
+  {% block image %}
+    <img src="{{ service.image_display_url or h.url_for_static('/base/images/placeholder-service.png') }}" alt="{{ service.id }}" class="media-image img-responsive">
+  {% endblock %}
+  {% block title %}
+    <h3 class="media-heading">{{ service.display_name }}</h3>
+  {% endblock %}
+  {% block description %}
+    {% if service.description %}
+      <p>{{ h.markdown_extract(service.description, extract_length=80) }}</p>
+    {% endif %}
+  {% endblock %}
+  {% block datasets %}
+    {% if service.package_count %}
+      <strong class="count">{{ ungettext('{num} Dataset', '{num} Datasets', service.package_count).format(num=service.package_count) }}</strong>
+    {% elif service.package_count == 0 %}
+      <span class="count">{{ _('0 Datasets') }}</span>
+    {% endif %}
+  {% endblock %}
+  {% block link %}
+  <a href="{{ url }}" title="{{ _('View {name}').format(name=service.display_name) }}" class="media-view">
+    <span>{{ _('View {name}').format(name=service.display_name) }}</span>
+  </a>
+  {% endblock %}
+  {% if service.user_member %}
+    <input name="group_remove.{{ service.id }}" value="{{ _('Remove') }}" type="submit" class="btn btn-danger btn-sm media-edit" title="{{ _('Remove dataset from this service') }}"/>
+  {% endif %}
+  {% endblock %}
+</li>
+{% endblock %}
+{% if position is divisibleby 3 %}
+  <li class="clearfix js-hide"></li>
+{% endif %}

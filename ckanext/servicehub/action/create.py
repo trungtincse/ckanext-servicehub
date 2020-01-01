@@ -66,8 +66,8 @@ def _service_create(context, data_dict):
                   )
         session = context['session']
         session.add(ins)
-        requestCreateBatch(ins,data_dict['data_request'])
         session.commit()
+        requestCreateBatch(ins,data_dict['data_request'])
 def requestCreateServer(instance):
     url='%s/app/new/server/%s'%(appserver_host,instance.app_id)
     print url

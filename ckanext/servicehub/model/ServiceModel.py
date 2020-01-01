@@ -21,7 +21,7 @@ class Call(Base):
                      default=_types.make_uuid)
     call_user = Column(types.UnicodeText)
     app_id = Column(types.UnicodeText)
-    container_name = Column(types.UnicodeText)
+    container_id = Column(types.UnicodeText)
     status = Column(types.UnicodeText)
     duration = Column(types.BIGINT)
     stdout = Column(types.UnicodeText)

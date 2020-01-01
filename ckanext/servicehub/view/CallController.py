@@ -45,7 +45,7 @@ def create():
     requestCallBatch(ins,json,files)
     # return helpers.redirect_to('service.read',id=data_dict["app_id"])
     # return helpers.redirect_to('service.index')
-    # return helpers.redirect_to('service_user.user_service_request',user=user)
+    return helpers.redirect_to('service_user.user_service_request',user=user)
 def requestCallBatch(instance,data,files=None):
     # url= '%s/execute/batch/%s'%(appserver_host,instance.call_id)
     # print data

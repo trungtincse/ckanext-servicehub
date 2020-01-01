@@ -48,7 +48,7 @@ def _service_create(context, data_dict):
             port_in_use=session.query(AppPort).filter(AppPort.port==container_port)
             is_port_avai = True if port_in_use.count() <1 else False
         app_port_ins=AppPort(ins.app_id,container_port)
-        ins.port2port="%s:%s"%(data_dict['port'],container_port)
+        ins.port2port="%s:%s"%(container_port,data_dict['port'])
         session.add(ins)
         # session.add(app_port_ins)
         session.commit()

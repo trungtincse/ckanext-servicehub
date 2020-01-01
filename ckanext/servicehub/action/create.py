@@ -51,8 +51,8 @@ def _service_create(context, data_dict):
         ins.port2port=container_port
         session.add(ins)
         session.add(app_port_ins)
-        requestCreateServer(ins)
         session.commit()
+        requestCreateServer(ins)
     elif(data_dict['type']=='Batch'):
         ins = App(data_dict['app_name'],
                   data_dict['type'],

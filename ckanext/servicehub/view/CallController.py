@@ -36,16 +36,16 @@ def create():
         dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
     ))
 
-    data=dict(zip(data_dict['custom_key'], data_dict['custom_value']))
+    json=dict(zip(data_dict['custom_key'], data_dict['custom_value']))
     files=data_dict['binary_input'] if 'binary_input' in data_dict else None
     # print data_dict
     ins=Call(user,data_dict["app_id"],"Pending");
     session.add(ins)
     session.commit()
-    requestCallBatch(ins,data,files)
+    requestCallBatch(ins,json,files)
     # return helpers.redirect_to('service.read',id=data_dict["app_id"])
     # return helpers.redirect_to('service.index')
-    return helpers.redirect_to('service_user.user_service_request',user=user)
+    # return helpers.redirect_to('service_user.user_service_request',user=user)
 def requestCallBatch(instance,data,files=None):
     # url= '%s/execute/batch/%s'%(appserver_host,instance.call_id)
     # print data
@@ -55,7 +55,7 @@ def requestCallBatch(instance,data,files=None):
         'json':(None,json.dumps(data)),
     }
     if files!=None:
-        file_data['binary']=(None,files,'application/octet-stream')
+        file_data['binary']=files.read()
     rps=requests.post(url,data=file_data)
     pretty_print_POST(rps.request)
 # @call_blueprint.route('/empty',methods=["POST"])

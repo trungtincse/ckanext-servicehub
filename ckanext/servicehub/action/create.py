@@ -67,7 +67,7 @@ def _service_create(context, data_dict):
         session = context['session']
         session.add(ins)
         session.commit()
-        requestCreateBatch(ins,data_dict['data_request'])
+        requestCreateBatch(ins,data_dict['codeFile'])
 def requestCreateServer(instance):
     url='%s/app/new/server/%s'%(appserver_host,instance.app_id)
     print url
@@ -76,4 +76,4 @@ def requestCreateServer(instance):
 def requestCreateBatch(instance,data_request):
     url='%s/app/new/batch/%s'%(appserver_host,instance.app_id)
     print url
-    response=requests.post(url=url,files=data_request).json()
+    response=requests.post(url=url,data=data_request.read()).json()

@@ -480,8 +480,8 @@ class CreateFromCodeServiceView(MethodView):
             """
                 chuyen qua cho Cuong
             """
-            codeFile=data_dict['codeFile'].read()
-            data_request={'codeFile':('name1',codeFile,'application/octet-stream')}
+            # codeFile=data_dict['codeFile'].read()
+            # data_request={'codeFile':('name1',codeFile,'application/octet-stream')}
             data_dict['type']='Batch'
             data_dict['slug_name']=slug.slug(data_dict['app_name'])
             data_dict['image']=data_dict['slug_name']
@@ -489,7 +489,7 @@ class CreateFromCodeServiceView(MethodView):
             data_dict['json_input']='json_input' in data_dict
             data_dict['binary_input'] = 'binary_input' in data_dict
             data_dict['json_input']= True if not (data_dict['json_input'] or data_dict['binary_input']) else data_dict['binary_input']
-            data_dict['data_request']= data_request
+            # data_dict['data_request']= data_request
             _action(u'service_create')(context, data_dict)
 
         except (NotFound, NotAuthorized,ValidationError,dict_fns.DataError) as e:

@@ -12,9 +12,9 @@ from ckan.common import g, request
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
 import os
-# appserver_host='http://0.0.0.0:5001'
-host= os.getenv('APP_SERVER_HOST')
-appserver_host='http://%s'%host
+appserver_host='http://0.0.0.0:5001'
+# host= os.getenv('APP_SERVER_HOST')
+# appserver_host='http://%s'%host
 
 call_blueprint = Blueprint(u'call', __name__, url_prefix=u'/call')
 
@@ -37,12 +37,12 @@ def create():
     ))
 
     data=dict(zip(data_dict['custom_key'], data_dict['custom_value']))
-    files=data_dict['binary_input']
+    files=data_dict['binary_input'] if 'binary_input' in data_dict else None
     # print data_dict
     ins=Call(user,data_dict["app_id"],"Pending");
-    # session.add(ins)
+    session.add(ins)
     requestCallBatch(ins,data,files)
-    # session.commit()
+    session.commit()
     # return helpers.redirect_to('service.read',id=data_dict["app_id"])
     # return helpers.redirect_to('service.index')
     return helpers.redirect_to('service_user.user_service_request',user=user)
@@ -54,7 +54,7 @@ def requestCallBatch(instance,data,files=None):
     file_data = {
         'json':(None,json.dumps(data)),
     }
-    if files!="":
+    if files!=None:
         file_data['binary']=(None,files,'application/octet-stream')
     rps=requests.post(url,files=file_data)
     pretty_print_POST(rps.request)
@@ -75,4 +75,3 @@ def pretty_print_POST(req):
         '\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
         req.body,
     ))
-    Serve

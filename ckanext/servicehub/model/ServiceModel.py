@@ -101,7 +101,7 @@ class App(Base):
     def by_name(cls, name, autoflush=True):
         session = Session()
         obj = session.query(cls).autoflush(autoflush) \
-            .filter_by(name=name).first()
+            .filter_by(app_id=name).first()
         return obj
 class AppPort(Base):
     __tablename__ = 'app_port'

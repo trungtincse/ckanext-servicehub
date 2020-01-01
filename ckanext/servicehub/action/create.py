@@ -20,9 +20,9 @@ ValidationError = logic.ValidationError
 NotFound = logic.NotFound
 _get_or_bust = logic.get_or_bust
 import os
-host= os.getenv('APP_SERVER_HOST')
-appserver_host='http://%s'%host
-# appserver_host='http://0.0.0.0:5001'
+# host= os.getenv('APP_SERVER_HOST')
+# appserver_host='http://%s'%host
+appserver_host='http://0.0.0.0:5001'
 def service_create(context, data_dict):
     _check_access('service_create', context, data_dict)
     return _service_create(context, data_dict)

@@ -20,7 +20,10 @@ import ckan.lib.plugins as lib_plugins
 from ckan.common import OrderedDict, c, g, config, request, _
 from flask import Blueprint
 from flask.views import MethodView
-from  ckanext.servicehub.model.ServiceModel import *
+from ckanext.servicehub.model.ServiceModel import *
+
+from ckanext.servicehub.model.ModelHelper import deleteAppARelevant
+
 NotFound = logic.NotFound
 NotAuthorized = logic.NotAuthorized
 ValidationError = logic.ValidationError
@@ -35,22 +38,24 @@ log = logging.getLogger(__name__)
 lookup_group_plugin = lib_plugins.lookup_group_plugin
 lookup_group_controller = lib_plugins.lookup_group_controller
 is_org = False
+appserver_host = config.get('ckan.servicehub.appserver_host')
 
 
 def _index_template(group_type):
     return lookup_group_plugin(group_type).index_template()
+
 
 def _db_to_form_schema(group_type=None):
     u'''This is an interface to manipulate data from the database
      into a format suitable for the form (optional)'''
     return lookup_group_plugin(group_type).db_to_form_schema()
 
+
 def _setup_template_variables(context, data_dict, group_type=None):
     if u'type' not in data_dict:
         context[u'group'] = group_type
-    return lookup_group_plugin(group_type).\
+    return lookup_group_plugin(group_type). \
         setup_template_variables(context, data_dict)
-
 
 
 def _replace_group_org(string):
@@ -75,8 +80,8 @@ def set_org(is_organization):
     is_org = is_organization
 
 
-def index( group_type,is_organization):
-    group_type=u'service'
+def index(group_type, is_organization):
+    group_type = u'service'
     extra_vars = {}
     set_org(is_organization)
     page = h.get_page_number(request.params) or 1
@@ -118,7 +123,7 @@ def index( group_type,is_organization):
             u'type': u'service',
         }
         global_results = _action(u'service_list')(context,
-                                                data_dict_global_results)
+                                                  data_dict_global_results)
     except ValidationError as e:
         if e.error_dict and e.error_dict.get(u'message'):
             msg = e.error_dict['message']
@@ -153,9 +158,11 @@ def index( group_type,is_organization):
     g.page = extra_vars["page"]
     return base.render('service/index.html', extra_vars)
 
+
 def _update_facet_titles(facets, group_type):
     for plugin in plugins.PluginImplementations(plugins.IFacets):
         facets = plugin.group_facets(facets, group_type, None)
+
 
 def _read(id, limit, group_type):
     u''' This is common code used by both read and bulk_process'''
@@ -201,7 +208,7 @@ def _read(id, limit, group_type):
             g, u'action', u'') == u'bulk_process' else u'read'
         url = h.url_for(u'.'.join([controller, action]), id=id)
         params = [(k, v.encode(u'utf-8')
-                   if isinstance(v, string_types) else str(v))
+        if isinstance(v, string_types) else str(v))
                   for k, v in params]
         return url + u'?' + urlencode(params)
 
@@ -238,7 +245,7 @@ def _read(id, limit, group_type):
         search_extras = {}
         for (param, value) in request.params.items():
             if param not in [u'q', u'page', u'sort'] \
-                    and len(value) and not param.startswith(u'_'):
+                and len(value) and not param.startswith(u'_'):
                 if not param.startswith(u'ext_'):
                     fields.append((param, value))
                     q += u' %s: "%s"' % (param, value)
@@ -329,7 +336,6 @@ def _read(id, limit, group_type):
     return extra_vars
 
 
-
 def read(group_type, is_organization, id=None, limit=20):
     extra_vars = {}
     set_org(is_organization)
@@ -366,10 +372,13 @@ def read(group_type, is_organization, id=None, limit=20):
     extra_vars = _read(id, limit, group_type)
 
     extra_vars["group_dict"] = group_dict
-    session=context['session']
-    service_ins=session.query(App).filter(App.app_id==id)[0]
-    extra_vars['ins']=service_ins
+    session = context['session']
+    service_ins = session.query(App).filter(App.app_id == id)[0]
+    extra_vars['ins'] = service_ins
+    extra_vars['appserver_host'] = appserver_host
+    log.debug(appserver_host)
     return base.render('service/read.html', extra_vars)
+
 
 class CreateServiceView(MethodView):
     u'''Create service view '''
@@ -400,12 +409,12 @@ class CreateServiceView(MethodView):
                 dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
             ))
             data_dict['type'] = 'Server'
-            data_dict['slug_name']=slug.slug(data_dict['app_name'])
+            data_dict['slug_name'] = slug.slug(data_dict['app_name'])
             # data_dict['port2port']= '%s:%d'%(data_dict['port'],random.randint(10000, 60000))
             # data_dict['port2port']= '%s:%d'%(data_dict['port'],random.randint(10000, 60000))
-            data_dict['owner']=context['user']
-            data_dict['status']='Pending'
-            data_dict['language']='DockerImage'
+            data_dict['owner'] = context['user']
+            data_dict['status'] = 'Pending'
+            data_dict['language'] = 'DockerImage'
             service = _action(u'service_create')(context, data_dict)
         except (NotFound, NotAuthorized) as e:
             base.abort(404, _(u'Service not found'))
@@ -447,6 +456,8 @@ class CreateServiceView(MethodView):
 
         extra_vars["form"] = form
         return base.render('service/new.html', extra_vars)
+
+
 class CreateFromCodeServiceView(MethodView):
     u'''Create service view '''
 
@@ -480,19 +491,17 @@ class CreateFromCodeServiceView(MethodView):
             """
                 chuyen qua cho Cuong
             """
-            # codeFile=data_dict['codeFile'].read()
-            # data_request={'codeFile':('name1',codeFile,'application/octet-stream')}
-            data_dict['type']='Batch'
-            data_dict['slug_name']=slug.slug(data_dict['app_name'])
-            data_dict['image']=data_dict['slug_name']
-            data_dict['owner']=context['user']
-            data_dict['json_input']='json_input' in data_dict
+            data_dict['type'] = 'Batch'
+            data_dict['slug_name'] = slug.slug(data_dict['app_name'])
+            data_dict['image'] = data_dict['slug_name']
+            data_dict['owner'] = context['user']
+            data_dict['json_input'] = 'json_input' in data_dict
             data_dict['binary_input'] = 'binary_input' in data_dict
-            data_dict['json_input']= True if not (data_dict['json_input'] or data_dict['binary_input']) else data_dict['binary_input']
-            # data_dict['data_request']= data_request
+            data_dict['json_input'] = True if not (data_dict['json_input'] or data_dict['binary_input']) else data_dict[
+                'binary_input']
             _action(u'service_create')(context, data_dict)
 
-        except (NotFound, NotAuthorized,ValidationError,dict_fns.DataError) as e:
+        except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
             base.abort(404, _(u'Not found'))
 
         return h.redirect_to(u'service.index')
@@ -516,7 +525,7 @@ class CreateFromCodeServiceView(MethodView):
         }
         _setup_template_variables(
             context, data, group_type=group_type)
-        extra_vars["is_code"]=True;
+        extra_vars["is_code"] = True;
         form = base.render(
             'service/new_service_form.html', extra_vars)
 
@@ -527,12 +536,15 @@ class CreateFromCodeServiceView(MethodView):
 
         extra_vars["form"] = form
         return base.render('service/new.html', extra_vars)
+
+
 # def getResult(id):
 #     ins=AppResult.query().filter(id=id)
 #     return ins.stdout
 service = Blueprint(u'service', __name__, url_prefix=u'/service',
-                  url_defaults={u'group_type': u'service',
-                                u'is_organization': False})
+                    url_defaults={u'group_type': u'service',
+                                  u'is_organization': False})
+
 
 def register_group_plugin_rules(blueprint):
     blueprint.add_url_rule(u'/', view_func=index, strict_slashes=False)
@@ -546,4 +558,20 @@ def register_group_plugin_rules(blueprint):
         view_func=CreateFromCodeServiceView.as_view(str(u'new_from_code')))
     blueprint.add_url_rule(u'/<id>', methods=[u'GET'], view_func=read)
 
+
 register_group_plugin_rules(service)
+
+@service.route('/<string:id>/delete', methods=['GET','POST'])
+def delete(id, group_type, is_organization):
+    print id
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user,
+    }
+    deleteAppARelevant(context[u'session'],id)
+    return h.redirect_to(u'service.index')
+@service.route('/huhu/huhu', methods=['GET','POST'])
+def abc(group_type, is_organization):
+    print "asd"
+    return  base.render('page.html')

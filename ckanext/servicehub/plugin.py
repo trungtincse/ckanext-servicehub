@@ -6,11 +6,16 @@ import ckanext.servicehub.auth.create as create_auth
 import ckanext.servicehub.action.create as create
 import ckanext.servicehub.action.read as read
 import ckanext.servicehub.action.request_handle as request_handle
+
+from ckanext.servicehub.test.main import main
+
+
 class ServicehubPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IActions)
+
     # plugins.implements(plugins.IMiddleware)
     # IConfigurer
 
@@ -28,12 +33,13 @@ class ServicehubPlugin(plugins.SingletonPlugin):
         # return serviceweb.service_web
 
     def get_auth_functions(self):
-        return {'service_create':create_auth.service_create}
+        return {'service_create': create_auth.service_create}
+
     def get_actions(self):
-        return {'service_create':create.service_create,
-                'service_list':read.service_list,
-                'service_show':read.service_show,
-                'service_handle':request_handle.service_handle
+        return {'service_create': create.service_create,
+                'service_list': read.service_list,
+                'service_show': read.service_show,
+                'service_handle': request_handle.service_handle
                 }
 
     # def make_middleware(self, app, config):
@@ -49,3 +55,5 @@ class ServicehubPlugin(plugins.SingletonPlugin):
     #         api.add_resource(HelloWorld, '/')
 
 
+# test zone
+main()

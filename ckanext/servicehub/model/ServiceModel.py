@@ -20,7 +20,7 @@ class Call(Base):
                      primary_key=True,
                      default=_types.make_uuid)
     call_user = Column(types.UnicodeText)
-    app_id = Column(types.UnicodeText)
+    app_id = Column(types.UnicodeText,ForeignKey('app_info.app_id'))
     container_id = Column(types.UnicodeText)
     status = Column(types.UnicodeText)
     duration = Column(types.BIGINT)
@@ -63,7 +63,7 @@ class App(Base):
     type = Column(types.UnicodeText)
     slug_name = Column(types.UnicodeText)
     image = Column(types.UnicodeText)
-    owner = Column(types.UnicodeText)
+    owner = Column(types.UnicodeText,ForeignKey('user.name'))
     description = Column(types.UnicodeText)
     port2port = Column(types.UnicodeText)  # optional
     language = Column(types.UnicodeText)  # optional
@@ -135,3 +135,6 @@ class AppPort(Base):
             .filter_by(name=name).first()
         return obj
 
+#main-zone
+def main():
+    Call.__table__.create(engine)

@@ -9,8 +9,9 @@ from ckanext.servicehub.model.ServiceModel import App, AppPort
 import ckan.lib.plugins as lib_plugins
 import ckan.logic as logic
 import ckan.lib.navl.dictization_functions
-import ckan.lib.uploader as uploader
 import ckan.lib.datapreview
+from ckan.common import config
+from ckanext.servicehub.upload.CodeUploader import CodeUploader
 
 log = logging.getLogger(__name__)
 _validate = ckan.lib.navl.dictization_functions.validate
@@ -20,9 +21,8 @@ ValidationError = logic.ValidationError
 NotFound = logic.NotFound
 _get_or_bust = logic.get_or_bust
 import os
-# host= os.getenv('APP_SERVER_HOST')
-# appserver_host='http://%s'%host
-appserver_host='http://0.0.0.0:5001'
+
+appserver_host=config.get('ckan.servicehub.appserver_host')
 def service_create(context, data_dict):
     _check_access('service_create', context, data_dict)
     return _service_create(context, data_dict)
@@ -67,13 +67,14 @@ def _service_create(context, data_dict):
         session = context['session']
         session.add(ins)
         session.commit()
-        requestCreateBatch(ins,data_dict['codeFile'])
+        requestCreateBatch(ins,codeFile=data_dict['codeFile'],slug_name=data_dict['slug_name'],owner=data_dict['owner'])
 def requestCreateServer(instance):
     url='%s/app/new/server/%s'%(appserver_host,instance.app_id)
     print url
     response=requests.post(url)
     # return rps
-def requestCreateBatch(instance,data_request):
+def requestCreateBatch(instance,**kwargs):
     url='%s/app/new/batch/%s'%(appserver_host,instance.app_id)
-    print url
-    response=requests.post(url=url,data=data_request.read()).json()
+    uploader=CodeUploader(kwargs['codeFile'],kwargs['owner'],kwargs['slug_name'])
+    uploader.upload()
+    response=requests.post(url=url,data=kwargs['codeFile'].read()).json()

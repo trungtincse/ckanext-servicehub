@@ -1,58 +1,77 @@
-{% extends "service/read_base.html" %}
+{% extends "page.html" %}
 {% import 'macros/form.html' as form %}
-{% block primary_content_inner %}
-
-  {% block package_additional_info %}
-    {% snippet "service/snippets/additional_info.html", pkg_dict=ins %}
-  {% endblock %}
 
 
-  {% resource 'servicehub/ServiceRequest.js' %}
-  <div class="request-zone">
-    {% if ins['type']=="Batch" %}
-      {% if ins.json_input %}
-        <a class="btn btn-success" onclick="addCustomField()"><i class="fa fa-plus-square"></i> Add Custom field
-        </a>
-      {% endif %}
-      <form id="request-form" class="dataset-form" method="post" action="/call/create" data-module="basic-form"
-            novalidate="" enctype="multipart/form-data">
-        {% if ins.json_input %}
-          <div id="custom-zone">
-            {{ form.custom(
+
+{% block breadcrumb_content %}
+  <li>{% link_for _('Services'), named_route=group_type+'.index' %}</li>
+  <li class="active">{% link_for group_dict.display_name|truncate(35), named_route=group_type+'.read', id=group_dict.name %}</li>
+{% endblock %}
+
+
+{% block content_action %}{% endblock %}
+
+
+{% block primary %}
+  <div class="primary col-12">
+    <article class="module">
+      <header class="module-content page-header">
+        <div class="content_action md-ml-10 md-mb-10">
+          <a class="btn btn-danger" href="/service/{{ ins.app_id }}/delete"><i class="fa fa-trash"></i> Delete</a>
+        </div>
+        <div class="content_action md-mb-10">
+          <a class="btn btn-default" href="/dataset/edit/student"><i class="fa fa-wrench"></i> Manage</a>
+        </div>
+      </header>
+      <div class="module-content">
+        <div class=" md-ml-10">
+          {% snippet "service/snippets/additional_info.html", pkg_dict=ins %}
+        </div>
+        <div class="request-zone md-ml-10">
+          {% if ins['type']=="Batch" %}
+            {% if ins.json_input %}
+              <a class="btn btn-success" onclick="addCustomField()"><i class="fa fa-plus-square"></i> Add Custom field
+              </a>
+            {% endif %}
+            <form id="request-form" class="dataset-form" method="post" action="/call/create" data-module="basic-form"
+                  novalidate="" enctype="multipart/form-data">
+              {% if ins.json_input %}
+                <div id="custom-zone">
+                  {{ form.custom(
             names=('custom_key', 'custom_value', 'custom_deleted'),
             id='field-custom',
             label=_('Custom Field'),
             values=(),
             error=error ) }}
-          </div>
-        {% endif %}
-        <input type="hidden" name="app_id" value="{{ ins.app_id }}">
-        {% if ins.binary_input %}
-          <label for="binary_input">File</label>
-          <input type="file" name="binary_input" class="form-control">
-        {% endif %}
-        <button class="btn btn-primary" type="submit">Send</button>
-      </form>
-    {% else %}
-      <label for="">Site page</label>
-      <p>http://localhost:{{ ins.port2port.split(":")[0]}}</p>
-    {% endif %}
+                </div>
+              {% endif %}
+              <input type="hidden" name="app_id" value="{{ ins.app_id }}">
+              {% if ins.binary_input %}
+                <label for="binary_input">File</label>
+                <input type="file" name="binary_input" class="form-control">
+              {% endif %}
+              <button class="btn btn-primary" type="submit">Send</button>
+            </form>
+          {% else %}
+            <label for="">Site page</label>
+            <p>http://localhost:{{ ins.port2port.split(":")[0] }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </article>
   </div>
+
 {% endblock %}
 
-{% block secondary_content %}
-  {{ super() }}
-  <div class="filters">
-    <div>
-      {% for facet in facet_titles %}
-        {{ h.snippet('snippets/facet_list.html', title=facet_titles[facet], name=facet, extras={'id':group_dict.id}) }}
-      {% endfor %}
-    </div>
-    <a class="close no-text hide-filters"><i class="fa fa-times-circle"></i><span class="text">close</span></a>
-  </div>
-{% endblock %}
+
+
+{% block secondary %}{% endblock %}
+
+
 
 {% block scripts %}
+  {{ super() }}
+  {% resource 'servicehub/css/medium-space-util.css' %}
   <script>
     function addCustomField() {
       $('#custom-zone').append(`
@@ -63,6 +82,61 @@
               values=(),
               error=error ) }}
             `);
+    }
+
+    function requestService(action_url, name, port, form) {
+      data = $(form).serialize();
+      $($.ajax({
+        url: action_url,
+        type: 'post',
+        data: {url_part: `${name}:${port}/proxy/?${data}`},
+        success: function (rs) {
+          //whatever you wanna do after the form is successfully submitted
+          alert(rs['result']);
+        }
+      }));
+    }
+
+    function requestCodeService(dom, name) {
+      data = dom.val();
+      var settings = {
+        "url": `{{appserver_host}}/execute/${name}`,
+        "method": "POST",
+        "timeout": 0,
+        "data": data,
+      };
+
+      $.ajax(settings).done(function (response) {
+        if (response["error"] != "")
+          alert(response["error"]);
+        else {
+          callId = response["callId"]
+          saveResult(callId);
+        }
+      });
+    }
+
+
+    function getResult(callId) {
+      var settings = {
+        "url": `/call/60fe7d3d-287f-11ea-909d-9f18f0f391fc`,
+        "method": "GET",
+        "timeout": 0,
+      };
+      $.ajax(settings).done(function (response) {
+        console.log(response);
+      });
+    }
+
+    function createCall() {
+      var settings = {
+        "url": `/call/create/${callId}`,
+        "method": "POST",
+        "timeout": 0,
+      };
+      $.ajax(settings).done(function (response) {
+        console.log(response);
+      });
     }
   </script>
 {% endblock %}

@@ -2,3 +2,5 @@ flake8    # for the travis build
 pyyaml
 requests
 slug
+pymongo
+dnspython

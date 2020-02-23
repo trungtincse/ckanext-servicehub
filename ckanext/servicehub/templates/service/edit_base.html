@@ -25,3 +25,9 @@
   {% snippet "service/snippets/info.html", group=group_dict, show_nums=false %}
 {% endblock %}
 
+{% block scripts %}
+  {{ super() }}
+  {% resource "servicehub/css/medium-space-util.css" %}
+  {% resource "servicehub/css/sweetalert.css" %}
+  {% resource "servicehub/js/sweetalert.js" %}
+{% endblock %}

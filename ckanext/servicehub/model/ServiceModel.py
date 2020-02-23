@@ -10,7 +10,7 @@ import ckan.plugins.toolkit as tk
 Base = declarative_base()
 engine = create_engine(
     tk.config.get('sqlalchemy.url') or "postgresql://ckan_default:ckan_default@localhost/ckan_default")
-Session = sessionmaker(bind=engine)
+# Session = sessionmaker(bind=engine)
 
 
 class Call(Base):
@@ -20,37 +20,20 @@ class Call(Base):
                      primary_key=True,
                      default=_types.make_uuid)
     call_user = Column(types.UnicodeText)
-    app_id = Column(types.UnicodeText,ForeignKey('app_info.app_id'))
+    app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id'))
     container_id = Column(types.UnicodeText)
     status = Column(types.UnicodeText)
-    duration = Column(types.BIGINT)
-    stdout = Column(types.UnicodeText)
-    stderr = Column(types.UnicodeText)
+    input_id = Column(types.UnicodeText)
+    output_id = Column(types.UnicodeText)
 
-    def __init__(self, call_user, app_id,status):
+    def __init__(self, call_user, app_id,container_id=None, status="PENDING",input_id=None,output_id=None):
+        self.call_id = _types.make_uuid()
         self.call_user = call_user
         self.app_id = app_id
-        self.call_id=_types.make_uuid()
-        self.status=status
-
-    @classmethod
-    def get(cls, reference):
-        '''Returns a group object referenced by its id or name.'''
-        session = Session()
-        if not reference:
-            return None
-
-        member = session.query(cls).get(reference)
-        if member is None:
-            member = cls.by_name(reference)
-        return member
-
-    @classmethod
-    def by_name(cls, name, autoflush=True):
-        session = Session()
-        obj = session.query(cls).autoflush(autoflush) \
-            .filter_by(name=name).first()
-        return obj
+        self.status = status
+        self.container_id = container_id
+        self.input_id=input_id
+        self.output_id=output_id
 
 
 class App(Base):
@@ -61,80 +44,34 @@ class App(Base):
                     default=_types.make_uuid)
     app_name = Column(types.UnicodeText)
     type = Column(types.UnicodeText)
-    slug_name = Column(types.UnicodeText)
+    slug_name = Column(types.UnicodeText,unique=True)
     image = Column(types.UnicodeText)
-    owner = Column(types.UnicodeText,ForeignKey('user.name'))
+    owner = Column(types.UnicodeText)
     description = Column(types.UnicodeText)
-    port2port = Column(types.UnicodeText)  # optional
-    language = Column(types.UnicodeText)  # optional
-    json_input = Column(types.Boolean)  # optional
-    binary_input = Column(types.Boolean)  # optional
-    status = Column(types.UnicodeText)  # optional
+    s_port = Column(types.UnicodeText)  # optional server
+    d_port = Column(types.UnicodeText,unique=True)  # optional server
+    language = Column(types.UnicodeText)  # optional batch
+    status = Column(types.UnicodeText)  # optional both
 
-    def __init__(self, app_name, type, slug_name, image,description,owner,language, port2port=None, json_input=None,
-                 binary_input=None, status=None):
+    def __init__(self, app_name, type, slug_name, image, owner, description,
+                 s_port=None,d_port=None,language=None , status="PENDING"):
+        self.app_id = _types.make_uuid()
         self.app_name = app_name
         self.type = type
         self.slug_name = slug_name
         self.image = image
-        self.port2port = port2port
+        self.s_port = s_port
+        self.d_port = d_port
         self.language = language
-        self.json_input = json_input
-        self.binary_input = binary_input
         self.status = status
-        self.description=description
-        self.owner=owner
-        self.app_id=_types.make_uuid()
-    @classmethod
-    def get(cls, reference):
-        '''Returns a group object referenced by its id or name.'''
-        session = Session()
-        if not reference:
-            return None
+        self.description = description
+        self.owner = owner
+        self.app_id = _types.make_uuid()
 
-        member = session.query(cls).get(reference)
-        if member is None:
-            member = cls.by_name(reference)
-        return member
 
-    @classmethod
-    def by_name(cls, name, autoflush=True):
-        session = Session()
-        obj = session.query(cls).autoflush(autoflush) \
-            .filter_by(app_id=name).first()
-        return obj
-class AppPort(Base):
-    __tablename__ = 'app_port'
 
-    id = Column(types.UnicodeText,
-                    primary_key=True,
-                    default=_types.make_uuid)
-    app_id = Column(types.UnicodeText)
-    port = Column(types.UnicodeText)
-
-    def __init__(self,app_id,port):
-        self.id=_types.make_uuid()
-        self.app_id=app_id
-        self.port=port
-    @classmethod
-    def get(cls, reference):
-        '''Returns a group object referenced by its id or name.'''
-        session = Session()
-        if not reference:
-            return None
-
-        member = session.query(cls).get(reference)
-        if member is None:
-            member = cls.by_name(reference)
-        return member
-
-    @classmethod
-    def by_name(cls, name, autoflush=True):
-        session = Session()
-        obj = session.query(cls).autoflush(autoflush) \
-            .filter_by(name=name).first()
-        return obj
-
-#main-zone
+# main-zone
 def main():
-    Call.__table__.create(engine)
+    # App.__table__.create(engine)
+    # Call.__table__.create(engine)
+    pass

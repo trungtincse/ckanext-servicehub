@@ -30,6 +30,7 @@ import ckan.lib.datapreview as datapreview
 import ckan.authz as authz
 
 from ckan.common import _
+from ckanext.servicehub.model import MongoClient
 
 log = logging.getLogger('ckan.logic')
 
@@ -161,9 +162,12 @@ def _unpick_search(sort, allowed_fields=None, total=None):
     return sorts
 def service_show(context, data_dict):
     model = context['model']
+    session=context['session']
     id = _get_or_bust(data_dict, 'id')
 
-    service = App.get(id)
+    # service = App.get(id)
+    service= session.query(App).filter(App.app_id==id).first()
+    reqForm=MongoClient.findReqForm(id)
     context['service'] = service
 
     if asbool(data_dict.get('include_datasets', False)):
@@ -187,8 +191,6 @@ def service_show(context, data_dict):
 
     if service is None:
         raise NotFound
-    # TODO
-    # _check_access('service_show', context, data_dict)
     group_dict = service_dictize(service, context,
                                              packages_field=packages_field,
                                              include_tags=include_tags,
@@ -200,26 +202,4 @@ def service_show(context, data_dict):
 
     for item in plugins.PluginImplementations(plugin_type):
         item.read(service)
-
-    # group_plugin = lib_plugins.lookup_group_plugin(group_dict['type'])
-    # try:
-    #     schema = group_plugin.db_to_form_schema_options({
-    #         'type': 'show',
-    #         'api': 'api_version' in context,
-    #         'context': context})
-    # except AttributeError:
-    #     schema = group_plugin.db_to_form_schema()
-
-    # if include_followers:
-    #     group_dict['num_followers'] = logic.get_action('group_follower_count')(
-    #         {'model': model, 'session': model.Session},
-    #         {'id': group_dict['id']})
-    # else:
-    #     group_dict['num_followers'] = 0
-
-    # if schema is None:
-    #     schema = logic.schema.default_show_group_schema()
-    # group_dict, errors = lib_plugins.plugin_validate(
-    #     group_plugin, context, group_dict, schema,
-    #     'service_show')
     return group_dict

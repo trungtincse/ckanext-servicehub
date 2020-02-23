@@ -380,7 +380,7 @@ def read(group_type, is_organization, id=None, limit=20):
     return base.render('service/read.html', extra_vars)
 
 
-class CreateServiceView(MethodView):
+class  CreateServiceView(MethodView):
     u'''Create service view '''
 
     def _prepare(self, data=None):
@@ -486,19 +486,12 @@ class CreateFromCodeServiceView(MethodView):
             data_dict.update(clean_dict(
                 dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
             ))
-            print "aasaas"
-            # print request.files
-            """
-                chuyen qua cho Cuong
-            """
+
+            print data_dict
             data_dict['type'] = 'Batch'
             data_dict['slug_name'] = slug.slug(data_dict['app_name'])
             data_dict['image'] = data_dict['slug_name']
             data_dict['owner'] = context['user']
-            data_dict['json_input'] = 'json_input' in data_dict
-            data_dict['binary_input'] = 'binary_input' in data_dict
-            data_dict['json_input'] = True if not (data_dict['json_input'] or data_dict['binary_input']) else data_dict[
-                'binary_input']
             _action(u'service_create')(context, data_dict)
 
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:

@@ -1,11 +1,12 @@
-from ckanext.servicehub.view import ServiceController, CallController, UserController, TestController, AppServer
+from ckanext.servicehub.view import ServiceController, CallController, UserController, TestController, AppServer, \
+    FileServingController
 
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import ckanext.servicehub.auth.create as create_auth
 import ckanext.servicehub.action.create as create
 import ckanext.servicehub.action.read as read
-import ckanext.servicehub.action.request_handle as request_handle
+# import ckanext.servicehub.action.request_handle as request_handle
 
 from ckanext.servicehub.test.main import main
 
@@ -29,8 +30,9 @@ class ServicehubPlugin(plugins.SingletonPlugin):
                 CallController.call_blueprint,
                 UserController.user_blueprint,
                 TestController.test_blueprint,
-                AppServer.appserver_blueprint]
-        # return serviceweb.service_web
+                AppServer.appserver_blueprint,
+                FileServingController.file_blueprint
+                ]
 
     def get_auth_functions(self):
         return {'service_create': create_auth.service_create}
@@ -38,8 +40,7 @@ class ServicehubPlugin(plugins.SingletonPlugin):
     def get_actions(self):
         return {'service_create': create.service_create,
                 'service_list': read.service_list,
-                'service_show': read.service_show,
-                'service_handle': request_handle.service_handle
+                'service_show': read.service_show
                 }
 
     # def make_middleware(self, app, config):

@@ -8,19 +8,11 @@
   {% block basic_fields %}
     {% set attrs = {'data-module': 'slug-preview-target', 'class': 'form-control'} %}
     {{ form.input('app_name', label=_('Name'), id='field-name', placeholder=_('Service A or Stack A'), value=data.title, error=errors.title, classes=['control-full'], attrs=attrs,is_required=True) }}
-
+    {{ form.input('avatar', label='Choose avatar', id='avatar', type='file', classes=['control-full'],is_required=True) }}
     {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('A little information about my group...'), value=data.description, error=errors.description) }}
 
-{#    {% set is_upload = data.image_url and not data.image_url.startswith('http') %}#}
-{#    {% set is_url = data.image_url and data.image_url.startswith('http') %}#}
-{#    {{ form.image_upload(data, errors, is_upload_enabled=h.uploads_enabled(), is_url=is_url, is_upload=is_upload) }}#}
   {% endblock %}
 
-{#    {% block kubernetes_fields %}#}
-{#          {{ form.input('pod_json', label='Pod yaml file', id='pod-json-upload', type='file', placeholder='', value='', error='', classes=['control-full'],is_required=True) }}#}
-{#          {{ form.input('service_json', label='Service yaml file', id='service-json-upload', type='file', placeholder='', value='', error='', classes=['control-full'],is_required=True) }}#}
-{#          {{ form.input('api_json', label='API description yaml file', id='api-json-upload', type='file', placeholder='', value='', error='', classes=['control-full'],is_required=True) }}#}
-{#    {% endblock %}#}
 <label class="control-label" for="image"><span title="This field is required" class="control-required">*</span> Image link</label>
   <input type="text" name="image" id="image" class="form-control">
 <label class="control-label" for="port"><span title="This field is required" class="control-required">*</span> Port</label>

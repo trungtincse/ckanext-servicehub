@@ -1,0 +1,42 @@
+{% extends "page.html" %}
+{% import 'macros/form.html' as form %}
+
+
+
+{% block breadcrumb_content %}
+  <li>{% link_for _('Call'), named_route='call.index' %}</li>
+  {#  <li class="active">{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>#}
+{% endblock %}
+
+
+{% block content_action %}{% endblock %}
+
+
+{% block primary %}
+  <ul class="media-grid" data-module="media-grid">
+  {% for ins in results %}
+    <li class="media-item">
+      <div class="card">
+        <div class="card-block row">
+          <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+            <h4><b>{{ins[1].app_name}}</b></h4>
+            <a href="/call/{{ins[0].call_id}}" class="btn btn-default">GO TO</a>
+          </div>
+        </div>
+      </div>
+    </li>
+  {% endfor %}
+
+
+  </ul>
+{% endblock %}
+
+
+
+{% block secondary %}{% endblock %}
+
+
+
+{% block scripts %}
+  {{ super() }}
+{% endblock %}

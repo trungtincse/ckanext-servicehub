@@ -1,22 +1,31 @@
 import requests
+from werkzeug.datastructures import FileStorage
 
 from ckan.lib import helpers
-from flask import Blueprint
+from flask import Blueprint, Response
 import json
 from ckanext.servicehub.model.ServiceModel import Call
 import ckan.lib.base as base
-from ckan import model
+from ckan import model, logic
 from ckan.common import g, request, config
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
 
+get_action = logic.get_action
+NotFound = logic.NotFound
+NotAuthorized = logic.NotAuthorized
+ValidationError = logic.ValidationError
+check_access = logic.check_access
+tuplize_dict = logic.tuplize_dict
+clean_dict = logic.clean_dict
+parse_params = logic.parse_params
 appserver_host = config.get('ckan.servicehub.appserver_host')
 
 call_blueprint = Blueprint(u'call', __name__, url_prefix=u'/call')
 
 
-@call_blueprint.route('/create', methods=["POST"])
-def create():
+@call_blueprint.route('/create/<app_id>', methods=["POST"])
+def create(app_id):
     context = {
         u'model': model,
         u'session': model.Session,
@@ -31,20 +40,12 @@ def create():
     data_dict.update(clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
     ))
+    data_dict["app_id"]=app_id
+    get_action(u'call_create')(context, data_dict)
 
-    json = dict(zip(data_dict['custom_key'], data_dict['custom_value']))
-    files = data_dict['binary_input'] if 'binary_input' in data_dict else None
-    if 'binary_input' in data_dict:
-        if data_dict['binary_input'] == "":
-            files = None
+    # requestCallBatch(ins, json, files)
 
-    # print data_dict
-    ins = Call(user, data_dict["app_id"], "Pending");
-    session.add(ins)
-    session.commit()
-    requestCallBatch(ins, json, files)
-
-    return helpers.redirect_to('service_user.user_service_request', user=user)
+    return helpers.redirect_to('call.index')
 
 
 def requestCallBatch(instance, data, files=None):
@@ -75,3 +76,26 @@ def pretty_print_POST(req):
         '\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
         req.body,
     ))
+
+
+# @call_blueprint.route('/<user_id>/notify', methods=["POST"])
+# def notify(user_id):
+
+@call_blueprint.route('/view', methods=["GET"])
+def index():
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    results = get_action(u'call_list')(context, dict())
+    return base.render('call/index.html', dict(results=results, len=len(results)))
+@call_blueprint.route('/read/<id>', methods=["GET"])
+def read():
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    instance = get_action(u'call_show')(context, dict(id=id))
+    return base.render('call/index.html', dict(ins=instance))

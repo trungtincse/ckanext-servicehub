@@ -11,12 +11,12 @@
       {% block package_additional_info %}
           <tr>
             <th scope="row" class="dataset-label">{{ _("ID") }}</th>
-            <td class="dataset-details" property="dc:creator">{{ pkg_dict.id }}</td>
+            <td class="dataset-details" property="dc:creator">{{ pkg_dict.app_id }}</td>
           </tr>
 
           <tr>
             <th scope="row" class="dataset-label">{{ _("Name") }}</th>
-            <td class="dataset-details" property="dc:creator">{{ pkg_dict.name }}</td>
+            <td class="dataset-details" property="dc:creator">{{ pkg_dict.app_name }}</td>
           </tr>
 
           <tr>

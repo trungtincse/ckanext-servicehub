@@ -3,49 +3,28 @@
 {% block subtitle %}{{ _('Services') }}{% endblock %}
 
 {% block breadcrumb_content %}
-  <li class="active">{% link_for _('Services'), named_route=group_type+'.index' %}</li>
+  <li class="active">{% link_for _('Services'), named_route='service.index' %}</li>
 {% endblock %}
 
 {% block page_header %}{% endblock %}
 {% block page_primary_action %}
   {% if h.check_access('service_create') %}
-    {% link_for _('Add Service From Image'), named_route=group_type+'.new', class_='btn btn-primary', icon='plus-square' %}
-    {% link_for _('Add Service From Code'), named_route=group_type+'.new_from_code', class_='btn btn-primary', icon='plus-square' %}
+    {% link_for _('Add Service From Image'), named_route='service.new', class_='btn btn-primary', icon='plus-square' %}
+    {% link_for _('Add Service From Code'), named_route='service.new_from_code', class_='btn btn-primary', icon='plus-square' %}
 
   {% endif %}
 {% endblock %}
 
 {% block primary_content_inner %}
   <h1 class="hide-heading">{{ _('Services') }}</h1>
-  {% block groups_search_form %}
-    {#TODO#}
-    {% snippet 'snippets/search_form.html', form_id='service-search-form', type='service', query=q, sorting_selected=sort_by_selected, count=page.item_count, placeholder=_('Search services...'), show_empty=request.params, no_bottom_border=true if page.items, sorting = [(_('Name Ascending'), 'title asc'), (_('Name Descending'), 'title desc')] %}
-  {% endblock %}
-  {% block groups_list %}
-    {% if page.items or request.params %}
-      {% if page.items %}
-        {% snippet "service/snippets/service_list.html", groups=page.items %}
-      {% endif %}
-    {% else %}
-      <p class="empty">
-        {{ _('There are currently no services for this site') }}.
-        {% if h.check_access('service_create') %}
-          {% link_for _('How about creating one?'), named_route=group_type+'.new' %}</a>.
-        {% endif %}
-      </p>
-    {% endif %}
-  {% endblock %}
-  {% block page_pagination %}
-    {{ page.pager(q=q or '', sort=sort_by_selected or '') }}
-  {% endblock %}
+
+  {% if len >0 %}
+    {% snippet "service/snippets/service_list.html", services=results %}
+  {% endif %}
 {% endblock %}
 
 {% block secondary_content %}
   {% snippet "service/snippets/helper.html" %}
 {% endblock %}
 
-{% block scripts %}
-  {{ super() }}
-  {% resource 'servicehub/js/jquery.cookie.js' %}
-{% endblock %}
 

@@ -25,7 +25,4 @@ overriding the form blocks depending on the current context
 
 {% block delete_button %}
   {% if action == "edit" %}{{ super() }}{% endif %}
-<script>
-  console.log("{{is_code}}");
-</script>
 {% endblock %}

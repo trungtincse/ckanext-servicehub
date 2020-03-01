@@ -6,9 +6,6 @@ import ckan.plugins.toolkit as toolkit
 import ckanext.servicehub.auth.create as create_auth
 import ckanext.servicehub.action.create as create
 import ckanext.servicehub.action.read as read
-# import ckanext.servicehub.action.request_handle as request_handle
-
-from ckanext.servicehub.test.main import main
 
 
 class ServicehubPlugin(plugins.SingletonPlugin):
@@ -39,22 +36,15 @@ class ServicehubPlugin(plugins.SingletonPlugin):
 
     def get_actions(self):
         return {'service_create': create.service_create,
+                'call_create': create.call_create,
                 'service_list': read.service_list,
-                'service_show': read.service_show
+                'service_show': read.service_show,
+                'call_show': read.call_show,
+                'service_req_form_show': read.service_req_form_show,
+                'call_list': read.call_list
                 }
 
     # def make_middleware(self, app, config):
     #     from ckan.config.middleware.flask_app import CKANFlask
     #     if isinstance(app,CKANFlask):
-    #         global  api
-    #         api=Api(app)
-    #
-    #         class HelloWorld(Resource):
-    #             def get(self):
-    #                 return {'hello': 'world'}
-    #
-    #         api.add_resource(HelloWorld, '/')
-
-
-# test zone
-main()
+    #         app.config["REDIS_URL"] = "redis://localhost"

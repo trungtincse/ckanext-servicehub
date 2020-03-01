@@ -4,8 +4,8 @@
 
 
 {% block breadcrumb_content %}
-  <li>{% link_for _('Services'), named_route=group_type+'.index' %}</li>
-  <li class="active">{% link_for group_dict.display_name|truncate(35), named_route=group_type+'.read', id=group_dict.name %}</li>
+  <li>{% link_for _('Services'), named_route='service.index' %}</li>
+  <li class="active">{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
 {% endblock %}
 
 
@@ -20,47 +20,100 @@
           <a class="btn btn-danger" href="/service/{{ ins.app_id }}/delete"><i class="fa fa-trash"></i> Delete</a>
         </div>
         <div class="content_action md-mb-10">
-          <a class="btn btn-default" href="/dataset/edit/student"><i class="fa fa-wrench"></i> Manage</a>
+          <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i class="fa fa-wrench"></i> Manage</a>
         </div>
       </header>
       <div class="module-content">
         <div class=" md-ml-10">
           {% snippet "service/snippets/additional_info.html", pkg_dict=ins %}
         </div>
-        <div class="request-zone md-ml-10">
+        <div class=" md-ml-10">
+          <h3>Status</h3>
+          <label class="label label-warning">PENDING</label>
+          <label class="label label-danger">STOP SERVING</label>
+        </div>
+        <div class=" md-ml-10">
+          <h3>Description</h3>
+          <p>{{ ins.description }}</p>
+        </div>
+        <div class="request-zone md-ml-10" style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px;">
           {% if ins['type']=="Batch" %}
-            {% if ins.json_input %}
-              <a class="btn btn-success" onclick="addCustomField()"><i class="fa fa-plus-square"></i> Add Custom field
-              </a>
-            {% endif %}
-            <form id="request-form" class="dataset-form" method="post" action="/call/create" data-module="basic-form"
+            <h3>Request Form</h3>
+            <form id="request-form" class="dataset-form md-mb-15" method="post" action="/call/create/{{ ins.app_id }}" data-module="basic-form"
                   novalidate="" enctype="multipart/form-data">
-              {% if ins.json_input %}
-                <div id="custom-zone">
-                  {{ form.custom(
-            names=('custom_key', 'custom_value', 'custom_deleted'),
-            id='field-custom',
-            label=_('Custom Field'),
-            values=(),
-            error=error ) }}
-                </div>
-              {% endif %}
-              <input type="hidden" name="app_id" value="{{ ins.app_id }}">
-              {% if ins.binary_input %}
-                <label for="binary_input">File</label>
-                <input type="file" name="binary_input" class="form-control">
-              {% endif %}
+              <div class="form-row param">
+                {% for field in req_form.fields %}
+                  <div class="col-md-12 md-mb-10 md-mt-10">
+                    <label for="{{ field.name }}">{{ field.label }}</label>
+                    <input class="form-control" type="{{ field.type }}" name="{{ field.var_name }}">
+                  </div>
+                {% endfor %}
+              </div>
+
               <button class="btn btn-primary" type="submit">Send</button>
             </form>
           {% else %}
             <label for="">Site page</label>
-            <p>http://localhost:{{ ins.port2port.split(":")[0] }}</p>
+            {#            <p>http://localhost:{{ ins.port2port.split(":")[0] }}</p>#}
           {% endif %}
         </div>
       </div>
     </article>
   </div>
 
+
+  {#  modal  #}
+  <div class="modal fade" id="ManageModal" tabindex="-1" role="dialog" aria-labelledby="ManageModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ManageModalLabel">Service setting</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="service-setting-form" class="dataset-form" method="post" data-module="basic-form"
+                enctype="multipart/form-data" action={% url_for 'service.manage',id=ins.app_id %}>
+            <div class="form-group control-full">
+              <label class="control-label" for="field-description">Description</label>
+              <div class="controls editor">
+                <textarea id="field-description" name="description" cols="20" rows="5"
+                          placeholder="A little information about my service..."
+                          class="form-control">{{ ins.description }}</textarea>
+                <span class="editor-info-block">You can use <a href="#markdown" title="" data-target="popover"
+                                                               data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='text-muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>"
+                                                               data-html="true"
+                                                               data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
+              </div>
+            </div>
+            <div class="form-group control-full control-select">
+              <label class="control-label" for="mode">Choose mode for service:</label>
+              <div class="controls ">
+
+                <select id="mode" name="mode" class="form-control">
+
+                  <option value="STOP">Stop</option>
+
+                  <option value="TEST">Test</option>
+
+                  <option value="START">Start</option>
+
+                </select>
+
+
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" form="service-setting-form">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 
@@ -71,7 +124,11 @@
 
 {% block scripts %}
   {{ super() }}
-  {% resource 'servicehub/css/medium-space-util.css' %}
+  <style>
+    label:after {
+      content: "";
+    }
+  </style>
   <script>
     function addCustomField() {
       $('#custom-zone').append(`

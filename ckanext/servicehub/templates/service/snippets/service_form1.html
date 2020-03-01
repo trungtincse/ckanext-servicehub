@@ -6,9 +6,9 @@
 
   {% block basic_fields %}
     {% set attrs = {'data-module': 'slug-preview-target', 'class': 'form-control'} %}
-    {{ form.input('app_name', label=_('Name'), id='field-name', placeholder=_('Service A or Stack A'), value=data.title, error=errors.title, classes=['control-full'], attrs=attrs,is_required=True) }}
-
-    {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('A little information about my group...'), value=data.description, error=errors.description) }}
+    {{ form.input('app_name', label=_('Name'), id='field-name', placeholder=_('Service A or Stack A'), classes=['control-full'], attrs=attrs,is_required=True) }}
+    {{ form.input('avatar', label='Choose avatar', id='avatar', type='file', classes=['control-full'],is_required=True) }}
+    {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('A little information about my group...')) }}
 
   {% endblock %}
 

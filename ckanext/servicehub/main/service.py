@@ -4,6 +4,7 @@ from ckanext.servicehub.main.config_and_common import client_req, ServiceLanguag
 
 
 def create_service_sample(service_name):
+    #--------------CREATE_SAMPLE_HERE-------------------
     data_dict = {'app_name': service_name,
                  'language': ServiceLanguage.PYTHON,
                  'image': slug.slug(service_name),
@@ -11,16 +12,17 @@ def create_service_sample(service_name):
                  'service_type': ServiceType.BATCH,
                  'description': u'Create a Service'}
     request_form = [dict(label=u'Name',type= ParamType.TEXT,var_name= u'name'),
-                    dict(label=u'Count', type=ParamType.NUMBER, var_name=u'count')]
-                    # dict(label=u'File',type= ParamType.FILE,var_name= u'file')]
+                    dict(label=u'Count', type=ParamType.NUMBER, var_name=u'count'),
+                    dict(label=u'File',type= ParamType.FILE,var_name= u'file')]
 
     files = {
         'avatar': simple_img_file(),
         'codeFile': simple_binary_file()
     }
+    #----------------------------------------------------
     return (dict_to_tuple(data_dict, *request_form), files)
 
-
+########### main ############
 resp = client_req('service_create', *create_service_sample(u'service_name'))
 if 'error' in resp:
     print resp

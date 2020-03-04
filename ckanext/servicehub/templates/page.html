@@ -2,9 +2,13 @@
 {% block scripts %}
   {{ super() }}
   {% resource 'servicehub/css/medium-space-util.css' %}
-  {% resource 'servicehub/js/jquery.cookie.js' %}
   {% resource 'servicehub/css/card.css' %}
   {% resource "servicehub/css/sweetalert.css" %}
+
+
+
+
+  {% resource 'servicehub/js/jquery.cookie.js' %}
   {% resource "servicehub/js/sweetalert.js" %}
   {% if c.userobj %}
   {% endif %}

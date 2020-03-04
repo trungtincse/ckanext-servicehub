@@ -1,3 +1,6 @@
+import json
+from datetime import datetime
+
 from ckan.common import config
 from ckan.model import meta
 from ckan.model import types as _types
@@ -24,6 +27,7 @@ class Call(Base):
     app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id'))
     container_id = Column(types.UnicodeText)
     status = Column(types.UnicodeText)
+    create_at = Column(types.UnicodeText)  # optional both
 
     def __init__(self, call_user, app_id,container_id=None, status="PENDING"):
         self.call_id = _types.make_uuid()
@@ -31,6 +35,7 @@ class Call(Base):
         self.app_id = app_id
         self.status = status
         self.container_id = container_id
+        self.create_at=datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     def setOption(self,**kwargs):
         for k,v in kwargs.items():
             setattr(self, k, v)
@@ -53,6 +58,7 @@ class App(Base):
     language = Column(types.UnicodeText)  # optional batch
     code_url = Column(types.UnicodeText)  # optional batch
     status = Column(types.UnicodeText)  # optional both
+    create_at = Column(types.UnicodeText)  # optional both
 
     def __init__(self, app_name, type, slug_name, image, owner, description, status="PENDING"):
         self.app_id = _types.make_uuid()
@@ -64,14 +70,9 @@ class App(Base):
         self.description = description
         self.owner = owner
         self.app_id = _types.make_uuid()
+        self.create_at = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     def setOption(self,**kwargs):
         for k,v in kwargs.items():
             setattr(self, k, v)
 
-def main():
-    # App.__table__.drop(engine)
-    # Call.__table__.drop(engine)
-    # App.__table__.create(engine)
-    # Call.__table__.create(engine)
-    pass
 

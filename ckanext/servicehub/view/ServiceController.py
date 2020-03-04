@@ -32,9 +32,6 @@ is_org = False
 appserver_host = config.get('ckan.servicehub.appserver_host')
 
 
-
-
-
 def index():
     context = {
         u'model': model,
@@ -44,13 +41,9 @@ def index():
         u'with_private': False
     }
 
+    results = get_action(u'service_list')(context, dict())
 
-    results = get_action(u'service_list')(context,dict())
-
-    return base.render('service/index.html', dict(results=results,len=len(results)))
-
-
-
+    return base.render('service/index.html', dict(results=results, len=len(results)))
 
 
 def read(id):
@@ -61,7 +54,7 @@ def read(id):
         u'user': g.user
     }
     service_ins = get_action(u'service_show')(context, dict(id=id))
-    req_form = get_action(u'service_req_form_show')(context, dict(id=id))
+    req_form = get_action(u'reqform_show')(context, dict(app_id=id))
     print req_form
     extra_vars['req_form'] = req_form
     extra_vars['ins'] = service_ins
@@ -69,7 +62,7 @@ def read(id):
     return base.render('service/read.html', extra_vars)
 
 
-class  CreateServiceView(MethodView):
+class CreateServiceView(MethodView):
     u'''Create service view '''
 
     def _prepare(self, data=None):
@@ -91,9 +84,7 @@ class  CreateServiceView(MethodView):
             ))
             data_dict['service_type'] = 'Server'
             data_dict['slug_name'] = slug.slug(data_dict['app_name'])
-            data_dict['owner'] = context['user']
             data_dict['status'] = 'Pending'
-            data_dict['language'] = 'DockerImage'
             service = get_action(u'service_create')(context, data_dict)
         except (NotFound, NotAuthorized) as e:
             base.abort(404, _(u'Service not found'))
@@ -148,12 +139,9 @@ class CreateFromCodeServiceView(MethodView):
             data_dict.update(clean_dict(
                 dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
             ))
-
-            print data_dict
             data_dict['service_type'] = 'Batch'
             data_dict['slug_name'] = slug.slug(data_dict['app_name'])
             data_dict['image'] = data_dict['slug_name']
-            data_dict['owner'] = context['user']
             get_action(u'service_create')(context, data_dict)
 
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
@@ -174,7 +162,6 @@ class CreateFromCodeServiceView(MethodView):
         return base.render('service/new.html', extra_vars)
 
 
-
 service = Blueprint(u'service', __name__, url_prefix=u'/service')
 
 
@@ -193,15 +180,17 @@ def register_rules(blueprint):
 
 register_rules(service)
 
-@service.route('/<string:id>/delete', methods=['GET','POST'])
+
+@service.route('/<string:id>/delete', methods=['GET', 'POST'])
 def delete(id):
     context = {
         u'model': model,
         u'session': model.Session,
         u'user': g.user,
     }
-    deleteAppARelevant(context[u'session'],id)
+    get_action(u'service_delete')(context, dict(id=id))
     return h.redirect_to(u'service.index')
+
 
 @service.route('/<string:id>/manage', methods=['POST'])
 def manage(id):
@@ -212,5 +201,5 @@ def manage(id):
     }
     data_dict = clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
-    modifyApp(context[u'session'],id,**data_dict)
-    return h.redirect_to(u'service.read',id=id)
+    modifyApp(context[u'session'], id, **data_dict)
+    return h.redirect_to(u'service.read', id=id)

@@ -1,0 +1,45 @@
+{% extends "page.html" %}
+{% import 'macros/form.html' as form %}
+
+
+
+{% block breadcrumb_content %}
+  <li>{% link_for _('Call'), named_route='call.index' %}</li>
+  {#  <li class="active">{% link_for ins.app_name, named_route='call.read', id=ins.app_id %}</li>#}
+{% endblock %}
+
+
+{% block content_action %}{% endblock %}
+
+
+{% block primary %}
+  <div class="primary col-12">
+    <article class="module">
+      <div class="module-content">
+        <div class=" md-ml-10">
+          <p>Input: {{  input|tojson }}</p>
+          <p>Output: {{  output|tojson }}</p>
+        </div>
+      </div>
+    </article>
+  </div>
+{% endblock %}
+
+
+
+{% block secondary %}{% endblock %}
+
+
+
+{% block scripts %}
+  {{ super() }}
+  <style>
+    label:after {
+      content: "";
+    }
+  </style>
+  <script>
+let json= {{  input|tojson }};
+  console.log(json['values'])
+  </script>
+{% endblock %}

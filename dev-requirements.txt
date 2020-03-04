@@ -1,6 +1,7 @@
 flake8    # for the travis build
-pyyaml
+#pyyaml
 requests
 slug
-pymongo
-dnspython
+#pymongo
+#dnspython
+ckanapi

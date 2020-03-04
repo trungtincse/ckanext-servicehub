@@ -1,3 +1,5 @@
+import ast
+
 import requests
 from werkzeug.datastructures import FileStorage
 
@@ -32,8 +34,8 @@ def create(app_id):
         u'user': g.user,
         u'for_view': True
     }
-    user = context['user']
-    session = context['session']
+    # user = context['user']
+    # session = context['session']
 
     data_dict = clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
@@ -77,10 +79,6 @@ def pretty_print_POST(req):
         req.body,
     ))
 
-
-# @call_blueprint.route('/<user_id>/notify', methods=["POST"])
-# def notify(user_id):
-
 @call_blueprint.route('/view', methods=["GET"])
 def index():
     context = {
@@ -89,13 +87,17 @@ def index():
         u'user': g.user
     }
     results = get_action(u'call_list')(context, dict())
+    print results
     return base.render('call/index.html', dict(results=results, len=len(results)))
 @call_blueprint.route('/read/<id>', methods=["GET"])
-def read():
+def read(id):
     context = {
         u'model': model,
         u'session': model.Session,
         u'user': g.user
     }
     instance = get_action(u'call_show')(context, dict(id=id))
-    return base.render('call/index.html', dict(ins=instance))
+    input = get_action(u'input_show')(context, dict(call_id=id))
+    output = get_action(u'output_show')(context, dict(call_id=id))
+    return base.render('call/read.html', dict(ins=instance,input= input,output=output))
+

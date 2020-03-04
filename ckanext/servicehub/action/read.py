@@ -1,52 +1,38 @@
-import uuid
+import os
 import logging
 
+import requests
 from ckanext.servicehub.model.ServiceModel import App, Call
-
-import ckan.lib.base as base
-from ckan.lib import helpers as h
-from ckanext.servicehub.dictization.dictize import service_dictize
-import sqlalchemy
-from paste.deploy.converters import asbool
+from requests.adapters import HTTPAdapter
+from sqlalchemy import inspect
+from urllib3 import Retry
 from ckan.common import OrderedDict, c, g, config, request, _
-import ckan.lib.dictization
 import ckan.logic as logic
-import ckan.lib.navl.dictization_functions
-import ckan.plugins as plugins
-
-from ckan.common import _
-from ckanext.servicehub.model import MongoClient
 
 log = logging.getLogger('ckan.logic')
 
-# Define some shortcuts
-# Ensure they are module-private so that they don't get loaded as available
-# actions in the action API.
-_validate = ckan.lib.navl.dictization_functions.validate
-_table_dictize = ckan.lib.dictization.table_dictize
-_check_access = logic.check_access
-NotFound = logic.NotFound
-NotAuthorized = logic.NotAuthorized
-ValidationError = logic.ValidationError
 _get_or_bust = logic.get_or_bust
 
-_select = sqlalchemy.sql.select
-_aliased = sqlalchemy.orm.aliased
-_or_ = sqlalchemy.or_
-_and_ = sqlalchemy.and_
-_func = sqlalchemy.func
-_desc = sqlalchemy.desc
-_case = sqlalchemy.case
-_text = sqlalchemy.text
+http_session = requests.Session()
+retry = Retry(connect=3, backoff_factor=0.5)
+adapter = HTTPAdapter(max_retries=retry)
+http_session.mount('http://', adapter)
+appserver_host = config.get('ckan.servicehub.appserver_host')
+fileserver_host = config.get('ckan.servicehub.fileserver_host')
 
 object2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
+
+
+def _asdict(obj):
+    return {c.key: getattr(obj, c.key)
+            for c in inspect(obj).mapper.column_attrs}
 
 
 def service_list(context, data_dict):
     session = context['session']
     model = context['model']
     service_list = session.query(App).all()
-    return service_list
+    return [_asdict(i) for i in service_list]
 
 
 def service_show(context, data_dict):
@@ -54,22 +40,51 @@ def service_show(context, data_dict):
     session = context['session']
     id = _get_or_bust(data_dict, 'id')
     service = session.query(App).filter(App.app_id == id).first()
-    return service
+    return _asdict(service)
+
+
 def call_show(context, data_dict):
     model = context['model']
     session = context['session']
     id = _get_or_bust(data_dict, 'id')
     call = session.query(Call).filter(Call.call_id == id).first()
-    return call
-
-def service_req_form_show(context, data_dict):
-    return MongoClient.findReqForm(data_dict['id'])
+    return _asdict(call)
 
 
 def call_list(context, data_dict):
     session = context['session']
     model = context['model']
     user = context['user']
-    call_list = session.query(Call,App).filter(Call.call_user==user and Call.app_id==App.app_id).all()
-    # call_list = session.query(Call).filter(Call.call_user==user).all()
-    return call_list
+    call_list = session.query(Call, App).join(App, Call.app_id == App.app_id).filter(Call.call_user == user).all()
+    result = []
+    for c, a in call_list:
+        dict_c = _asdict(c)
+        dict_a = _asdict(a)
+        dict_a.update(dict_c)
+        result.append(dict_a)
+    return result
+
+
+def reqform_show(context, data_dict):
+    path = os.path.join(fileserver_host, 'requestform', data_dict['app_id'])
+    return http_session.get(path).json().get('result', {})
+
+
+def input_show(context, data_dict):
+    path = os.path.join(fileserver_host, 'input', data_dict['call_id'])
+    return http_session.get(path).json().get('result', {})
+
+
+def output_show(context, data_dict):
+    path = os.path.join(fileserver_host, 'output', data_dict['call_id'])
+    return http_session.get(path).json().get('result', {})
+
+
+public_functions = dict(service_list=service_list,
+                        call_list=call_list,
+                        service_show=service_show,
+                        call_show=call_show,
+                        reqform_show=reqform_show,
+                        input_show=input_show,
+                        output_show=output_show
+                        )

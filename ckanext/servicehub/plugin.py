@@ -6,6 +6,7 @@ import ckan.plugins.toolkit as toolkit
 import ckanext.servicehub.auth.create as create_auth
 import ckanext.servicehub.action.create as create
 import ckanext.servicehub.action.read as read
+import ckanext.servicehub.action.delete as delete
 
 
 class ServicehubPlugin(plugins.SingletonPlugin):
@@ -14,7 +15,6 @@ class ServicehubPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IActions)
 
-    # plugins.implements(plugins.IMiddleware)
     # IConfigurer
 
     def update_config(self, config_):
@@ -35,16 +35,9 @@ class ServicehubPlugin(plugins.SingletonPlugin):
         return {'service_create': create_auth.service_create}
 
     def get_actions(self):
-        return {'service_create': create.service_create,
-                'call_create': create.call_create,
-                'service_list': read.service_list,
-                'service_show': read.service_show,
-                'call_show': read.call_show,
-                'service_req_form_show': read.service_req_form_show,
-                'call_list': read.call_list
-                }
+        all_function=dict()
+        all_function.update(read.public_functions)
+        all_function.update(create.public_functions)
+        all_function.update(delete.public_functions)
+        return all_function
 
-    # def make_middleware(self, app, config):
-    #     from ckan.config.middleware.flask_app import CKANFlask
-    #     if isinstance(app,CKANFlask):
-    #         app.config["REDIS_URL"] = "redis://localhost"

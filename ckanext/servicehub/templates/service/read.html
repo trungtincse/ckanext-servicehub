@@ -4,7 +4,7 @@
 
 
 {% block breadcrumb_content %}
-  <li>{% link_for _('Services'), named_route='service.index' %}</li>
+  <li>{% link_for _('Applications'), named_route='service.index' %}</li>
   <li class="active">{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
 {% endblock %}
 
@@ -36,21 +36,23 @@
           <h3>Description</h3>
           <p>{{ ins.description }}</p>
         </div>
-        <div class="request-zone md-ml-10" style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px;">
+        <div class="request-zone"
+             style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
           {% if ins['type']=="Batch" %}
             <h3>Request Form</h3>
-            <form id="request-form" class="dataset-form md-mb-15" method="post" action="/call/create/{{ ins.app_id }}" data-module="basic-form"
+            <form id="request-form" class="dataset-form md-mb-15 form-horizontal" method="post"
+                  action="/call/create/{{ ins.app_id }}"
+                  data-module="basic-form"
                   novalidate="" enctype="multipart/form-data">
-              <div class="form-row param">
-                {% for field in req_form.fields %}
-                  <div class="col-md-12 md-mb-10 md-mt-10">
-                    <label for="{{ field.name }}">{{ field.label }}</label>
-                    <input class="form-control" type="{{ field.type }}" name="{{ field.var_name }}">
-                  </div>
-                {% endfor %}
+              {% for field in req_form.fields %}
+                {% snippet "common_snippets/redirect_input.html",field=field %}
+              {% endfor %}
+              <div class="form-group param md-mt-5 md-mb-5">
+                <div class="col-md-10"></div>
+                <div class="col-md-2">
+                  <button class="btn btn-primary" type="submit">Send</button>
+                </div>
               </div>
-
-              <button class="btn btn-primary" type="submit">Send</button>
             </form>
           {% else %}
             <label for="">Site page</label>
@@ -128,72 +130,31 @@
     label:after {
       content: "";
     }
+
+    input[type='checkbox'] {
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 5px;
+      border: 2px solid #555;
+    }
+
   </style>
   <script>
-    function addCustomField() {
-      $('#custom-zone').append(`
-            {{ form.custom(
-              names=('custom_key', 'custom_value', 'custom_deleted'),
-              id='field-custom',
-              label=_('Custom Field'),
-              values=(),
-              error=error ) }}
-            `);
-    }
-
-    function requestService(action_url, name, port, form) {
-      data = $(form).serialize();
-      $($.ajax({
-        url: action_url,
-        type: 'post',
-        data: {url_part: `${name}:${port}/proxy/?${data}`},
-        success: function (rs) {
-          //whatever you wanna do after the form is successfully submitted
-          alert(rs['result']);
-        }
-      }));
-    }
-
-    function requestCodeService(dom, name) {
-      data = dom.val();
-      var settings = {
-        "url": `{{appserver_host}}/execute/${name}`,
-        "method": "POST",
-        "timeout": 0,
-        "data": data,
-      };
-
-      $.ajax(settings).done(function (response) {
-        if (response["error"] != "")
-          alert(response["error"]);
-        else {
-          callId = response["callId"]
-          saveResult(callId);
-        }
-      });
-    }
-
-
-    function getResult(callId) {
-      var settings = {
-        "url": `/call/60fe7d3d-287f-11ea-909d-9f18f0f391fc`,
-        "method": "GET",
-        "timeout": 0,
-      };
-      $.ajax(settings).done(function (response) {
-        console.log(response);
-      });
-    }
-
-    function createCall() {
-      var settings = {
-        "url": `/call/create/${callId}`,
-        "method": "POST",
-        "timeout": 0,
-      };
-      $.ajax(settings).done(function (response) {
-        console.log(response);
-      });
+    function addParam(type, name) {
+      raw_html = `
+        <div class="form-group ${name}-sub-param md-mt-5 md-mb-5">
+          <div class="col-md-3">
+          </div>
+          <div class="col-md-4">
+            <input class='form-control' type="${type}" name="${name}">
+          </div>
+          <div class="col-md-3">
+            <a class="btn btn-danger" onclick="return $(this).parents('div.form-group').remove()"><i class="fa fa-trash"></i></a>
+          </div>
+        </div>
+        `;
+      $(`#${name}-zone`).append(raw_html);
     }
   </script>
 {% endblock %}

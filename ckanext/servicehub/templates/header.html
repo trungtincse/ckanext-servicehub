@@ -2,7 +2,7 @@
 {% block header_site_navigation %}
   <nav class="section navigation">
     <ul class="nav nav-pills">
-      {% block header_site_navigation_tabs %} {{ h.build_nav_main(  ('service.index', _('Services')),('search', _('Datasets')), ('organizations_index', _('Organizations')),
+      {% block header_site_navigation_tabs %} {{ h.build_nav_main(  ('service.index', _('Applications')),('search', _('Datasets')), ('organizations_index', _('Organizations')),
           ('group_index', _('Groups')), ('home.about', _('About')) ) }} {% endblock %}
     </ul>
   </nav>
@@ -30,7 +30,6 @@
   <li class="notifications ">
     <a href={% url_for('call.index') %}>
       <span>My requests</span>
-      <span class="badge">0</span>
     </a>
   </li>
   <li>

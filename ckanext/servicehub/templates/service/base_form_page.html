@@ -4,7 +4,7 @@
 
 
 {% block breadcrumb_content %}
-  <li>{{ h.nav_link(_('Services'), named_route='service.index') }}</li>
+  <li>{{ h.nav_link(_('Applications'), named_route='service.index') }}</li>
   <li class="active">{% block breadcrumb_link %}{{ h.nav_link(_('Add a Service'), named_route='service.new') }}{% endblock %}</li>
 {% endblock %}
 

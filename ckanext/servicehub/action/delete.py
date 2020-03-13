@@ -44,7 +44,6 @@ def call_delete(context, data_dict):
 
 
 def reqform_delete(context, data_dict):
-    print data_dict
     path = os.path.join(fileserver_host, 'requestform', data_dict['app_id'])
     return http_session.delete(path).json()
 

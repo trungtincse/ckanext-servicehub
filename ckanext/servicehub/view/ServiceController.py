@@ -1,5 +1,8 @@
 # encoding: utf-8
+import collections
+import keyword
 import random
+import string
 
 import slug
 import yaml
@@ -11,7 +14,7 @@ import ckan.lib.navl.dictization_functions as dict_fns
 import ckan.logic as logic
 import ckan.model as model
 from ckan.common import OrderedDict, c, g, config, request, _
-from flask import Blueprint
+from flask import Blueprint, jsonify
 from flask.views import MethodView
 from ckanext.servicehub.model.ServiceModel import *
 
@@ -31,6 +34,30 @@ log = logging.getLogger(__name__)
 is_org = False
 appserver_host = config.get('ckan.servicehub.appserver_host')
 
+import ast
+
+def isidentifier(ident):
+    """Determines if string is valid Python identifier."""
+
+    if not isinstance(ident, str):
+        raise TypeError("expected str, but got {!r}".format(type(ident)))
+
+    if not ident:
+        return False
+
+    if keyword.iskeyword(ident):
+        return False
+
+    first = '_' + string.lowercase + string.uppercase
+    if ident[0] not in first:
+        return False
+
+    other = first + string.digits
+    for ch in ident[1:]:
+        if ch not in other:
+            return False
+
+    return True
 
 def index():
     context = {
@@ -130,7 +157,32 @@ class CreateFromCodeServiceView(MethodView):
         }
 
         return context
-
+    def check_data(self,data=None):
+        result=""
+        print data
+        for k,v in data.items():
+            if k== 'description':
+                continue
+            if v == '' and k != 'var_name':
+                result += 'Some fields are empty!'
+                break;
+            if k == 'var_name':
+                if isinstance(v,list):
+                    can_continuous=True
+                    for i in v:
+                        if not isidentifier(str(i)):
+                            result+= 'Some variable names are invalid format'
+                            can_continuous=False
+                            break;
+                    if can_continuous:
+                        duplicates= [item for item, count in collections.Counter(v).items() if count > 1]
+                        if len(duplicates)>0 :
+                            _str=",".join(duplicates)+" are duplicated"
+                            result+=_str
+                else:
+                    if not isidentifier(str(v)):
+                        result += 'Variable name is invalid format'
+        return result
     def post(self):
         context = self._prepare()
         try:
@@ -142,12 +194,16 @@ class CreateFromCodeServiceView(MethodView):
             data_dict['service_type'] = 'Batch'
             data_dict['slug_name'] = slug.slug(data_dict['app_name'])
             data_dict['image'] = data_dict['slug_name']
-            get_action(u'service_create')(context, data_dict)
+
+            message=self.check_data(data_dict)
+            if message!='':
+                return jsonify(dict(error=message))
+            message=get_action(u'service_create')(context, data_dict)
 
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
             base.abort(404, _(u'Not found'))
 
-        return h.redirect_to(u'service.index')
+        return jsonify(message)
 
     def get(self):
         extra_vars = {}

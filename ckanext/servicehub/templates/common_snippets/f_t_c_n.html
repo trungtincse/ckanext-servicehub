@@ -1,0 +1,13 @@
+<div class="form-group param md-mt-5 md-mb-5">
+  <div class="col-md-1"></div>
+  <div class="col-md-2">
+    <label for="{{ field.name }}">{{ field.label }}:</label>
+  </div>
+  <div class="col-md-4">
+    <input {{ '' if field.type=='checkbox' else 'class=form-control' }} type="{{ field.type }}" name="{{ field.var_name }}">
+  </div>
+  {% if field.type=='checkbox' %}
+    <input type="hidden" name="check_box_inputs" value="{{ field.var_name }}">
+  {% endif %}
+  <div class="col-md-2"></div>
+</div>

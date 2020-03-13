@@ -54,10 +54,6 @@
 </form>
 
 <script>
-  function deleteParam(div) {
-    div.remove();
-  }
-
   function addParam() {
     let params_div = $('div.params');
     params_div.append(`
@@ -73,12 +69,31 @@
           <option value="text">Text</option>
           <option value="number">Number</option>
           <option value="file">File</option>
+          <option value="text_lst">Text list</option>
+          <option value="number_lst">Number list</option>
+          <option value="checkbox">Check box</option>
+          <option value="data_resource">Ckan data source</option>
         </select>
       </div>
       <div class="col-md-1 md-mb-10 md-mt-10">
-        <a class="btn btn-danger" onclick="deleteParam($(this).parents('div.param'))"><i class="fa fa-trash"></i></a>
+        <a class="btn btn-danger" onclick="return $(this).parents('div.param').remove();"><i class="fa fa-trash"></i></a>
       </div>
     </div>
     `);
   }
+
+  document.addEventListener("DOMContentLoaded", function (event) {
+    $("#service-edit").ajaxForm(function (response) {
+      console.log(response)
+      if (response.hasOwnProperty('error')) {
+        swal(response.error);
+      } else {
+        location.href= `/service/${response.id}`
+      }
+
+    });
+  });
+
+
 </script>
+

@@ -26,6 +26,32 @@ appserver_host = config.get('ckan.servicehub.appserver_host')
 call_blueprint = Blueprint(u'call', __name__, url_prefix=u'/call')
 
 
+def modify_input(data_dict):
+    data_dict['ckan_resources']=data_dict.get('ckan_resources',[])
+    ckan_resources=data_dict['ckan_resources'] if isinstance(data_dict['ckan_resources'],list) else [data_dict['ckan_resources']]
+
+    data_dict['lst'] = data_dict.get('lst', [])
+    lst = data_dict['lst'] if isinstance(data_dict['lst'], list) else [data_dict['lst']]
+
+    data_dict['check_box_inputs']= data_dict.get('check_box_inputs', [])
+    check_box_inputs = data_dict['check_box_inputs'] if isinstance(data_dict['check_box_inputs'], list) else [data_dict['check_box_inputs']]
+
+    for resource in ckan_resources:
+        package_id=data_dict['%s_package_id'%resource]
+        resource_id=data_dict['%s_resource_id'%resource]
+        file_name=data_dict['%s_file_name'%resource]
+        del data_dict['%s_package_id'%resource]
+        del data_dict['%s_resource_id'%resource]
+        del data_dict['%s_file_name'%resource]
+        data_dict[resource]="dataset/%s/resource/%s/download/%s"%(package_id,resource_id,file_name)
+    for i in lst:
+        data_dict[i]=data_dict[i] if isinstance(data_dict[i],list) else [data_dict[i]]
+    for i in check_box_inputs:
+        data_dict[i]=True if data_dict[i]=="on" else False
+
+    del data_dict['check_box_inputs']
+    del data_dict['lst']
+    del data_dict['ckan_resources']
 @call_blueprint.route('/create/<app_id>', methods=["POST"])
 def create(app_id):
     context = {
@@ -34,50 +60,20 @@ def create(app_id):
         u'user': g.user,
         u'for_view': True
     }
-    # user = context['user']
-    # session = context['session']
-
     data_dict = clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
     data_dict.update(clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
     ))
+    modify_input(data_dict)
+
     data_dict["app_id"]=app_id
-    get_action(u'call_create')(context, data_dict)
+    result_ins=get_action(u'call_create')(context, data_dict)
+    get_action(u'push_request_call')(context, dict(call_id=result_ins['id']))
 
-    # requestCallBatch(ins, json, files)
-
-    return helpers.redirect_to('call.index')
-
-
-def requestCallBatch(instance, data, files=None):
-    url = '%s/execute/batch/%s' % (appserver_host, instance.call_id)
-    file_data = {
-        'json': (None, json.dumps(data)),
-    }
-    if files != None:
-        file_data['binary'] = (None, files.read())
-    rps = requests.post(url, files=file_data)
-    pretty_print_POST(rps.request)
+    return helpers.redirect_to('call.read',id=result_ins['id'])
 
 
-# @call_blueprint.route('/empty',methods=["POST"])
-
-def pretty_print_POST(req):
-    """
-    At this point it is completely built and ready
-    to be fired; it is "prepared".
-
-    However pay attention at the formatting used in
-    this function because it is programmed to be pretty
-    printed and may differ from the actual request.
-    """
-    print('{}\n{}\r\n{}\r\n\r\n{}'.format(
-        '-----------START-----------',
-        req.method + ' ' + req.url,
-        '\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
-        req.body,
-    ))
 
 @call_blueprint.route('/view', methods=["GET"])
 def index():
@@ -87,7 +83,6 @@ def index():
         u'user': g.user
     }
     results = get_action(u'call_list')(context, dict())
-    print results
     return base.render('call/index.html', dict(results=results, len=len(results)))
 @call_blueprint.route('/read/<id>', methods=["GET"])
 def read(id):
@@ -99,5 +94,6 @@ def read(id):
     instance = get_action(u'call_show')(context, dict(id=id))
     input = get_action(u'input_show')(context, dict(call_id=id))
     output = get_action(u'output_show')(context, dict(call_id=id))
-    return base.render('call/read.html', dict(ins=instance,input= input,output=output))
+    service= get_action(u'service_show')(context, dict(id=instance['app_id']))
+    return base.render('call/read.html', dict(ins=instance,input= input,output=output,service_ins=service))
 

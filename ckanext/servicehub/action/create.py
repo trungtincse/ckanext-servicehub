@@ -1,4 +1,6 @@
 import random
+
+import pika_pool
 import requests
 import logging
 from ckanext.servicehub.model.ServiceModel import App, Call
@@ -22,6 +24,37 @@ _get_or_bust = logic.get_or_bust
 
 appserver_host = config.get('ckan.servicehub.appserver_host')
 fileserver_host = config.get('ckan.servicehub.fileserver_host')
+import pika
+
+credentials = pika.PlainCredentials('bpnkxscx', 'HJsvGjpmQdDrJiVuw5w36F1lWr63sEkR')
+parameters = pika.ConnectionParameters('mustang.rmq.cloudamqp.com',
+                                       5672,
+                                       'bpnkxscx',
+                                       credentials,
+                                       connection_attempts=2, socket_timeout=10)
+# connection = pika.BlockingConnection(parameters)
+# params = pika.URLParameters(
+#     'amqp://bpnkxscx:HJsvGjpmQdDrJiVuw5w36F1lWr63sEkR@mustang.rmq.cloudamqp.com/bpnkxscx'
+#     'socket_timeout=10&'
+#     'connection_attempts=2'
+# )
+
+pool = pika_pool.QueuedPool(
+    create=lambda: pika.BlockingConnection(parameters=parameters),
+    max_size=10,
+    max_overflow=10,
+    timeout=10,
+    recycle=3600,
+    stale=45,
+)
+
+
+def push_request_call(context, data_dict):
+    with pool.acquire() as cxn:
+        cxn.channel.queue_declare(queue='call_request', durable=True)
+        cxn.channel.basic_publish(exchange='',
+                                  routing_key='call_request',
+                                  body=data_dict['call_id'])
 
 
 def service_create(context, data_dict):
@@ -50,14 +83,13 @@ def service_create(context, data_dict):
 
     try:
         ava_url = storeAvatar(data_dict['avatar'], ins.app_id)
-        print ava_url
         ins.setOption(ava_url=ava_url)
 
         session.add(ins)
         session.commit()
     except:
         session.rollback()
-        raise
+        return dict(error="App name exists")
     return dict(id=ins.app_id)
 
 
@@ -105,6 +137,7 @@ def call_create(context, data_dict):
         raise
     return dict(id=ins.call_id)
 
+
 def storeInput(file, call_id):
     input_file = file
     file_name = input_file.filename
@@ -127,7 +160,6 @@ def storeOutput(file, call_id):
 
 def requestCreateServer(instance):
     url = '%s/app/new/server/%s' % (appserver_host, instance.app_id)
-    print url
     response = requests.post(url)
     # return rps
 
@@ -147,5 +179,6 @@ def storeCodeFile(file, app_id):
 
 
 public_functions = dict(service_create=service_create,
-                        call_create=call_create
+                        call_create=call_create,
+                        push_request_call=push_request_call
                         )

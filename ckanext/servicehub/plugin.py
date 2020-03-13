@@ -1,5 +1,7 @@
+import socketio
 from ckanext.servicehub.view import ServiceController, CallController, UserController, TestController, AppServer, \
     FileServingController
+from flask_socketio import SocketIO
 
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
@@ -8,13 +10,15 @@ import ckanext.servicehub.action.create as create
 import ckanext.servicehub.action.read as read
 import ckanext.servicehub.action.delete as delete
 
+from ckan.config.middleware.flask_app import CKANFlask
+
 
 class ServicehubPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IActions)
-
+    # plugins.implements(plugins.IMiddleware,inherit=True)
     # IConfigurer
 
     def update_config(self, config_):
@@ -41,3 +45,9 @@ class ServicehubPlugin(plugins.SingletonPlugin):
         all_function.update(delete.public_functions)
         return all_function
 
+    # def make_middleware(self, app, config):
+    #     if isinstance(app, CKANFlask):
+    #         app.config['SECRET_KEY'] = 'secret!'
+    #         # global socket
+    #         socket = SocketIO(app)
+    #     return app

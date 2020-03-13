@@ -48,16 +48,17 @@ class App(Base):
                     default=_types.make_uuid)
     app_name = Column(types.UnicodeText)
     ava_url = Column(types.UnicodeText)
-    type = Column(types.UnicodeText)
+    # type = Column(types.UnicodeText)
     slug_name = Column(types.UnicodeText,unique=True)
     image = Column(types.UnicodeText)
     owner = Column(types.UnicodeText)
     description = Column(types.UnicodeText)
-    s_port = Column(types.UnicodeText)  # optional server
-    d_port = Column(types.UnicodeText,unique=True)  # optional server
+    # s_port = Column(types.UnicodeText)  # optional server
+    # d_port = Column(types.UnicodeText,unique=True)  # optional server
     language = Column(types.UnicodeText)  # optional batch
     code_url = Column(types.UnicodeText)  # optional batch
-    status = Column(types.UnicodeText)  # optional both
+    sys_status = Column(types.UnicodeText)  # optional both
+    app_status = Column(types.UnicodeText)  # optional both
     create_at = Column(types.UnicodeText)  # optional both
 
     def __init__(self, app_name, type, slug_name, image, owner, description, status="PENDING"):

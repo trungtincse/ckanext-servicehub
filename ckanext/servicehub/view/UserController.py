@@ -30,7 +30,6 @@ def user_service_request(user):
     extra_vars = _extra_template_variables(context, data_dict)
     extra_vars["instances"]=instances
     extra_vars['user']=user
-    print instances
     if extra_vars is None:
         return h.redirect_to(u'user.login')
     return base.render('user/service_requests_read.html',extra_vars)

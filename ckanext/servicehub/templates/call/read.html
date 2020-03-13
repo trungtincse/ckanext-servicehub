@@ -5,7 +5,8 @@
 
 {% block breadcrumb_content %}
   <li>{% link_for _('Call'), named_route='call.index' %}</li>
-  {#  <li class="active">{% link_for ins.app_name, named_route='call.read', id=ins.app_id %}</li>#}
+  <li>{% link_for _(service_ins.app_name), named_route='service.read',id=ins.app_id %}</li>
+  <li class="active">{% link_for ins.call_id, named_route='call.read', id=ins.call_id %}</li>
 {% endblock %}
 
 
@@ -13,12 +14,20 @@
 
 
 {% block primary %}
-  <div class="primary col-12">
+  <div class="col-12">
     <article class="module">
+      <header class="module-content page-header">
+        <div class="content_action md-ml-10 md-mb-10">
+          <a class="btn btn-danger" href="/service/821c869f-36f7-4de6-a0da-1d941508fc0e/delete"><i class="fa fa-trash"></i> Delete</a>
+        </div>
+        <div class="content_action md-mb-10">
+          <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i class="fa fa-wrench"></i> Manage</a>
+        </div>
+      </header>
       <div class="module-content">
         <div class=" md-ml-10">
-          <p>Input: {{  input|tojson }}</p>
-          <p>Output: {{  output|tojson }}</p>
+          <p>Input: {{ input|tojson }}</p>
+          <p>Output: {{ output|tojson }}</p>
         </div>
       </div>
     </article>
@@ -39,7 +48,7 @@
     }
   </style>
   <script>
-let json= {{  input|tojson }};
-  console.log(json['values'])
+    let json = {{  input|tojson }};
+    console.log(json['values'])
   </script>
 {% endblock %}

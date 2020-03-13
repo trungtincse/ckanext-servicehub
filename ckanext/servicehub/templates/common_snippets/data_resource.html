@@ -1,0 +1,12 @@
+<div class="form-group param md-mt-5 md-mb-5">
+  <div class="col-md-1"></div>
+  <div class="col-md-2">
+    <label for="{{ field.name }}">{{ field.label }}:</label>
+  </div>
+  <div class="col-md-9 input-group">
+    <input class='form-control' type="text" name="{{ field.var_name }}_package_id" style="width:150px;margin-left: 15px" placeholder="package id">
+    <input class='form-control' type="text" name="{{ field.var_name }}_resource_id" style="width:150px" placeholder="resource id">
+    <input class='form-control' type="text" name="{{ field.var_name }}_file_name" style="width:150px" placeholder="file name">
+    <input class='form-control' type="hidden" value="{{ field.var_name }}" name="ckan_resources">
+  </div>
+</div>

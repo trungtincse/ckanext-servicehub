@@ -3,3 +3,5 @@ requests
 slug
 Pillow
 ckanapi
+pika
+pika_pool

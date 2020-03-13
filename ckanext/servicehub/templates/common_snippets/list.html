@@ -1,0 +1,19 @@
+{% set types=field.type.split('_') %}
+
+<div class="form-group param md-mt-5 md-mb-5">
+  <div class="col-md-1"></div>
+  <div class="col-md-2">
+    <label for="{{ field.name }}">{{ field.label }}:</label>
+  </div>
+  <div class="col-md-4">
+    <input class='form-control' type="{{ types[0] }}" name="{{ field.var_name }}">
+  </div>
+  <div class="col-md-3">
+    <a class="btn btn-success" onclick='addParam("{{ types[0] }}","{{ field.var_name }}")'>Add more</a>
+  </div>
+</div>
+<input class='form-control' type="hidden" value="{{ field.var_name }}" name="lst">
+<div id="{{ field.var_name }}-zone">
+
+</div>
+

@@ -1,16 +1,11 @@
-import socketio
 from ckanext.servicehub.view import ServiceController, CallController, UserController, TestController, AppServer, \
     FileServingController
-from flask_socketio import SocketIO
-
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import ckanext.servicehub.auth.create as create_auth
 import ckanext.servicehub.action.create as create
 import ckanext.servicehub.action.read as read
 import ckanext.servicehub.action.delete as delete
-
-from ckan.config.middleware.flask_app import CKANFlask
 
 
 class ServicehubPlugin(plugins.SingletonPlugin):

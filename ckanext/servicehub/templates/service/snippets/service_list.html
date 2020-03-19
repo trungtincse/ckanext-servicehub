@@ -7,7 +7,7 @@
         <div class="card-block row">
           <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
             <h4><b>{{service.app_name}}</b></h4>
-          <p>{{service.description|truncate(50)}}</p>
+          <p>{{service.description or ""|truncate(50)}}</p>
           <a href="/service/{{ service.app_id }}" class="btn btn-default">GO TO</a>
           </div>
         </div>

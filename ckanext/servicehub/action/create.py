@@ -1,3 +1,4 @@
+import json
 import random
 
 import pika_pool
@@ -59,51 +60,40 @@ def push_request_call(context, data_dict):
 
 def service_create(context, data_dict):
     data_dict['owner'] = context['user']
-    session = context['session']
-    ins = App(data_dict['app_name'],
-              data_dict['service_type'],
-              data_dict['slug_name'],
-              data_dict['image'],
-              data_dict['owner'],
-              data_dict['description'])
-    if (data_dict['service_type'] == 'Server'):
-        ins.setOption(s_port=data_dict['port'], p_port='%d' % random.randint(10000, 60000))
-        requestCreateServer(ins)
-    elif (data_dict['service_type'] == 'Batch'):
-        ins.setOption(language=data_dict['language'])
-        path = os.path.join(fileserver_host, 'requestform', ins.app_id)
 
-        json = makeReqFormJSON(app_id=ins.app_id,
-                               var_name=data_dict.get('var_name', []),
-                               label=data_dict.get('label', []),
-                               type=data_dict.get('type', []))
-        code_url = storeCodeFile(data_dict['codeFile'], ins.app_id)
-        http_session.post(path, json=json)
-        ins.setOption(code_url=code_url)
-
-    try:
-        ava_url = storeAvatar(data_dict['avatar'], ins.app_id)
-        ins.setOption(ava_url=ava_url)
-
-        session.add(ins)
-        session.commit()
-    except:
-        session.rollback()
-        return dict(error="App name exists")
-    return dict(id=ins.app_id)
+    # session = context['session']
+    params = makeReqFormJSON(
+        var_name=data_dict.get('var_name', []),
+        label=data_dict.get('label', []),
+        type=data_dict.get('type', []))
+    app_dict = dict(app_name=data_dict['app_name'],
+                    # data_dict['service_type'],
+                    slug_name=data_dict['slug_name'],
+                    image=data_dict['image'],
+                    owner=data_dict['owner'],
+                    description=data_dict['description'],
+                    language=data_dict['language'],
+                    params=params)
+    # print data_dict, json
+    # assert False
+    # code_url = storeCodeFile(data_dict['codeFile'], ins.app_id)
+    path = appserver_host + "/app/create"
+    response = http_session.post(path, files={
+        'app_info': (None, json.dumps(app_dict)),
+        'code_file': ('code.zip', data_dict['codeFile'].read()),
+        'avatar_file': ('avatar', data_dict['avatar'].read())
+    })
+    print json.dumps(app_dict)
+    print response.json()
+    return dict(id=response.app_id)
 
 
 def makeReqFormJSON(**kwargs):
-    label = kwargs['label']
-    var_name = kwargs['var_name']
-    type = kwargs['type']
-    record = dict(
-        app_id=kwargs["app_id"],
-        fields=[dict(label=x[0], var_name=x[1], type=x[2]) for x in zip(label, var_name, type)] if isinstance(label,
-                                                                                                              list) else [
-            dict(label=label, var_name=var_name, type=type)]
-    )
-    return record
+    label = kwargs['label'] if isinstance(kwargs['label'], list) else [kwargs['label']]
+    var_name = kwargs['var_name'] if isinstance(kwargs['var_name'], list) else [kwargs['var_name']]
+    type = kwargs['type'] if isinstance(kwargs['type'], list) else [kwargs['type']]
+    return [dict(label=x[0], name=x[1], type=x[2]) for x in
+            zip(label, var_name, type)]
 
 
 def storeAvatar(file, app_id):

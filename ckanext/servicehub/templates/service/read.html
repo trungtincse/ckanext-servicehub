@@ -156,5 +156,18 @@
         `;
       $(`#${name}-zone`).append(raw_html);
     }
+
+      document.addEventListener("DOMContentLoaded", function (event) {
+    $("#request-form").ajaxForm(function (response) {
+      console.log(response)
+      if (response.hasOwnProperty('error')) {
+        swal(response.error);
+      } else {
+        {#location.href= `/service/${response.id}`#}
+        swal("Success!");
+      }
+
+    });
+  });
   </script>
 {% endblock %}

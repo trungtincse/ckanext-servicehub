@@ -61,3 +61,5 @@ def create_input(type):
     elif type==ParamType.TEXT:
         return 'abc'
 
+# print client_req("resource_show",dict(id='2dcf1c4e-41fe-4cd2-b6fa-15e96ada986f'))
+print client_req("service_by_slug_show",dict(slug_name='service-a112'))

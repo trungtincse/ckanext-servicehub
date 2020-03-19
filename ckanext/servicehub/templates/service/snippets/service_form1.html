@@ -13,7 +13,7 @@
   {% endblock %}
 
   {% block code_fields %}
-    {{ form.select('language', label='Choose program language', id='programmingLanguage', options=[{'value':'Python','text':'Python'},{'text':'Java','value':'Java'},{'text':'Javascript','value':'Javascript'}], classes=['control-full'],is_required=True) }}
+    {{ form.select('language', label='Choose program language', id='programmingLanguage', options=[{'value':'PYTHON','text':'Python'},{'text':'Java','value':'JAVA'},{'text':'Javascript','value':'Javascript'}], classes=['control-full'],is_required=True) }}
     {{ form.input('codeFile', label='Upload code here', id='codeFile', type='file', classes=['control-full'],is_required=True) }}
   {% endblock %}
 
@@ -66,13 +66,13 @@
       </div>
       <div class="col-md-3 md-mb-10 md-mt-10">
         <select name="type" class="form-control">
-          <option value="text">Text</option>
-          <option value="number">Number</option>
-          <option value="file">File</option>
-          <option value="text_lst">Text list</option>
-          <option value="number_lst">Number list</option>
-          <option value="checkbox">Check box</option>
-          <option value="data_resource">Ckan data source</option>
+          <option value="TEXT">Text</option>
+          <option value="NUMBER">Number</option>
+          <option value="FILE">File</option>
+          <option value="TEXT_LST">Text list</option>
+          <option value="NUMBER_LST">Number list</option>
+          <option value="TRUE_FALSE">Check box</option>
+          <option value="CKAN_RESOURCE">Ckan data source</option>
         </select>
       </div>
       <div class="col-md-1 md-mb-10 md-mt-10">

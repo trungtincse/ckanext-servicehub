@@ -23,19 +23,21 @@ class Call(Base):
     call_id = Column(types.UnicodeText,
                      primary_key=True,
                      default=_types.make_uuid)
-    call_user = Column(types.UnicodeText)
-    app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id'))
-    container_id = Column(types.UnicodeText)
-    status = Column(types.UnicodeText)
-    create_at = Column(types.UnicodeText)  # optional both
+    user_id = Column(types.UnicodeText)
+    app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id',onupdate="CASCADE",ondelete="CASCADE"))
+    # container_id = Column(types.UnicodeText)
+    call_status = Column(types.UnicodeText)
+    elapsed_seconds = Column(types.BIGINT)
+    output = Column(types.UnicodeText)
+    # create_at = Column(types.UnicodeText)  # optional both
 
-    def __init__(self, call_user, app_id,container_id=None, status="PENDING"):
+    def __init__(self, user_id, app_id, call_status="PENDING"):
         self.call_id = _types.make_uuid()
-        self.call_user = call_user
+        self.user_id = user_id
         self.app_id = app_id
-        self.status = status
-        self.container_id = container_id
-        self.create_at=datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        self.call_status = call_status
+        # self.container_id = container_id
+        # self.create_at=datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     def setOption(self,**kwargs):
         for k,v in kwargs.items():
             setattr(self, k, v)
@@ -47,29 +49,47 @@ class App(Base):
                     primary_key=True,
                     default=_types.make_uuid)
     app_name = Column(types.UnicodeText)
-    ava_url = Column(types.UnicodeText)
+    avatar_path = Column(types.UnicodeText)
     slug_name = Column(types.UnicodeText,unique=True)
     image = Column(types.UnicodeText)
+    image_id = Column(types.UnicodeText)
+    type = Column(types.UnicodeText)
     owner = Column(types.UnicodeText)
     description = Column(types.UnicodeText)
     language = Column(types.UnicodeText)  # optional batch
-    code_url = Column(types.UnicodeText)  # optional batch
-    sys_status = Column(types.UnicodeText)  # optional both
-    app_status = Column(types.UnicodeText)  # optional both
-    create_at = Column(types.UnicodeText)  # optional both
+    code_path = Column(types.UnicodeText)  # optional batch
+    # sys_status = Column(types.UnicodeText)  # optional both
+    status = Column(types.UnicodeText)  # optional both
+    # create_at = Column(types.UnicodeText)  # optional both
 
-    def __init__(self, app_name, slug_name, image, owner, description, sys_status="PENDING",app_status="PENDING"):
+    def __init__(self, app_name, slug_name, image, owner, description, status="PENDING"):
         self.app_id = _types.make_uuid()
         self.app_name = app_name
         self.slug_name = slug_name
         self.image = image
-        self.sys_status = sys_status
-        self.app_status = app_status
+        self.status = status
         self.description = description
         self.owner = owner
-        self.create_at = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        # self.create_at = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     def setOption(self,**kwargs):
         for k,v in kwargs.items():
             setattr(self, k, v)
 
 
+class AppParam(Base):
+    __tablename__ = 'app_param'
+
+    app_id = Column(ForeignKey('app_info.app_id',onupdate="CASCADE",ondelete="CASCADE"),primary_key=True)
+    name = Column(types.UnicodeText,primary_key=True)
+    type = Column(types.UnicodeText)
+    label = Column(types.UnicodeText)
+    description = Column(types.UnicodeText)
+
+class CallParam(Base):
+    __tablename__ = 'call_param'
+
+    call_id = Column(ForeignKey('app_call.call_id', onupdate="CASCADE",ondelete="CASCADE"), primary_key=True)
+    param_name = Column(types.UnicodeText, primary_key=True)
+    name = Column(types.UnicodeText)
+    type = Column(types.UnicodeText)
+    value = Column(types.UnicodeText)

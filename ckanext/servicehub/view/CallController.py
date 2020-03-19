@@ -4,7 +4,7 @@ import requests
 from werkzeug.datastructures import FileStorage
 
 from ckan.lib import helpers
-from flask import Blueprint, Response
+from flask import Blueprint, Response, jsonify
 import json
 from ckanext.servicehub.model.ServiceModel import Call
 import ckan.lib.base as base
@@ -25,8 +25,9 @@ appserver_host = config.get('ckan.servicehub.appserver_host')
 
 call_blueprint = Blueprint(u'call', __name__, url_prefix=u'/call')
 
-
-def modify_input(data_dict):
+class ResourceNotFoundException(Exception):
+    pass
+def modify_input(context,data_dict):
     data_dict['ckan_resources']=data_dict.get('ckan_resources',[])
     ckan_resources=data_dict['ckan_resources'] if isinstance(data_dict['ckan_resources'],list) else [data_dict['ckan_resources']]
 
@@ -37,13 +38,15 @@ def modify_input(data_dict):
     check_box_inputs = data_dict['check_box_inputs'] if isinstance(data_dict['check_box_inputs'], list) else [data_dict['check_box_inputs']]
 
     for resource in ckan_resources:
-        package_id=data_dict['%s_package_id'%resource]
         resource_id=data_dict['%s_resource_id'%resource]
-        file_name=data_dict['%s_file_name'%resource]
         del data_dict['%s_package_id'%resource]
         del data_dict['%s_resource_id'%resource]
         del data_dict['%s_file_name'%resource]
-        data_dict[resource]="dataset/%s/resource/%s/download/%s"%(package_id,resource_id,file_name)
+        resource_response=get_action(u'resource_show')(context, dict(id=resource_id))
+        if not resource_response['success']:
+            raise ResourceNotFoundException()
+        url = resource_response['result']['url']
+        data_dict[resource]=url
     for i in lst:
         data_dict[i]=data_dict[i] if isinstance(data_dict[i],list) else [data_dict[i]]
     for i in check_box_inputs:
@@ -65,8 +68,10 @@ def create(app_id):
     data_dict.update(clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
     ))
-    modify_input(data_dict)
-
+    try:
+        modify_input(data_dict)
+    except ResourceNotFoundException:
+        return jsonify(dict(error="Resource not found!"))
     data_dict["app_id"]=app_id
     result_ins=get_action(u'call_create')(context, data_dict)
     get_action(u'push_request_call')(context, dict(call_id=result_ins['id']))

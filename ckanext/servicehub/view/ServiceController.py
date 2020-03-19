@@ -31,10 +31,10 @@ parse_params = logic.parse_params
 
 log = logging.getLogger(__name__)
 
-is_org = False
 appserver_host = config.get('ckan.servicehub.appserver_host')
 
 import ast
+
 
 def isidentifier(ident):
     """Determines if string is valid Python identifier."""
@@ -58,6 +58,7 @@ def isidentifier(ident):
             return False
 
     return True
+
 
 def index():
     context = {
@@ -157,32 +158,34 @@ class CreateFromCodeServiceView(MethodView):
         }
 
         return context
-    def check_data(self,data=None):
-        result=""
+
+    def check_data(self, data=None):
+        result = ""
         print data
-        for k,v in data.items():
-            if k== 'description':
+        for k, v in data.items():
+            if k == 'description':
                 continue
             if v == '' and k != 'var_name':
                 result += 'Some fields are empty!'
                 break;
             if k == 'var_name':
-                if isinstance(v,list):
-                    can_continuous=True
+                if isinstance(v, list):
+                    can_continuous = True
                     for i in v:
                         if not isidentifier(str(i)):
-                            result+= 'Some variable names are invalid format'
-                            can_continuous=False
+                            result += 'Some variable names are invalid format'
+                            can_continuous = False
                             break;
                     if can_continuous:
-                        duplicates= [item for item, count in collections.Counter(v).items() if count > 1]
-                        if len(duplicates)>0 :
-                            _str=",".join(duplicates)+" are duplicated"
-                            result+=_str
+                        duplicates = [item for item, count in collections.Counter(v).items() if count > 1]
+                        if len(duplicates) > 0:
+                            _str = ",".join(duplicates) + " are duplicated"
+                            result += _str
                 else:
                     if not isidentifier(str(v)):
                         result += 'Variable name is invalid format'
         return result
+
     def post(self):
         context = self._prepare()
         try:
@@ -191,14 +194,18 @@ class CreateFromCodeServiceView(MethodView):
             data_dict.update(clean_dict(
                 dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
             ))
-            data_dict['service_type'] = 'Batch'
+            # data_dict['service_type'] = 'Batch'
             data_dict['slug_name'] = slug.slug(data_dict['app_name'])
             data_dict['image'] = data_dict['slug_name']
 
-            message=self.check_data(data_dict)
-            if message!='':
+            check_exist = get_action(u'service_by_slug_show')(context, dict(slug_name=data_dict['slug_name'])).get(
+                'error', '')
+            if check_exist != '':
+                return jsonify(dict(error="Service name exists"))
+            message = self.check_data(data_dict)
+            if message != '':
                 return jsonify(dict(error=message))
-            message=get_action(u'service_create')(context, data_dict)
+            message = get_action(u'service_create')(context, data_dict)
 
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
             base.abort(404, _(u'Not found'))

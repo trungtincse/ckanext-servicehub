@@ -24,6 +24,8 @@ object2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.co
 
 
 def _asdict(obj):
+    if obj ==None:
+        return dict(error="Not found")
     return {c.key: getattr(obj, c.key)
             for c in inspect(obj).mapper.column_attrs}
 
@@ -40,6 +42,14 @@ def service_show(context, data_dict):
     session = context['session']
     id = _get_or_bust(data_dict, 'id')
     service = session.query(App).filter(App.app_id == id).first()
+    return _asdict(service)
+
+
+def service_by_slug_show(context, data_dict):
+    model = context['model']
+    session = context['session']
+    slug_name = _get_or_bust(data_dict, 'slug_name')
+    service = session.query(App).filter(App.slug_name == slug_name).first()
     return _asdict(service)
 
 
@@ -86,5 +96,6 @@ public_functions = dict(service_list=service_list,
                         call_show=call_show,
                         reqform_show=reqform_show,
                         input_show=input_show,
-                        output_show=output_show
+                        output_show=output_show,
+                        service_by_slug_show=service_by_slug_show
                         )

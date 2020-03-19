@@ -48,29 +48,25 @@ class App(Base):
                     default=_types.make_uuid)
     app_name = Column(types.UnicodeText)
     ava_url = Column(types.UnicodeText)
-    type = Column(types.UnicodeText)
     slug_name = Column(types.UnicodeText,unique=True)
     image = Column(types.UnicodeText)
     owner = Column(types.UnicodeText)
     description = Column(types.UnicodeText)
-    s_port = Column(types.UnicodeText)  # optional server
-    d_port = Column(types.UnicodeText,unique=True)  # optional server
     language = Column(types.UnicodeText)  # optional batch
     code_url = Column(types.UnicodeText)  # optional batch
-    status = Column(types.UnicodeText)  # optional both
-    # app_status = Column(types.UnicodeText)  # optional both
+    sys_status = Column(types.UnicodeText)  # optional both
+    app_status = Column(types.UnicodeText)  # optional both
     create_at = Column(types.UnicodeText)  # optional both
 
-    def __init__(self, app_name, type, slug_name, image, owner, description, status="PENDING"):
+    def __init__(self, app_name, slug_name, image, owner, description, sys_status="PENDING",app_status="PENDING"):
         self.app_id = _types.make_uuid()
         self.app_name = app_name
-        self.type = type
         self.slug_name = slug_name
         self.image = image
-        self.status = status
+        self.sys_status = sys_status
+        self.app_status = app_status
         self.description = description
         self.owner = owner
-        self.app_id = _types.make_uuid()
         self.create_at = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     def setOption(self,**kwargs):
         for k,v in kwargs.items():

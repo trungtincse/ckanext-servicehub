@@ -26,8 +26,8 @@
       </header>
       <div class="module-content">
         <div class=" md-ml-10">
-          <p>Input: {{ input|tojson }}</p>
-          <p>Output: {{ output|tojson }}</p>
+{#          <p>Input: {{ input|tojson }}</p>#}
+          <p>Output: {{ ins.output }}</p>
         </div>
       </div>
     </article>
@@ -48,7 +48,7 @@
     }
   </style>
   <script>
-    let json = {{  input|tojson }};
-    console.log(json['values'])
+    {#let json = {{  input|tojson }};#}
+    {#console.log(json['values'])#}
   </script>
 {% endblock %}

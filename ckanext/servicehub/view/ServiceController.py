@@ -70,8 +70,7 @@ def index():
     }
 
     results = get_action(u'service_list')(context, dict())
-
-    return base.render('service/index.html', dict(results=results, len=len(results)))
+    return base.render('service/index.html', dict(results=results, len=len(results),appserver_host=appserver_host))
 
 
 def read(id):
@@ -82,12 +81,10 @@ def read(id):
         u'user': g.user
     }
     service_ins = get_action(u'service_show')(context, dict(id=id))
-    req_form = get_action(u'reqform_show')(context, dict(app_id=id))
-    print req_form
-    extra_vars['req_form'] = req_form
-    extra_vars['ins'] = service_ins
-    extra_vars['appserver_host'] = appserver_host
-    return base.render('service/read.html', extra_vars)
+    if service_ins.get('error','')!='':
+        base.abort(404, _(u'Service not found'))
+
+    return base.render('service/read.html', dict(ins=service_ins.get('app_detail')))
 
 
 class CreateServiceView(MethodView):
@@ -199,8 +196,9 @@ class CreateFromCodeServiceView(MethodView):
             data_dict['image'] = data_dict['slug_name']
 
             check_exist = get_action(u'service_by_slug_show')(context, dict(slug_name=data_dict['slug_name'])).get(
-                'error', '')
-            if check_exist != '':
+                'error','')
+            print check_exist
+            if check_exist == '':
                 return jsonify(dict(error="Service name exists"))
             message = self.check_data(data_dict)
             if message != '':

@@ -19,7 +19,7 @@
   <h1 class="hide-heading">{{ _('Applications') }}</h1>
 
   {% if len >0 %}
-    {% snippet "service/snippets/service_list.html", services=results %}
+    {% snippet "service/snippets/service_list.html", services=results ,appserver_host=appserver_host%}
   {% endif %}
 {% endblock %}
 

@@ -59,15 +59,15 @@ class App(Base):
     language = Column(types.UnicodeText)  # optional batch
     code_path = Column(types.UnicodeText)  # optional batch
     # sys_status = Column(types.UnicodeText)  # optional both
-    status = Column(types.UnicodeText)  # optional both
+    app_status = Column(types.UnicodeText)  # optional both
     # create_at = Column(types.UnicodeText)  # optional both
 
-    def __init__(self, app_name, slug_name, image, owner, description, status="PENDING"):
+    def __init__(self, app_name, slug_name, image, owner, description, app_status="PENDING"):
         self.app_id = _types.make_uuid()
         self.app_name = app_name
         self.slug_name = slug_name
         self.image = image
-        self.status = status
+        self.app_status = app_status
         self.description = description
         self.owner = owner
         # self.create_at = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
@@ -89,7 +89,6 @@ class CallParam(Base):
     __tablename__ = 'call_param'
 
     call_id = Column(ForeignKey('app_call.call_id', onupdate="CASCADE",ondelete="CASCADE"), primary_key=True)
-    param_name = Column(types.UnicodeText, primary_key=True)
-    name = Column(types.UnicodeText)
+    name = Column(types.UnicodeText, primary_key=True)
     type = Column(types.UnicodeText)
     value = Column(types.UnicodeText)

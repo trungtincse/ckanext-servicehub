@@ -1,8 +1,8 @@
 
 
-{% if  field.type == 'number_lst' or field.type == 'text_lst' %}
+{% if  field.type == 'NUMBER_LIST' or field.type == 'TEXT_LIST' %}
   {% snippet "common_snippets/list.html",field=field %}
-{% elif field.type =='data_resource' %}
+{% elif field.type =='CKAN_RESOURCE' %}
   {% snippet "common_snippets/data_resource.html",field=field %}
 {% else %}
   {% snippet "common_snippets/f_t_c_n.html",field=field %}

@@ -5,6 +5,7 @@ import pika_pool
 import requests
 import logging
 from ckanext.servicehub.model.ServiceModel import App, Call
+from flask import jsonify
 from werkzeug.datastructures import FileStorage
 
 import ckan.logic as logic
@@ -74,18 +75,13 @@ def service_create(context, data_dict):
                     description=data_dict['description'],
                     language=data_dict['language'],
                     params=params)
-    # print data_dict, json
-    # assert False
-    # code_url = storeCodeFile(data_dict['codeFile'], ins.app_id)
     path = appserver_host + "/app/create"
     response = http_session.post(path, files={
         'app_info': (None, json.dumps(app_dict)),
         'code_file': ('code.zip', data_dict['codeFile'].read()),
         'avatar_file': ('avatar', data_dict['avatar'].read())
     })
-    print json.dumps(app_dict)
-    print response.json()
-    return dict(id=response.app_id)
+    return response.json()
 
 
 def makeReqFormJSON(**kwargs):
@@ -96,36 +92,27 @@ def makeReqFormJSON(**kwargs):
             zip(label, var_name, type)]
 
 
-def storeAvatar(file, app_id):
-    avatar_file = file
-    file_name = avatar_file.filename
-    path = os.path.join(fileserver_host, 'file', 'image', app_id, file_name)
-    http_session.post(path,
-                      files=dict(file=avatar_file.read())
-                      )
-    return path
-
 
 def call_create(context, data_dict):
-    session = context['session']
+    # session = context['session']
     user = context['user']
-    app_id = data_dict["app_id"]
-    del data_dict["app_id"]
-    ins = Call(user, app_id)
-    values = []
-    try:
-        for k, v in data_dict.items():
-            if isinstance(v, FileStorage):
-                v = storeInput(v, ins.call_id)
-            values.append(dict(name=k, value=v))
-        path = os.path.join(fileserver_host, 'input', ins.call_id)
-        http_session.post(path, json=dict(call_id=ins.call_id, values=values))
-        session.add(ins)
-        session.commit()
-    except:
-        session.rollback()
-        raise
-    return dict(id=ins.call_id)
+    app_id= data_dict['app_id']
+    del data_dict['app_id']
+    files = {}
+    for k, v in data_dict.items():
+        print k
+        if isinstance(v, FileStorage):
+            print k,v
+            files[k] = (k, v.read())
+        elif isinstance(v, list) :
+            files[k]=(None,json.dumps(v))
+        else:
+            files[k] = (None, v)
+    path = os.path.join(appserver_host, 'app', app_id, 'execute')+'?userId=%s'%user
+    response=http_session.post(path, files=files)
+    # print files
+    # print response.json()
+    return response.json()
 
 
 def storeInput(file, call_id):
@@ -148,24 +135,6 @@ def storeOutput(file, call_id):
     return path
 
 
-def requestCreateServer(instance):
-    url = '%s/app/new/server/%s' % (appserver_host, instance.app_id)
-    response = requests.post(url)
-    # return rps
-
-
-def storeCodeFile(file, app_id):
-    code_file = file
-    file_name = 'code.zip'
-    path = os.path.join(fileserver_host, 'file', 'code', app_id, file_name)
-    http_session.post(path,
-                      files=dict(file=code_file.read())
-                      )
-    # http.request('POST',
-    #              os.path.join('/file','code',app_id),
-    #              fields=dict(file=code_file.read(),filename=file_name)
-    #              )
-    return path
 
 
 public_functions = dict(service_create=service_create,

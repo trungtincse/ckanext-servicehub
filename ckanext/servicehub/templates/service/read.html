@@ -38,26 +38,21 @@
         </div>
         <div class="request-zone"
              style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
-          {% if ins['type']=="Batch" %}
-            <h3>Request Form</h3>
-            <form id="request-form" class="dataset-form md-mb-15 form-horizontal" method="post"
-                  action="/call/create/{{ ins.app_id }}"
-                  data-module="basic-form"
-                  novalidate="" enctype="multipart/form-data">
-              {% for field in req_form.fields %}
-                {% snippet "common_snippets/redirect_input.html",field=field %}
-              {% endfor %}
-              <div class="form-group param md-mt-5 md-mb-5">
-                <div class="col-md-10"></div>
-                <div class="col-md-2">
-                  <button class="btn btn-primary" type="submit">Send</button>
-                </div>
+          <h3>Request Form</h3>
+          <form id="request-form" class="dataset-form md-mb-15 form-horizontal" method="post"
+                action="/call/create/{{ ins.app_id }}"
+                data-module="basic-form"
+                novalidate="" enctype="multipart/form-data">
+            {% for field in ins.params %}
+              {% snippet "common_snippets/redirect_input.html",field=field %}
+            {% endfor %}
+            <div class="form-group param md-mt-5 md-mb-5">
+              <div class="col-md-10"></div>
+              <div class="col-md-2">
+                <button class="btn btn-primary" type="submit">Send</button>
               </div>
-            </form>
-          {% else %}
-            <label for="">Site page</label>
-            {#            <p>http://localhost:{{ ins.port2port.split(":")[0] }}</p>#}
-          {% endif %}
+            </div>
+          </form>
         </div>
       </div>
     </article>
@@ -157,17 +152,17 @@
       $(`#${name}-zone`).append(raw_html);
     }
 
-      document.addEventListener("DOMContentLoaded", function (event) {
-    $("#request-form").ajaxForm(function (response) {
-      console.log(response)
-      if (response.hasOwnProperty('error')) {
-        swal(response.error);
-      } else {
-        {#location.href= `/service/${response.id}`#}
-        swal("Success!");
-      }
+    document.addEventListener("DOMContentLoaded", function (event) {
+      $("#request-form").ajaxForm(function (response) {
+        console.log(response)
+        if (response.error != '') {
+          swal(response.error);
+        } else {
+          {#location.href= `/service/${response.id}`#}
+          swal("Success!");
+        }
 
+      });
     });
-  });
   </script>
 {% endblock %}

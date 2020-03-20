@@ -27,10 +27,6 @@ fileserver_host = config.get('ckan.servicehub.fileserver_host')
 def service_delete(context, data_dict):
     app_id = data_dict['id']
     session = context['session']
-    call_instances = session.query(Call).filter(Call.app_id == app_id).all()
-    for i in call_instances:
-        call_delete(context, dict(call_id=i.call_id))
-    reqform_delete(context, dict(app_id=app_id))
     session.query(App).filter(App.app_id == app_id).delete()
     session.commit()
 

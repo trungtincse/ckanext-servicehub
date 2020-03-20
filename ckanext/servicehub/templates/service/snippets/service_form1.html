@@ -69,9 +69,9 @@
           <option value="TEXT">Text</option>
           <option value="NUMBER">Number</option>
           <option value="FILE">File</option>
-          <option value="TEXT_LST">Text list</option>
-          <option value="NUMBER_LST">Number list</option>
-          <option value="TRUE_FALSE">Check box</option>
+          <option value="TEXT_LIST">Text list</option>
+          <option value="NUMBER_LIST">Number list</option>
+          <option value="BOOLEAN">Check box</option>
           <option value="CKAN_RESOURCE">Ckan data source</option>
         </select>
       </div>
@@ -85,10 +85,10 @@
   document.addEventListener("DOMContentLoaded", function (event) {
     $("#service-edit").ajaxForm(function (response) {
       console.log(response)
-      if (response.hasOwnProperty('error')) {
+      if (response.error!='') {
         swal(response.error);
       } else {
-        location.href= `/service/${response.id}`
+        location.href= `/service/${response.app_id}`
       }
 
     });

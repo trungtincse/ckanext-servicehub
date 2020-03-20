@@ -1,19 +1,23 @@
-{% set types=field.type.split('_') %}
 
+{% if field.type== 'TEXT_LIST'%}
+{% set type='text' %}
+{% else %}
+{% set type='number' %}
+{% endif %}
 <div class="form-group param md-mt-5 md-mb-5">
   <div class="col-md-1"></div>
   <div class="col-md-2">
     <label for="{{ field.name }}">{{ field.label }}:</label>
   </div>
   <div class="col-md-4">
-    <input class='form-control' type="{{ types[0] }}" name="{{ field.var_name }}">
+    <input class='form-control' type="{{ type }}" name="{{ field.name }}">
   </div>
   <div class="col-md-3">
-    <a class="btn btn-success" onclick='addParam("{{ types[0] }}","{{ field.var_name }}")'>Add more</a>
+    <a class="btn btn-success" onclick='addParam("{{ type }}","{{ field.name }}")'>Add more</a>
   </div>
 </div>
-<input class='form-control' type="hidden" value="{{ field.var_name }}" name="lst">
-<div id="{{ field.var_name }}-zone">
+<input class='form-control' type="hidden" value="{{ field.name }}" name="lst">
+<div id="{{ field.name }}-zone">
 
 </div>
 

@@ -100,9 +100,7 @@ def call_create(context, data_dict):
     del data_dict['app_id']
     files = {}
     for k, v in data_dict.items():
-        print k
         if isinstance(v, FileStorage):
-            print k,v
             files[k] = (k, v.read())
         elif isinstance(v, list) :
             files[k]=(None,json.dumps(v))

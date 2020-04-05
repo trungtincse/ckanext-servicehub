@@ -1,0 +1,24 @@
+{% set values_tamp=field.value|string() %}
+  {% set values=values_tamp[1:-1].split(',') %}
+<div class="form-group param md-mt-5 md-mb-5">
+  {% for value in values %}
+    {% if loop.index == 1 %}
+      <div class="col-md-1"></div>
+      <div class="col-md-2">
+        <label for="{{ field.name }}">{{ field.name }}:</label>
+      </div>
+      <div class="col-md-8">
+        <input class='form-control' readonly name="{{ field.name }}" value="{{ value|trim }}">
+      </div>
+      <div class="col-md-1"></div>
+    {% else %}
+      <div class="col-md-3">
+      </div>
+      <div class="col-md-8">
+        <input class='form-control' readonly name="{{ field.name }}" value="{{ value|trim }}">
+      </div>
+      <div class="col-md-1"></div>
+    {% endif %}
+  {% endfor %}
+</div>
+

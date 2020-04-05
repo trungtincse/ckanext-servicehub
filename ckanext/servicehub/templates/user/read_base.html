@@ -1,6 +1,0 @@
-{% ckan_extends %}
-{% block content_primary_nav %}
-  {{ h.build_nav_icon('user.read', _('Datasets'), id=user.name) }}
-  {{ h.build_nav_icon('user.activity', _('Activity Stream'), id=user.name) }}
-  {{ h.build_nav_icon('service_user.user_service_request', _('Service Requests'), user=user.name) }}
-{% endblock %}

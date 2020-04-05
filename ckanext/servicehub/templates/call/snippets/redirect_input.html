@@ -1,0 +1,9 @@
+
+
+{% if  field.type == 'NUMBER_LIST' or field.type == 'TEXT_LIST' or field.type == 'LIST' %}
+  {% snippet "call/snippets/list.html",field=field %}
+{% elif field.type =='CKAN_RESOURCE' %}
+  {% snippet "call/snippets/data_resource.html",field=field %}
+{% else %}
+  {% snippet "call/snippets/f_t_c_n.html",field=field,call_id=call_id ,type=type%}
+{% endif %}

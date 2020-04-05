@@ -1,0 +1,68 @@
+{% extends "package/resource_edit_base.html" %}
+
+{% block subtitle %}{{ _('Add application') }} - {{ h.dataset_display_name(pkg) }}{% endblock %}
+{% block form_title %}{{ _('Add application') }}{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ super() }}
+  <li class="active"><a href="#">{{ _('Add New Application') }}</a></li>
+{% endblock %}
+{% block content_action %}
+  {% link_for _('All applications'), controller='package', action='app', id=pkg.name, class_='btn btn-default', icon='arrow-left' %}
+{% endblock %}
+{% block form %}
+  <form action="{{ h.url_for('package.new',id=pkg.name) }}" method="post" data-module="basic-form"
+        enctype="multipart/form-data">
+    <div class="form-group control-full">
+      <label class="control-label" for="field-description">Description</label>
+      <div class="controls editor">
+
+        <textarea id="field-description" name="description" cols="20" rows="5"
+                  placeholder="A little information about my group..." class="form-control"></textarea>
+        <span class="editor-info-block">You can use <a href="#markdown" title="" data-target="popover"
+                                                       data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='text-muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>"
+                                                       data-html="true" data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
+
+
+      </div>
+    </div>
+
+    <div class="form-group control-full control-select">
+      <label class="control-label" for="programmingLanguage"><span title="This field is required"
+                                                                   class="control-required">*</span> Choose application</label>
+      <div class="controls ">
+
+        <select id="programmingLanguage" name="language" class="form-control">
+
+          <option value="App 1">Python</option>
+
+          <option value="App 2">Java</option>
+
+          <option value="App 3">Javascript</option>
+
+        </select>
+
+
+      </div>
+    </div>
+    <div class="form-actions">
+
+
+      <button class="btn btn-primary" type="submit" name="save">Add</button>
+
+
+      <p class="control-required-message">
+        <span class="control-required">*</span> Required field
+      </p>
+
+    </div>
+  </form>
+{% endblock %}
+
+{% block content_primary_nav %}
+  <li class="active"><a href="#"><i class="fa fa-pencil-square-o"></i> {{ _('New application') }}</a></li>
+{% endblock %}
+
+{% block secondary_content %}
+  {% snippet 'package/snippets/resource_help.html' %}
+{% endblock %}

@@ -9,7 +9,7 @@ import json
 from ckanext.servicehub.model.ServiceModel import Call
 import ckan.lib.base as base
 from ckan import model, logic
-from ckan.common import g, request, config
+from ckan.common import g, request, config, _
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
 
@@ -80,8 +80,7 @@ def create(app_id):
     data_dict["app_id"] = app_id
     result_ins = get_action(u'call_create')(context, data_dict)
     # get_action(u'push_request_call')(context, dict(call_id=result_ins['id']))
-
-    return helpers.redirect_to('call.read', id=result_ins['call_id'])
+    return jsonify(result_ins)
 
 
 @call_blueprint.route('/view', methods=["GET"])
@@ -106,4 +105,6 @@ def read(id):
     if instance.get('error','') != '':
         return base.abort(404, _(u'Call not found'))
     service = get_action(u'service_show')(context, dict(id=instance['call_detail']['app_id']))
-    return base.render('call/read.html', dict(ins=instance['call_detail'], service_ins=service))
+    print instance
+    print service
+    return base.render('call/read.html', dict(ins=instance['call_detail'], service_ins=service['app_detail']))

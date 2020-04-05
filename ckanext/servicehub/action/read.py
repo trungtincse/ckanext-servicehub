@@ -29,14 +29,15 @@ def _asdict(obj):
     return {c.key: getattr(obj, c.key)
             for c in inspect(obj).mapper.column_attrs}
 
-
+@logic.side_effect_free
 def service_list(context, data_dict):
     session = context['session']
     model = context['model']
     service_list = session.query(App).all()
+    map(lambda x:x.strftime(),service_list)
     return [_asdict(i) for i in service_list]
 
-
+@logic.side_effect_free
 def service_show(context, data_dict):
     model = context['model']
     session = context['session']
@@ -75,15 +76,8 @@ def call_list(context, data_dict):
     return result
 
 
-#
-# def input_show(context, data_dict):
-#     path = os.path.join(fileserver_host, 'input', data_dict['call_id'])
-#     return http_session.get(path).json().get('result', {})
-#
-#
-# def output_show(context, data_dict):
-#     path = os.path.join(fileserver_host, 'output', data_dict['call_id'])
-#     return http_session.get(path).json().get('result', {})
+# def resource_io_view_show(context,data_dict):
+
 
 
 public_functions = dict(service_list=service_list,

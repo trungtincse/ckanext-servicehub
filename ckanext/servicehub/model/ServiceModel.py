@@ -10,11 +10,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from ckan.model.user import User
 import ckan.plugins.toolkit as tk
-
-Base = declarative_base()
-engine = create_engine(
-    tk.config.get('sqlalchemy.url') or "postgresql://ckan_default:ckan_default@localhost/ckan_default")
 # Session = sessionmaker(bind=engine)
+from ckanext.servicehub.model.BaseModel import Base
 
 
 class Call(Base):
@@ -23,13 +20,14 @@ class Call(Base):
     call_id = Column(types.UnicodeText,
                      primary_key=True,
                      default=_types.make_uuid)
+    app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id', onupdate="CASCADE", ondelete="CASCADE"))
     user_id = Column(types.UnicodeText)
-    app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id',onupdate="CASCADE",ondelete="CASCADE"))
     # container_id = Column(types.UnicodeText)
     call_status = Column(types.UnicodeText)
+    logs = Column(types.UnicodeText)
     elapsed_seconds = Column(types.BIGINT)
-    output = Column(types.UnicodeText)
-    # create_at = Column(types.UnicodeText)  # optional both
+    # output = Column(types.UnicodeText)
+    created_at = Column(types.UnicodeText)
 
     def __init__(self, user_id, app_id, call_status="PENDING"):
         self.call_id = _types.make_uuid()
@@ -38,9 +36,11 @@ class Call(Base):
         self.call_status = call_status
         # self.container_id = container_id
         # self.create_at=datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    def setOption(self,**kwargs):
-        for k,v in kwargs.items():
+
+    def setOption(self, **kwargs):
+        for k, v in kwargs.items():
             setattr(self, k, v)
+
 
 class App(Base):
     __tablename__ = 'app_info'
@@ -50,7 +50,7 @@ class App(Base):
                     default=_types.make_uuid)
     app_name = Column(types.UnicodeText)
     avatar_path = Column(types.UnicodeText)
-    slug_name = Column(types.UnicodeText,unique=True)
+    slug_name = Column(types.UnicodeText, unique=True)
     image = Column(types.UnicodeText)
     image_id = Column(types.UnicodeText)
     type = Column(types.UnicodeText)
@@ -58,11 +58,12 @@ class App(Base):
     description = Column(types.UnicodeText)
     language = Column(types.UnicodeText)  # optional batch
     code_path = Column(types.UnicodeText)  # optional batch
-    # sys_status = Column(types.UnicodeText)  # optional both
+    sys_status = Column(types.UnicodeText)  # optional both
     app_status = Column(types.UnicodeText)  # optional both
-    # create_at = Column(types.UnicodeText)  # optional both
+    organization = Column(types.UnicodeText, default=u'BK')  # optional both
+    created_at = Column(types.DateTime)  # optional both
 
-    def __init__(self, app_name, slug_name, image, owner, description, app_status="PENDING"):
+    def __init__(self, app_name, slug_name, image, owner, description, app_status="PENDING", sys_status="PENDING"):
         self.app_id = _types.make_uuid()
         self.app_name = app_name
         self.slug_name = slug_name
@@ -70,25 +71,47 @@ class App(Base):
         self.app_status = app_status
         self.description = description
         self.owner = owner
-        # self.create_at = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    def setOption(self,**kwargs):
-        for k,v in kwargs.items():
+        self.sys_status = sys_status
+        self.created_at = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+    def setOption(self, **kwargs):
+        for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def strftime(self):
+        self.created_at = self.created_at.strftime("%d-%m-%Y %H:%M:%S")
 
 
 class AppParam(Base):
     __tablename__ = 'app_param'
 
-    app_id = Column(ForeignKey('app_info.app_id',onupdate="CASCADE",ondelete="CASCADE"),primary_key=True)
-    name = Column(types.UnicodeText,primary_key=True)
+    app_id = Column(ForeignKey('app_info.app_id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
+    name = Column(types.UnicodeText, primary_key=True)
     type = Column(types.UnicodeText)
     label = Column(types.UnicodeText)
     description = Column(types.UnicodeText)
 
-class CallParam(Base):
-    __tablename__ = 'call_param'
 
-    call_id = Column(ForeignKey('app_call.call_id', onupdate="CASCADE",ondelete="CASCADE"), primary_key=True)
+class CallInput(Base):
+    __tablename__ = 'call_input'
+
+    call_id = Column(ForeignKey('app_call.call_id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
     name = Column(types.UnicodeText, primary_key=True)
     type = Column(types.UnicodeText)
     value = Column(types.UnicodeText)
+
+
+class CallOutput(Base):
+    __tablename__ = 'call_output'
+
+    call_id = Column(ForeignKey('app_call.call_id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
+    name = Column(types.UnicodeText, primary_key=True)
+    type = Column(types.UnicodeText)
+    value = Column(types.UnicodeText)
+
+
+class ViewIOResource(Base):
+    __tablename__ = 'view_io'
+    resource_view_id = Column(ForeignKey('resource_view.id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
+    call_id= Column(ForeignKey('app_call.call_id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
+    io_name=Column(types.UnicodeText)

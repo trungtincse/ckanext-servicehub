@@ -1,0 +1,112 @@
+{% extends "page.html" %}
+
+{% block subtitle %}{{ _('Applications') }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li class="active">{% link_for _('Application'), named_route='service.index' %}</li>
+{% endblock %}
+
+{% block page_header %}{% endblock %}
+{% block page_primary_action %}
+  {% if h.check_access('service_create') %}
+    {#    {% link_for _('Add Service From Image'), named_route='service.new', class_='btn btn-primary', icon='plus-square' %}#}
+    {% link_for _('Approve project'), named_route='project.create', class_='btn btn-primary', icon='' %}
+
+  {% endif %}
+{% endblock %}
+
+{% block primary_content_inner %}
+<div class="blog-container">
+  <div class="row">
+    <div class="column-66">
+      <h1 class="xlarge-font"><b>The Project</b></h1>
+      <h1 class="large-font" style="color:MediumSeaGreen;"><b>ABCD</b></h1>
+      <p><span style="font-size:36px">Take photos like a pro.</span> You should buy this app because lorem ipsum consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+      <button class="button">Download Application</button>
+    </div>
+    <div class="column-33">
+        <img src="http://0.0.0.0:5001/app/94d70a6c-6df4-11ea-8c51-ab91b0dc8d2f/avatar" width="335" height="471">
+    </div>
+  </div>
+</div>
+<div class="blog-container" style="background-color:#f1f1f1">
+  <div class="row">
+    <div class="column-33">
+      <img src="http://0.0.0.0:5001/app/94d70a6c-6df4-11ea-8c51-ab91b0dc8d2f/avatar" alt="App" width="335" height="471">
+    </div>
+    <div class="column-66">
+      <h1 class="xlarge-font"><b>Clarity</b></h1>
+      <h1 class="large-font" style="color:red;"><b>Pixels, who?</b></h1>
+      <p><span style="font-size:24px">A revolution in resolution.</span> Sharp and clear photos with the world's best photo engine, incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquipex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+      <button class="button" style="background-color:red">Read More</button>
+    </div>
+  </div>
+</div>
+<div class="blog-container">
+  <div class="row">
+    <div class="column-66">
+      <h1 class="xlarge-font"><b>The App</b></h1>
+      <h1 class="large-font" style="color:MediumSeaGreen;"><b>Why buy it?</b></h1>
+      <p><span style="font-size:36px">Take photos like a pro.</span> You should buy this app because lorem ipsum consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+      <button class="button">Download Application</button>
+    </div>
+    <div class="column-33">
+        <img src="http://0.0.0.0:5001/app/94d70a6c-6df4-11ea-8c51-ab91b0dc8d2f/avatar" width="100%" height="100%">
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block secondary %}
+
+{% endblock %}
+
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+      $(".primary").removeClass("col-sm-9").addClass("col-sm-12")
+    });
+  </script>
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .blog-container {
+      padding: 64px;
+    }
+
+    /* Clear floats */
+    .row:after {
+      content: "";
+      display: table;
+      clear: both
+    }
+
+    /* 2/3 column */
+    .column-66 {
+      float: left;
+      width: 66.66666%;
+      padding: 20px;
+    }
+
+    /* 1/3 column */
+    .column-33 {
+      float: left;
+      width: 33.33333%;
+      padding: 20px;
+    }
+
+    /* Add responsiveness - make the columns appear on top of each other instead of next to each other on small screens */
+    @media screen and (max-width: 1000px) {
+      .column-66,
+      .column-33 {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+{% endblock %}

@@ -18,7 +18,6 @@ from flask import Blueprint, jsonify
 from flask.views import MethodView
 from ckanext.servicehub.model.ServiceModel import *
 
-from ckanext.servicehub.model.ModelHelper import deleteAppARelevant, modifyApp
 
 NotFound = logic.NotFound
 NotAuthorized = logic.NotAuthorized
@@ -253,14 +252,14 @@ def delete(id):
     return h.redirect_to(u'service.index')
 
 
-@service.route('/<string:id>/manage', methods=['POST'])
-def manage(id):
-    context = {
-        u'model': model,
-        u'session': model.Session,
-        u'user': g.user,
-    }
-    data_dict = clean_dict(
-        dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
-    modifyApp(context[u'session'], id, **data_dict)
-    return h.redirect_to(u'service.read', id=id)
+# @service.route('/<string:id>/manage', methods=['POST'])
+# def manage(id):
+#     context = {
+#         u'model': model,
+#         u'session': model.Session,
+#         u'user': g.user,
+#     }
+#     data_dict = clean_dict(
+#         dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
+#     modifyApp(context[u'session'], id, **data_dict)
+#     return h.redirect_to(u'service.read', id=id)

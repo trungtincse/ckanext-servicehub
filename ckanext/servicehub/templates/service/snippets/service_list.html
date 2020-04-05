@@ -1,17 +1,18 @@
 <ul class="media-grid" data-module="media-grid">
   {% for service in services %}
     <li class="media-item">
-
-      <div class="card">
-        <img src="{{appserver_host}}/app/{{service.app_id}}/avatar" alt="Avatar" style="width:100%">
-        <div class="card-block row">
-          <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
-            <h4><b>{{service.app_name}}</b></h4>
-          <p>{{service.description or ""|truncate(50)}}</p>
-          <a href="/service/{{ service.app_id }}" class="btn btn-default">GO TO</a>
+      <a href="/service/{{ service.app_id }}">
+        <div class="card">
+          <img src="{{ appserver_host }}/app/{{ service.app_id }}/avatar" alt="Avatar" style="width:100%">
+          <div class="card-block row">
+            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+              <h4><b>{{ service.app_name }}</b></h4>
+              <p>{{ service.description or ""|truncate(50) }}</p>
+            </div>
           </div>
         </div>
-      </div>
+
+      </a>
     </li>
   {% endfor %}
 </ul>

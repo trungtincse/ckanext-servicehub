@@ -1,5 +1,5 @@
-from ckanext.servicehub.view import ServiceController, CallController, UserController, TestController, AppServer, \
-    FileServingController
+from ckanext.servicehub.view import ServiceController, CallController, TestController,\
+    ViewController, PackageController, ProjectController
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import ckanext.servicehub.auth.create as create_auth
@@ -13,6 +13,7 @@ class ServicehubPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IActions)
+
     # plugins.implements(plugins.IMiddleware,inherit=True)
     # IConfigurer
 
@@ -24,17 +25,18 @@ class ServicehubPlugin(plugins.SingletonPlugin):
     def get_blueprint(self):
         return [ServiceController.service,
                 CallController.call_blueprint,
-                UserController.user_blueprint,
                 TestController.test_blueprint,
-                AppServer.appserver_blueprint,
-                FileServingController.file_blueprint
+                # AppServer.appserver_blueprint,
+                ViewController.view_blueprint,
+                PackageController.package_blueprint,
+                ProjectController.project_blueprint
                 ]
 
     def get_auth_functions(self):
         return {'service_create': create_auth.service_create}
 
     def get_actions(self):
-        all_function=dict()
+        all_function = dict()
         all_function.update(read.public_functions)
         all_function.update(create.public_functions)
         all_function.update(delete.public_functions)

@@ -29,8 +29,20 @@
         </div>
         <div class=" md-ml-10">
           <h3>Status</h3>
-          <label class="label label-warning">PENDING</label>
-          <label class="label label-danger">STOP SERVING</label>
+          {% if ins.app_status == 'BUILD_FAILED' %}
+            <label class="label label-danger">BUILDING FAILED</label>
+          {% elif ins.app_status == 'BUILDING' %}
+            <label class="label label-warning">BUILDING</label>
+          {% elif ins.app_status == 'BUILD_DONE' %}
+            <label class="label label-success">BUILD DONE</label>
+          {% endif %}
+          {% if ins.sys_status == 'STOP' %}
+            <label class="label label-danger">STOP</label>
+          {% elif ins.sys_status == 'DEBUG' %}
+            <label class="label label-warning">DEBUG</label>
+          {% elif ins.sys_status == 'AVAILABLE' %}
+            <label class="label label-success">AVAILABLE</label>
+          {% endif %}
         </div>
         <div class=" md-ml-10">
           <h3>Description</h3>
@@ -158,8 +170,8 @@
         if (response.error != '') {
           swal(response.error);
         } else {
-          {#location.href= `/service/${response.id}`#}
-          swal("Success!");
+          location.href= `/call/read/${response.call_id}`
+          {#swal("Success!");#}
         }
 
       });

@@ -16,22 +16,63 @@
 {% block primary %}
   <div class="col-12">
     <article class="module">
-      <header class="module-content page-header">
-        <div class="content_action md-ml-10 md-mb-10">
-          <a class="btn btn-danger" href="/service/821c869f-36f7-4de6-a0da-1d941508fc0e/delete"><i class="fa fa-trash"></i> Delete</a>
-        </div>
-        <div class="content_action md-mb-10">
-          <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i class="fa fa-wrench"></i> Manage</a>
-        </div>
-      </header>
+      {#      <header class="module-content page-header">#}
+      {#        <div class="content_action md-ml-10 md-mb-10">#}
+      {#          <a class="btn btn-danger" href="/service/821c869f-36f7-4de6-a0da-1d941508fc0e/delete"><i#}
+      {#                  class="fa fa-trash"></i> Delete</a>#}
+      {#        </div>#}
+      {#        <div class="content_action md-mb-10">#}
+      {#          <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i class="fa fa-wrench"></i> Manage</a>#}
+      {#        </div>#}
+      {#      </header>#}
       <div class="module-content">
-        <div class=" md-ml-10">
-{#          <p>Input: {{ input|tojson }}</p>#}
-          <p>Output: {{ ins.output }}</p>
+        <div class=" md-ml-10" style="margin-bottom: 20px;">
+          <div class="request-zone"
+               style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
+            <h3>Input</h3>
+            <form id="input-form" class="dataset-form md-mb-15 form-horizontal"
+                  data-module="basic-form" novalidate="">
+              {% for input in ins.inputs %}
+                {% snippet "call/snippets/redirect_input.html",field=input,call_id=ins.call_id,type='input' %}
+              {% endfor %}
+
+            </form>
+          </div>
         </div>
+        <div class="md-ml-10" style="margin-bottom: 20px;">
+          <div class="request-zone"
+               style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
+            <h3>Output</h3>
+            <form id="input-form" class="dataset-form md-mb-15 form-horizontal"
+                  data-module="basic-form" novalidate="">
+              {% if ins.call_status=='SUCCESS' %}
+                {% for input in ins.outputs %}
+                  {% snippet "call/snippets/redirect_input.html",field=input,call_id=ins.call_id ,type='input' %}
+                {% endfor %}
+                {% elif ins.call_status=='FAILED' %}
+                <p>Run failed: something go wrong</p>
+              {% else %}
+                <p>Wait the minutes or check call status</p>
+              {% endif %}
+            </form>
+          </div>
+        </div>
+        {% if ins.get('logs')!=None%}
+          <div class="md-ml-10">
+            <div class="request-zone"
+                 style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
+              <h3>Logs</h3>
+              <form id="input-form" class="dataset-form md-mb-15 form-horizontal"
+                    data-module="basic-form" novalidate="">
+                <p readonly>{{ ins.logs }}</p>
+              </form>
+            </div>
+          </div>
+        {% endif %}
       </div>
     </article>
   </div>
+
 {% endblock %}
 
 

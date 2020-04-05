@@ -27,8 +27,14 @@
             </div>
             <div class=" col-12 md-ml-5 md-mr-5 md-mb-20">
               <h3>Status</h3>
-              <label class="label label-warning">PENDING</label>
-              <p>At {{ ins.create_at }}</p>
+              {% if ins.call_status == 'FAILED' %}
+                <label class="label label-danger">FAILED</label>
+              {% elif ins.call_status == 'STARTED' %}
+                <label class="label label-warning">PENDING</label>
+              {% elif ins.call_status == 'SUCCESS' %}
+                <label class="label label-success">SUCCESS</label>
+              {% endif %}
+              <p>At {{ ins.created_at }}</p>
             </div>
 
             <div class=" col-12 md-ml-5 md-mr-5 md-mb-20">

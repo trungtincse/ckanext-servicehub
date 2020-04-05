@@ -1,0 +1,414 @@
+{% extends "page.html" %}
+
+{% block subtitle %}{{ _('Applications') }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li class="active">{% link_for _('Application'), named_route='service.index' %}</li>
+{% endblock %}
+
+{% block page_header %}{% endblock %}
+{% block page_primary_action %}
+  {% if h.check_access('service_create') %}
+    {#    {% link_for _('Add Service From Image'), named_route='service.new', class_='btn btn-primary', icon='plus-square' %}#}
+    {% link_for _('Submit your data project'), named_route='project.create', class_='btn btn-primary', icon='plus-square' %}
+
+  {% endif %}
+{% endblock %}
+
+{% block primary_content_inner %}
+  {#  <h1 class="hide-heading">{{ _('Applications') }}</h1>data-module="basic-form"#}
+  <form id="project-form" class="project-form" method="post" data-stage="1" enctype="multipart/form-data" novalidate>
+    <ol class="stages">
+      <li class="first active li-1" data-status="active">
+
+        <span class="highlight">Organization Information</span>
+
+      </li>
+      <li class="second uncomplete li-2" data-status="uncomplete">
+
+        <span class="highlight">Project Information</span>
+
+      </li>
+      <li class="last uncomplete li-3" data-status="uncomplete">
+
+        <span class="highlight">Tags</span>
+
+      </li>
+    </ol>
+    <fieldset id="stage-1">
+
+      <div class="form-group control-full">
+        <label class="control-label" for="field-name"><span title="This field is required"
+                                                            class="control-required">*</span>
+          Writer name</label>
+        <div class="controls ">
+          <input id="name" type="text" name="name"
+                 class="form-control" required>
+        </div>
+      </div>
+
+      <div class="form-group control-full">
+        <label class="control-label" for="field-email"><span title="This field is required"
+                                                             class="control-required">*</span> Email</label>
+        <div class="controls ">
+          <input id="email" type="text" name="email"
+                 class="form-control" required>
+        </div>
+      </div>
+      <div class="form-group control-full">
+        <label class="control-label" for="field-organization-name"><span title="This field is required"
+                                                                         class="control-required">*</span> Organization
+          name</label>
+        <div class="controls ">
+          <input id="organization_name" type="text" name="organization_name"
+                 class="form-control" required>
+        </div>
+      </div>
+      <div class="form-group control-full">
+        <label class="control-label" for="o_avatar_image"><span title="This field is required" class="control-required">*</span>
+          Organization avatar</label>
+        <div class="controls ">
+          <input id="o_avatar_image" type="file" name="o_avatar_image" placeholder="" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="form-group control-full">
+        <label class="control-label" for="field-notes"><span title="This field is required"
+                                                             class="control-required">*</span> Organization description</label>
+        <div class="controls editor">
+
+        <textarea id="o_description" name="o_description" cols="20" rows="5"
+                  placeholder="eg. Some useful notes about the data"
+                  class="form-control"></textarea>
+          <span class="editor-info-block">You can use <a href="#markdown" title="" data-target="popover"
+                                                         data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='text-muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>"
+                                                         data-html="true"
+                                                         data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
+
+
+        </div>
+      </div>
+    </fieldset>
+    <fieldset id="stage-2" hidden>
+      <div class="form-group control-full">
+        <label class="control-label" for="field-name"><span title="This field is required"
+                                                            class="control-required">*</span> Project name</label>
+        <div class="controls ">
+          <input id="project_name" type="text" name="project_name" required
+                 class="form-control">
+        </div>
+      </div>
+      <div class="form-group control-full">
+        <label class="control-label" for="avatar"><span title="This field is required"
+                                                        class="control-required">*</span>
+          Header image</label>
+        <div class="controls ">
+          <input id="header_image" type="file" name="header_image" required placeholder="" class="form-control">
+        </div>
+      </div>
+      <div class="form-group control-full">
+        <label class="control-label" for="field-notes"><span title="This field is required"
+                                                             class="control-required">*</span> Project summary</label>
+        <div class="controls editor">
+
+        <textarea id="prj_summary" name="prj_summary" cols="20" rows="5"
+                  placeholder="eg. Some useful notes about the data"
+                  class="form-control" required></textarea>
+          <span class="editor-info-block">You can use <a href="#markdown" title="" data-target="popover"
+                                                         data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='text-muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>"
+                                                         data-html="true"
+                                                         data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
+
+
+        </div>
+      </div>
+      <div class="form-group control-full">
+        <label class="control-label" for="field-notes"><span title="This field is required"
+                                                             class="control-required">*</span> Project goal</label>
+        <div class="controls editor">
+
+        <textarea id="prj_goal" name="prj_goal" cols="20" rows="5"
+                  placeholder="eg. Some useful notes about the data"
+                  class="form-control" required></textarea>
+          <span class="editor-info-block">You can use <a href="#markdown" title="" data-target="popover"
+                                                         data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='text-muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>"
+                                                         data-html="true"
+                                                         data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
+
+
+        </div>
+      </div>
+      <div class="form-group control-full">
+        <label class="control-label" for="field-name"><span title="This field is required"
+                                                            class="control-required">*</span> Link or Id CKAN
+          apps</label>
+        <div class="controls ">
+          <input id="link_or_id" type="text" name="link_or_id" required
+                 class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group control-full">
+        <label class="control-label" for="field-name">Dataset Ids</label>
+        <div class="controls params">
+        </div>
+        <a class="btn btn-success" onclick="addParam()">Add dataset</a>
+      </div>
+    </fieldset>
+    <!-- Snippet package/snippets/package_metadata_fields.html end -->
+    <fieldset id="stage-3" hidden>
+
+      <div class="form-group control-full">
+        <label class="control-label" for="field-name">Project Category</label>
+        <div class="controls ">
+          {% for i in project_category %}
+            <div class="form-row">
+              <div class="col-md-2">
+                <input id="project_category-{{ loop.index }}" type="checkbox" name="project_category-{{ loop.index }}"
+                       onclick="$(this).val(this.checked?'{{ i.name }}':'')">
+              </div>
+              <div class="col-md-10">
+                <p>{{ i.name }}</p>
+              </div>
+            </div>
+          {% endfor %}
+
+
+        </div>
+      </div>
+
+      <div class="form-group control-full">
+        <p>Others:</p>
+        <div class="controls ">
+          <div class="form-row">
+            <input id="others-project_category" type="text" name="others-project_category"
+                   class="form-control" data-role="tagsinput">
+          </div>
+        </div>
+      </div>
+      <div class="form-group control-full">
+        <label class="control-label" for="field-name">Project Tags</label>
+        <div class="controls ">
+          {% for i in project_tags %}
+            <div class="form-row">
+              <div class="col-md-2">
+                <input id="project_tags-{{ loop.index }}" type="checkbox" name="project_tags-{{ loop.index }}"
+                       onclick="$(this).val(this.checked?'{{ i.name }}':'')">
+              </div>
+              <div class="col-md-10">
+                <p>{{ i.name }}</p>
+              </div>
+
+            </div>
+          {% endfor %}
+
+        </div>
+      </div>
+
+      <div class="form-group control-full">
+        <p>Others:</p>
+        <div class="controls ">
+          <div class="form-row">
+            <input id="others-project_tags" type="text" name="others-project_tags"
+                   class="form-control" data-role="tagsinput">
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="button" onclick="checkStage(-1)" id="pre-btn" hidden>
+        Previous
+      </button>
+      <button class="btn btn-primary" type="button" id="next-btn" onclick="checkStage(1)">
+        Next
+      </button>
+      <button class="btn btn-primary" type="submit" id="finish-btn" hidden>
+        Finish
+      </button>
+
+
+      <p class="control-required-message">
+        <span class="control-required">*</span> Required field
+      </p>
+
+    </div>
+  </form>
+{% endblock %}
+
+{% block secondary_content %}
+  {% snippet "service/snippets/helper.html" %}
+{% endblock %}
+
+
+{% block scripts %}
+  {{ super() }}
+  <style>
+    .stages li {
+      width: 33%
+    }
+
+    .bootstrap-tagsinput {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      display: inline-block;
+      padding: 4px 6px;
+      color: #555;
+      vertical-align: middle;
+      border-radius: 4px;
+      max-width: 100%;
+      line-height: 22px;
+      cursor: text;
+      width: 100%;
+    }
+
+    .label-info {
+      background-color: #5bc0de;
+    }
+
+    .bootstrap-tagsinput .tag {
+      margin-right: 2px;
+      color: white;
+    }
+
+    div.bootstrap-tagsinput .label {
+      display: inline;
+      padding: .2em .6em .3em;
+      font-size: 75%;
+      font-weight: 700;
+      line-height: 1;
+      color: #fff;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: baseline;
+      border-radius: .25em;
+    }
+  </style>
+  <script>
+
+    function addParam() {
+      let params_div = $('div.params');
+      params_div.append(`
+    <div class="form-row param">
+    <div class="col-md-2 md-mb-10 md-mt-10">
+                <label class="control-label" for="field-name"><span title="This field is required"
+                                                            class="control-required">*</span>
+          ID</label>
+      </div>
+      <div class="col-md-8 md-mb-10 md-mt-10">
+        <input class="form-control" type="text" name="dataset-id" required>
+      </div>
+      <div class="col-md-2 md-mb-10 md-mt-10">
+        <a class="btn btn-danger" onclick="return $(this).parents('div.param').remove();"><i class="fa fa-trash"></i></a>
+      </div>
+    </div>
+    `);
+    }
+
+    function checkStage(amount) {
+      let curr_stage = $("#project-form").data("stage");
+      let new_stage = curr_stage + amount;
+      if (new_stage == 1) {
+        $('#stage-1').show();
+        $('#stage-2').hide();
+        $('#stage-3').hide();
+        $('#pre-btn').hide();
+        $('#next-btn').show();
+        $('#finish-btn').hide();
+
+
+      } else if (new_stage == 2) {
+        $('#stage-1').hide();
+        $('#stage-2').show();
+        $('#stage-3').hide();
+        $('#pre-btn').show();
+        $('#next-btn').show();
+        $('#finish-btn').hide();
+      } else if (new_stage == 3) {
+        $('#stage-1').hide();
+        $('#stage-2').hide();
+        $('#stage-3').show();
+        $('#pre-btn').show();
+        $('#next-btn').hide();
+        $('#finish-btn').show();
+      }
+      $("#project-form").data("stage", new_stage);
+      let status = $(`li.li-${new_stage}`).data('status');
+      $(`li.li-${new_stage}`).removeClass(status).addClass('active');
+      $(`li.li-${new_stage}`).data('status', 'active');
+
+      status = $(`li.li-${curr_stage}`).data('status');
+      $(`li.li-${curr_stage}`).removeClass(status).addClass('complete');
+      $(`li.li-${curr_stage}`).data('status', 'complete');
+    }
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+      $('#project-form').on('keyup keypress', function (e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode === 13) {
+          e.preventDefault();
+          return false;
+        }
+      });
+      $('#project-form').ajaxForm({
+
+        url: '/project1/create',
+        type: 'post',
+        beforeSubmit: function (arr, $form, options) {
+          //check valid-form
+          let checkValid = true;
+          $("input[required]").each((i, e) => {
+            if ($(e).val() == "") {
+              checkValid = false;
+              swal("Some required inputs are not filled");
+              return false;
+            }
+          });
+
+          if (!checkValid) return false;
+          $("textarea[required]").each((i, e) => {
+            if ($(e).val() == "") {
+              checkValid = false;
+              swal("Some required inputs are not filled");
+              return false;
+            }
+          });
+
+          if (!checkValid) return false;
+          ///////////////
+          //handle tag
+          project_category = $('#others-project_category').tagsinput('items');
+          project_tags = $('#others-project_tags').tagsinput('items');
+          for (let i = arr.length - 1; i >= 0; i--) {
+            let willDelete = false;
+            if (arr[i].name.indexOf("project_category") == 0) {
+              if (arr[i].value != '' && project_category.indexOf(arr[i].value) < 0) {
+                project_category.push(arr[i].value);
+              }
+              willDelete = true;
+            }
+            if (arr[i].name.indexOf("project_tags") == 0) {
+              if (arr[i].value != '' && project_tags.indexOf(arr[i].value) < 0) {
+                project_tags.push(arr[i].value);
+              }
+              willDelete = true;
+            }
+            if (arr[i].name == "others-project_category") willDelete = true;
+            if (arr[i].name == "others-project_tags") willDelete = true;
+            if (willDelete) arr.splice(i, 1);
+          }
+          arr.push({value: project_category.join(","), name: "project_category"})
+          arr.push({value: project_tags.join(","), name: "project_tags"})
+          console.log(arr)
+        },
+        success: function (response, statusText, xhr, $form) {
+          alert('blah blah');
+        }
+      })
+      ;
+    })
+    ;
+  </script>
+{% endblock %}

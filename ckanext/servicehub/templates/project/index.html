@@ -1,0 +1,58 @@
+{% extends "page.html" %}
+
+{% block subtitle %}{{ _('Applications') }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li class="active">{% link_for _('Application'), named_route='service.index' %}</li>
+{% endblock %}
+
+{% block page_header %}{% endblock %}
+{% block page_primary_action %}
+  {% if h.check_access('service_create') %}
+    {#    {% link_for _('Add Service From Image'), named_route='service.new', class_='btn btn-primary', icon='plus-square' %}#}
+    {% link_for _('Submit your data project'), named_route='project.create', class_='btn btn-primary', icon='plus-square' %}
+
+  {% endif %}
+{% endblock %}
+
+{% block primary_content_inner %}
+  <ul class="media-grid" data-module="media-grid">
+{#    {% for service in services %}#}
+      <li class="media-item">
+        <a href="#">
+        <div class="card">
+          <img src="http://0.0.0.0:5001/app/94d70a6c-6df4-11ea-8c51-ab91b0dc8d2f/avatar" alt="Avatar" style="width:100%">
+          <div class="card-block row">
+            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+              <h4><b>Project: ABC</b></h4>
+              <p>Tindangasdasdasd</p>
+
+            </div>
+          </div>
+          <hr style="margin-bottom: 0px;margin-top:0px ">
+          <div class="card-block row">
+            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+              <h4><b>Tags: </b></h4>
+              <p>Tindangasdasdasd</p>
+
+            </div>
+          </div>
+        </div>
+
+        </a>
+      </li>
+{#    {% endfor %}#}
+  </ul>
+{% endblock %}
+
+{% block secondary_content %}
+  {% snippet "service/snippets/helper.html" %}
+{% endblock %}
+
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+
+  </script>
+{% endblock %}

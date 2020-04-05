@@ -55,7 +55,7 @@ def delete_file(type, project_id):
 
 
 def make_tag(session, tags, type, project_id):
-    if tags == None: return;
+    if tags == None or tags=='': return;
     tag_list = tags.split(',')
     data = [dict(project_id=project_id, tag_name=i) for i in tag_list]
     if type == 'project_category':
@@ -135,7 +135,7 @@ class ProjectCreateView(MethodView):
             # ex.err_message="go here"
             # raise ex
             make_tag(session, data_dict.get('project_tags', None), 'project_tags', ins.id)
-            map_dataset(context, ins.id, data_dict['dataset-id'])
+            map_dataset(context, ins.id, data_dict.get('dataset-id',[]))
             map_app(context, ins.id, data_dict['link_or_id'])
 
             session.commit()
@@ -159,14 +159,19 @@ class ProjectCreateView(MethodView):
 
 @project_blueprint.route('/index', methods=['GET'])
 def index():
-    extra_vars = {}
     context = _prepare()
-    project_tags = get_action(u'vocabulary_show')(context, dict(id='project_tags'))['tags']
-    project_category = get_action(u'vocabulary_show')(context, dict(id='project_category'))['tags']
-    extra_vars['project_category'] = project_category
-    extra_vars['project_tags'] = project_tags
+    session=context['session']
+    instances=session.query(Project).all()
+    additions=[]
+    extra_vars = {}
+    for ins in instances:
+        id=ins.id
+        adds = {}
+        adds['category']=session.query(ProjectCategory).filter(ProjectCategory.project_id==id).all()
+        adds['tags']=session.query(ProjectTag).filter(ProjectTag.project_id==id).all()
+        additions.append(adds)
+    extra_vars['projects']=zip(instances,additions)
     return base.render('project/index.html', extra_vars=extra_vars)
-
 
 class ProjectReadView(MethodView):
     def get(self, id):
@@ -201,6 +206,7 @@ class ProjectReadView(MethodView):
                 except Exception as  ex:
                     session.rollback()
                     return jsonify(dict(success=False, error='Opps! Something is wrong'))
+            return jsonify(success=True, error='')
 
     def delete(self, id):
         context = _prepare()
@@ -219,7 +225,7 @@ class ProjectReadView(MethodView):
         return jsonify(success=True)
 
 
-@project_blueprint.route('/file/<id>/<type>', methods=['GET,DELETE'])
+@project_blueprint.route('/file/<id>/<type>', methods=['GET','DELETE'])
 def file(id, type):
     if request.method == "DELETE":
         delete_file(type, id)

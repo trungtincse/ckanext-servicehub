@@ -17,31 +17,48 @@
 
 {% block primary_content_inner %}
   <ul class="media-grid" data-module="media-grid">
-{#    {% for service in services %}#}
+    {% for project in projects %}
+      {% set instance=project[0] %}
+      {% set additions=project[1] %}
+      {% set category=additions['category'] %}
+      {% set tags=additions['tags'] %}
       <li class="media-item">
-        <a href="#">
-        <div class="card">
-          <img src="http://0.0.0.0:5001/app/94d70a6c-6df4-11ea-8c51-ab91b0dc8d2f/avatar" alt="Avatar" style="width:100%">
-          <div class="card-block row">
-            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
-              <h4><b>Project: ABC</b></h4>
-              <p>Tindangasdasdasd</p>
+        <a href="/project/read/{{ instance.id }}">
+          <div class="card">
+            <img src="{{ instance.header_image }}" alt="Avatar" style="width:100%">
+            <div class="card-block row">
+              <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+                <h4><b>Project: {{ instance.project_name }}</b></h4>
+                <h5><b>Organization: {{ instance.organization_name }}</b></h5>
+                <p>Write by: {{ instance.name }} </p>
+                <p>Contact: {{ instance.email }} </p>
+                {#              <p>Tindangasdasdasd</p>#}
 
+              </div>
+            </div>
+            <hr style="margin-bottom: 0px;margin-top:0px ">
+            <div class="card-block row">
+              <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+                <h4><b>Project category: </b></h4>
+                {% for tag in category %}
+                  <label class="label label-primary">{{ tag.tag_name }}</label>
+                {% endfor %}
+              </div>
+            </div>
+            <hr style="margin-bottom: 0px;margin-top:0px ">
+            <div class="card-block row">
+              <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+                <h4><b>Project Tags: </b></h4>
+                {% for tag in tags %}
+                  <label class="label label-primary">{{ tag.tag_name }}</label>
+                {% endfor %}
+              </div>
             </div>
           </div>
-          <hr style="margin-bottom: 0px;margin-top:0px ">
-          <div class="card-block row">
-            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
-              <h4><b>Tags: </b></h4>
-              <p>Tindangasdasdasd</p>
-
-            </div>
-          </div>
-        </div>
 
         </a>
       </li>
-{#    {% endfor %}#}
+    {% endfor %}
   </ul>
 {% endblock %}
 
@@ -52,6 +69,11 @@
 
 {% block scripts %}
   {{ super() }}
+  <style>
+    label:after {
+      content: "";
+    }
+  </style>
   <script>
 
   </script>

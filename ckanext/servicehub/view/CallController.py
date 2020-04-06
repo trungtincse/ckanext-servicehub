@@ -3,13 +3,14 @@ import ast
 import requests
 from werkzeug.datastructures import FileStorage
 
+from ckan.controllers.package import PackageController
 from ckan.lib import helpers
 from flask import Blueprint, Response, jsonify
 import json
 from ckanext.servicehub.model.ServiceModel import Call
 import ckan.lib.base as base
 from ckan import model, logic
-from ckan.common import g, request, config, _
+from ckan.common import g, c, request, config, _
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
 
@@ -102,9 +103,144 @@ def read(id):
         u'user': g.user
     }
     instance = get_action(u'call_show')(context, dict(id=id))
-    if instance.get('error','') != '':
+    if instance.get('error', '') != '':
         return base.abort(404, _(u'Call not found'))
     service = get_action(u'service_show')(context, dict(id=instance['call_detail']['app_id']))
-    print instance
-    print service
-    return base.render('call/read.html', dict(ins=instance['call_detail'], service_ins=service['app_detail']))
+    # --------------COPY THOI-------------
+    resource_id = '9fcdf8b2-1707-4dab-985d-4658342e8eb5'
+    try:
+        c.package = get_action('package_show')(context, {'id': 'asdasd'})
+        # c.pkg = context['package']
+    except (NotFound, NotAuthorized):
+        base.abort(404, _('Dataset not found'))
+    for resource in c.package.get('resources', []):
+        if resource['id'] == resource_id:
+            c.resource = resource
+            break
+    if not c.resource:
+        base.abort(404, _('Resource not found'))
+
+    # required for nav menu
+    c.pkg = context['package']
+    c.pkg_dict = c.package
+    dataset_type = c.pkg.type or 'dataset'
+    license_id = c.package.get('license_id')
+    try:
+        c.package['isopen'] = model.Package. \
+            get_license_register()[license_id].isopen()
+    except KeyError:
+        c.package['isopen'] = False
+
+    # Deprecated: c.datastore_api - use h.action_url instead
+    c.datastore_api = '%s/api/action' % \
+                      config.get('ckan.site_url', '').rstrip('/')
+    controller = EnhancePackageController()
+    # print controller.resource_views('asdasd', resource_id)
+    c.resource['can_be_previewed'] = controller._resource_preview(
+        {'resource': c.resource, 'package': c.package})
+
+    resource_views = get_action('resource_view_list')(
+        context, {'id': resource_id})
+    c.resource['has_views'] = len(resource_views) > 0
+
+    current_resource_view = None
+    view_id = request.params.get('view_id')
+    if c.resource['can_be_previewed'] and not view_id:
+        current_resource_view = None
+    elif c.resource['has_views']:
+        if view_id:
+            current_resource_view = [rv for rv in resource_views
+                                     if rv['id'] == view_id]
+            if len(current_resource_view) == 1:
+                current_resource_view = current_resource_view[0]
+            else:
+                base.abort(404, _('Resource view not found'))
+        else:
+            current_resource_view = resource_views[0]
+    vars = {'pkg': c.pkg_dict,
+            'resource_views': resource_views,
+            'current_resource_view': current_resource_view,
+            'dataset_type': dataset_type,
+            'ins': instance['call_detail'],
+            'service_ins': service['app_detail'],
+            'res': c.resource['has_views']
+            }
+    return base.render('call/read.html', vars)
+
+
+class EnhancePackageController(PackageController):
+    def resource_view(self, id, resource_id, view_id=None):
+        '''
+        Embedded page for a resource view.
+
+        Depending on the type, different views are loaded. This could be an
+        img tag where the image is loaded directly or an iframe that embeds a
+        webpage or a recline preview.
+        '''
+        context = {'model': model,
+                   'session': model.Session,
+                   'user': c.user,
+                   'auth_user_obj': c.userobj}
+
+        try:
+            package = get_action('package_show')(context, {'id': id})
+        except (NotFound, NotAuthorized):
+            base.abort(404, _('Dataset not found'))
+
+        try:
+            resource = get_action('resource_show')(
+                context, {'id': resource_id})
+        except (NotFound, NotAuthorized):
+            base.abort(404, _('Resource not found'))
+
+        view = None
+        if request.params.get('resource_view', ''):
+            try:
+                view = json.loads(request.params.get('resource_view', ''))
+            except ValueError:
+                base.abort(409, _('Bad resource view data'))
+        elif view_id:
+            try:
+                view = get_action('resource_view_show')(
+                    context, {'id': view_id})
+            except (NotFound, NotAuthorized):
+                base.abort(404, _('Resource view not found'))
+
+        if not view or not isinstance(view, dict):
+            base.abort(404, _('Resource view not supplied'))
+
+        return helpers.rendered_resource_view(view, resource, package, embed=True)
+
+    def resource_views(self, id, resource_id):
+        package_type = self._get_package_type(id.split('@')[0])
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user, 'for_view': True,
+                   'auth_user_obj': c.userobj}
+        data_dict = {'id': id}
+
+        try:
+            check_access('package_update', context, data_dict)
+        except NotAuthorized:
+            base.abort(403, _('User %r not authorized to edit %s') % (c.user, id))
+        # check if package exists
+        try:
+            c.pkg_dict = get_action('package_show')(context, data_dict)
+            c.pkg = context['package']
+        except (NotFound, NotAuthorized):
+            base.abort(404, _('Dataset not found'))
+
+        try:
+            c.resource = get_action('resource_show')(context,
+                                                     {'id': resource_id})
+            c.views = get_action('resource_view_list')(context,
+                                                       {'id': resource_id})
+
+        except NotFound:
+            base.abort(404, _('Resource not found'))
+        except NotAuthorized:
+            base.abort(403, _('Unauthorized to read resource %s') % id)
+
+        self._setup_template_variables(context, {'id': id},
+                                       package_type=package_type)
+
+        return base.render('call/resource_views.html')

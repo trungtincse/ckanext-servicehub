@@ -5,7 +5,8 @@
   </div>
   <div class="col-md-8">
     {% if field.type =='FILE' %}
-      <a href="http://localhost:5001/call/{{ call_id }}/{{type  }}/{{ field.name }}">Download file here</a>
+      <a href="http://localhost:5001/call/{{ call_id }}/{{ type }}/{{ field.name }}">Download file here</a>
+      <button type="button" class="btn btn-primary md-ml-10" data-toggle="modal" data-target="#myModal">View</button>
     {% else %}
       <input class="form-control" readonly name="{{ field.name }}"
              value="{{ field.value }}">

@@ -16,17 +16,8 @@
 {% block primary %}
   <div class="col-12">
     <article class="module">
-      {#      <header class="module-content page-header">#}
-      {#        <div class="content_action md-ml-10 md-mb-10">#}
-      {#          <a class="btn btn-danger" href="/service/821c869f-36f7-4de6-a0da-1d941508fc0e/delete"><i#}
-      {#                  class="fa fa-trash"></i> Delete</a>#}
-      {#        </div>#}
-      {#        <div class="content_action md-mb-10">#}
-      {#          <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i class="fa fa-wrench"></i> Manage</a>#}
-      {#        </div>#}
-      {#      </header>#}
       <div class="module-content">
-        <div class=" md-ml-10" style="margin-bottom: 20px;">
+        <div class=" md-ml-12" style="margin-bottom: 20px;">
           <div class="request-zone"
                style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
             <h3>Input</h3>
@@ -39,7 +30,7 @@
             </form>
           </div>
         </div>
-        <div class="md-ml-10" style="margin-bottom: 20px;">
+        <div class="md-ml-12" style="margin-bottom: 20px;">
           <div class="request-zone"
                style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
             <h3>Output</h3>
@@ -49,7 +40,7 @@
                 {% for input in ins.outputs %}
                   {% snippet "call/snippets/redirect_input.html",field=input,call_id=ins.call_id ,type='input' %}
                 {% endfor %}
-                {% elif ins.call_status=='FAILED' %}
+              {% elif ins.call_status=='FAILED' %}
                 <p>Run failed: something go wrong</p>
               {% else %}
                 <p>Wait the minutes or check call status</p>
@@ -57,8 +48,8 @@
             </form>
           </div>
         </div>
-        {% if ins.get('logs')!=None%}
-          <div class="md-ml-10">
+        {% if ins.get('logs')!=None %}
+          <div class="md-ml-12">
             <div class="request-zone"
                  style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
               <h3>Logs</h3>
@@ -69,6 +60,80 @@
             </div>
           </div>
         {% endif %}
+      </div>
+
+      <!-- Modal -->
+      <div id="myModal" class="modal" role="dialog" >
+        <div class="modal-dialog" style="width:1250px;">
+
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">Modal Header</h4>
+            </div>
+            <div class="modal-body">
+              {% block resource_view %}
+                {% block resource_view_nav %}
+                  {% set resource_preview = h.resource_preview(c.resource, c.package) %}
+                  {% snippet "call/snippets/resource_views_list.html",
+             views=resource_views,
+             pkg=pkg,
+             is_edit=false,
+             view_id=current_resource_view['id'],
+             resource_preview=resource_preview,
+             resource=c.resource,
+             extra_class="nav-tabs nav-tabs-plain" %}
+                {% endblock %}
+                {% block resource_view_content %}
+                  <div class="resource-view">
+                    {% set resource_preview = h.resource_preview(c.resource, c.package) %}
+                    {% set views_created = res or resource_preview %}
+                    {% if views_created %}
+                      {% if resource_preview and not current_resource_view %}
+                        {{ h.resource_preview(c.resource, c.package) }}
+                      {% else %}
+                        {% for resource_view in resource_views %}
+                          {% if resource_view == current_resource_view %}
+                            {% snippet 'call/snippets/resource_view.html',
+                         resource_view=resource_view,
+                         resource=c.resource,
+                         package=c.package %}
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    {% else %}
+                      {# Views not created #}
+                      <div class="data-viewer-info">
+                        <p>{{ _("There are no views created for this resource yet.") }}</p>
+                        {% if h.check_access('resource_view_create', {'resource_id': c.resource.id}) %}
+                          <p class="text-muted">
+                            <i class="fa fa-info-circle"></i>
+                            {{ _("Not seeing the views you were expecting?") }}
+                            <a href="javascript:void(0);" data-toggle="collapse" data-target="#data-view-info">
+                              {{ _('Click here for more information.') }}</a>
+                          </p>
+                          <div id="data-view-info" class="collapse">
+                            <p>{{ _('Here are some reasons you may not be seeing expected views:') }}</p>
+                            <ul>
+                              <li>{{ _("No view has been created that is suitable for this resource") }}</li>
+                              <li>{{ _("The site administrators may not have enabled the relevant view plugins") }}</li>
+                              <li>{{ _("If a view requires the DataStore, the DataStore plugin may not be enabled, or the data may not have been pushed to the DataStore, or the DataStore hasn't finished processing the data yet") }}</li>
+                            </ul>
+                          </div>
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endblock %}
+              {% endblock %}
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+
+        </div>
       </div>
     </article>
   </div>

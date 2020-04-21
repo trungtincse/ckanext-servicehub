@@ -1,5 +1,57 @@
 {% ckan_extends %}
 {% block primary_content_inner %}
   {{ super() }}
-  <p>asas{{tindpt}}</p>
+  {% if  app_related|length >0 %}
+
+    <h3>App Related</h3>
+    <ul class="app-list">
+
+
+      <!-- Snippet package/snippets/resource_item.html start -->
+
+      {% for app in app_related %}
+
+        <li class="app-item">
+
+          <a href="{{ url_for('service.read',id=app.app_id) }}">
+            {{ app.app_name }}
+          </a>
+
+
+          <p class="description">
+            {{ app.description }}
+          </p>
+
+
+        </li>
+      {% endfor %}
+
+    </ul>
+  {% endif %}
+  {% if project_related|length>0 %}
+    <h3>Project Related</h3>
+    <ul class="project-list">
+
+
+      <!-- Snippet package/snippets/resource_item.html start -->
+
+      {% for project in project_related %}
+
+        <li class="project-item">
+
+          <a href="{{ url_for('project.read',id=project.id) }}">
+            {{ project.project_name }}
+          </a>
+
+
+          <p class="description">
+            {{ project.prj_summary }}
+          </p>
+
+
+        </li>
+      {% endfor %}
+
+    </ul>
+  {% endif %}
 {% endblock %}

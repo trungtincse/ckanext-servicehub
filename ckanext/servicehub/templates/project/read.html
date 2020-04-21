@@ -120,14 +120,21 @@
         method: "DELETE"
       }
       $.ajax(settings).done(response => {
-        swal({
-                  title: "Delete project",
-                  text: response.toString(),
-                  type: "success"
-                }
-                , () => {
-                  location.href("/project/index");
-                });
+        if (response.success) {
+          swal({
+                    title: "Delete project",
+                    type: "success"
+                  }
+                  , () => {
+                    location.href = "/project/index";
+                  });
+        } else {
+          swal({
+            title: "Delete project",
+            text: response.error,
+            type: "error"
+          });
+        }
       });
     }
   </script>

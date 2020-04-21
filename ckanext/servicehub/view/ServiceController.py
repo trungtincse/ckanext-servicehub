@@ -18,6 +18,7 @@ from flask import Blueprint, jsonify
 from flask.views import MethodView
 from ckanext.servicehub.model.ServiceModel import *
 
+from ckanext.servicehub.model.ServiceModel import App
 
 NotFound = logic.NotFound
 NotAuthorized = logic.NotAuthorized
@@ -35,28 +36,7 @@ appserver_host = config.get('ckan.servicehub.appserver_host')
 import ast
 
 
-def isidentifier(ident):
-    """Determines if string is valid Python identifier."""
 
-    if not isinstance(ident, str):
-        raise TypeError("expected str, but got {!r}".format(type(ident)))
-
-    if not ident:
-        return False
-
-    if keyword.iskeyword(ident):
-        return False
-
-    first = '_' + string.lowercase + string.uppercase
-    if ident[0] not in first:
-        return False
-
-    other = first + string.digits
-    for ch in ident[1:]:
-        if ch not in other:
-            return False
-
-    return True
 
 
 def index():
@@ -69,7 +49,7 @@ def index():
     }
 
     results = get_action(u'service_list')(context, dict())
-    return base.render('service/index.html', dict(results=results, len=len(results),appserver_host=appserver_host))
+    return base.render('service/index.html', dict(results=results, len=len(results), appserver_host=appserver_host))
 
 
 def read(id):
@@ -80,67 +60,10 @@ def read(id):
         u'user': g.user
     }
     service_ins = get_action(u'service_show')(context, dict(id=id))
-    if service_ins.get('error','')!='':
+    if service_ins.get('error', '') != '':
         base.abort(404, _(u'Service not found'))
 
     return base.render('service/read.html', dict(ins=service_ins.get('app_detail')))
-
-
-class CreateServiceView(MethodView):
-    u'''Create service view '''
-
-    def _prepare(self, data=None):
-        context = {
-            u'model': model,
-            u'session': model.Session,
-            u'user': g.user
-        }
-
-        return context
-
-    def post(self):
-        context = self._prepare()
-        try:
-            data_dict = clean_dict(
-                dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
-            data_dict.update(clean_dict(
-                dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
-            ))
-            data_dict['service_type'] = 'Server'
-            data_dict['slug_name'] = slug.slug(data_dict['app_name'])
-            data_dict['status'] = 'Pending'
-            service = get_action(u'service_create')(context, data_dict)
-        except (NotFound, NotAuthorized) as e:
-            base.abort(404, _(u'Service not found'))
-        except dict_fns.DataError:
-            base.abort(400, _(u'Integrity Error'))
-
-        return h.redirect_to(u'service.index')
-
-    def get(self,
-            data=None, errors=None, error_summary=None):
-        extra_vars = {}
-        context = self._prepare()
-        data = data or {}
-        if not data.get(u'image_url', u'').startswith(u'http'):
-            data.pop(u'image_url', None)
-        errors = errors or {}
-        error_summary = error_summary or {}
-        extra_vars = {
-            u'data': data,
-            u'errors': errors,
-            u'error_summary': error_summary,
-            u'action': u'new'
-        }
-
-        extra_vars["is_code"] = False;
-        form = base.render(
-            'service/new_service_form.html', extra_vars)
-
-        g.form = form
-
-        extra_vars["form"] = form
-        return base.render('service/new.html', extra_vars)
 
 
 class CreateFromCodeServiceView(MethodView):
@@ -155,69 +78,37 @@ class CreateFromCodeServiceView(MethodView):
 
         return context
 
-    def check_data(self, data=None):
-        result = ""
-        print data
-        for k, v in data.items():
-            if k == 'description':
-                continue
-            if v == '' and k != 'var_name':
-                result += 'Some fields are empty!'
-                break;
-            if k == 'var_name':
-                if isinstance(v, list):
-                    can_continuous = True
-                    for i in v:
-                        if not isidentifier(str(i)):
-                            result += 'Some variable names are invalid format'
-                            can_continuous = False
-                            break;
-                    if can_continuous:
-                        duplicates = [item for item, count in collections.Counter(v).items() if count > 1]
-                        if len(duplicates) > 0:
-                            _str = ",".join(duplicates) + " are duplicated"
-                            result += _str
-                else:
-                    if not isidentifier(str(v)):
-                        result += 'Variable name is invalid format'
-        return result
 
     def post(self):
         context = self._prepare()
+        context['userobj'] = g.userobj
         try:
             data_dict = clean_dict(
                 dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
             data_dict.update(clean_dict(
                 dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
             ))
-            # data_dict['service_type'] = 'Batch'
-            data_dict['slug_name'] = slug.slug(data_dict['app_name'])
-            data_dict['image'] = data_dict['slug_name']
-
-            check_exist = get_action(u'service_by_slug_show')(context, dict(slug_name=data_dict['slug_name'])).get(
-                'error','')
-            print check_exist
-            if check_exist == '':
-                return jsonify(dict(error="Service name exists"))
-            message = self.check_data(data_dict)
-            if message != '':
-                return jsonify(dict(error=message))
+            data_dict['app_category']=data_dict['app_category'].split(',')
             message = get_action(u'service_create')(context, data_dict)
 
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
             base.abort(404, _(u'Not found'))
-
+        print message
         return jsonify(message)
 
     def get(self):
         extra_vars = {}
         context = self._prepare()
-
+        context['userobj']=g.userobj
+        model=context['model']
+        # print logic.get_action('package_show')(context,dict(id='covid-191'))
+        # assert False
         extra_vars["is_code"] = True;
+        extra_vars['app_category']=model.Vocabulary.by_name('app_category').tags.all()
+        extra_vars['groups']=filter(lambda x: x.state=='active' and x.is_organization,g.userobj.get_groups())
         form = base.render(
             'service/new_service_form.html', extra_vars)
         g.form = form
-
         extra_vars["form"] = form
         return base.render('service/new.html', extra_vars)
 
@@ -227,14 +118,14 @@ service = Blueprint(u'service', __name__, url_prefix=u'/service')
 
 def register_rules(blueprint):
     blueprint.add_url_rule(u'/', view_func=index, strict_slashes=False)
+    # blueprint.add_url_rule(
+    #     u'/new',
+    #     methods=[u'GET', u'POST'],
+    #     view_func=CreateServiceView.as_view(str(u'new')))
     blueprint.add_url_rule(
         u'/new',
         methods=[u'GET', u'POST'],
-        view_func=CreateServiceView.as_view(str(u'new')))
-    blueprint.add_url_rule(
-        u'/new_from_code',
-        methods=[u'GET', u'POST'],
-        view_func=CreateFromCodeServiceView.as_view(str(u'new_from_code')))
+        view_func=CreateFromCodeServiceView.as_view(str(u'new')))
     blueprint.add_url_rule(u'/<id>', methods=[u'GET'], view_func=read)
 
 
@@ -252,14 +143,44 @@ def delete(id):
     return h.redirect_to(u'service.index')
 
 
-# @service.route('/<string:id>/manage', methods=['POST'])
-# def manage(id):
-#     context = {
-#         u'model': model,
-#         u'session': model.Session,
-#         u'user': g.user,
-#     }
-#     data_dict = clean_dict(
-#         dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
-#     modifyApp(context[u'session'], id, **data_dict)
-#     return h.redirect_to(u'service.read', id=id)
+@service.route('/<string:id>/monitor', methods=['GET'])
+def monitor(id):
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    service_ins = get_action(u'service_show')(context, dict(id=id))
+    if service_ins.get('error', '') != '':
+        base.abort(404, _(u'Service not found'))
+
+    return base.render('service/monitor.html', dict(ins=service_ins.get('app_detail')))
+
+
+@service.route('/<string:id>/setting', methods=['POST'])
+def setting(id):
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    data_dict = clean_dict(
+        dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
+    session = context['session']
+    try:
+        ins = session.query(App).filter(App.app_id == id).first()
+        if ins == None:
+            ex = Exception()
+            ex.message = "Application not found"
+            raise ex
+        ins.sys_status = data_dict.get('mode', ins.sys_status)
+        ins.description = data_dict.get('description', ins.description)
+        session.add(ins)
+        session.commit()
+    except Exception as ex:
+        session.rollback()
+        error = getattr(ex, "err_message", 'Opps! Something is wrong')
+        return jsonify(dict(success=False, error=error))
+    return jsonify(dict(success=True))

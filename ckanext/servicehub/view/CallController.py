@@ -106,30 +106,23 @@ def read(id):
     if instance.get('error', '') != '':
         return base.abort(404, _(u'Call not found'))
     service = get_action(u'service_show')(context, dict(id=instance['call_detail']['app_id']))
-    # --------------COPY THOI-------------
-    resource_id = '9fcdf8b2-1707-4dab-985d-4658342e8eb5'
+    # --------------COPY-------------
+    resource_url = "covid.xls"
     try:
-        c.package = get_action('package_show')(context, {'id': 'asdasd'})
-        # c.pkg = context['package']
+        c.package = model.Package.get("1d0f9207-ea64-4e00-9045-edd1fae61503").as_dict()
     except (NotFound, NotAuthorized):
         base.abort(404, _('Dataset not found'))
+    print c.package.get('resources', [])
     for resource in c.package.get('resources', []):
-        if resource['id'] == resource_id:
+        if resource['url'] == resource_url:
             c.resource = resource
             break
     if not c.resource:
         base.abort(404, _('Resource not found'))
 
     # required for nav menu
-    c.pkg = context['package']
     c.pkg_dict = c.package
-    dataset_type = c.pkg.type or 'dataset'
-    license_id = c.package.get('license_id')
-    try:
-        c.package['isopen'] = model.Package. \
-            get_license_register()[license_id].isopen()
-    except KeyError:
-        c.package['isopen'] = False
+    dataset_type = 'ouput'
 
     # Deprecated: c.datastore_api - use h.action_url instead
     c.datastore_api = '%s/api/action' % \
@@ -140,7 +133,7 @@ def read(id):
         {'resource': c.resource, 'package': c.package})
 
     resource_views = get_action('resource_view_list')(
-        context, {'id': resource_id})
+        context, {'id': c.resource['id']})
     c.resource['has_views'] = len(resource_views) > 0
 
     current_resource_view = None
@@ -157,7 +150,7 @@ def read(id):
                 base.abort(404, _('Resource view not found'))
         else:
             current_resource_view = resource_views[0]
-    vars = {'pkg': c.pkg_dict,
+    vars = {'pkg': c.package,
             'resource_views': resource_views,
             'current_resource_view': current_resource_view,
             'dataset_type': dataset_type,

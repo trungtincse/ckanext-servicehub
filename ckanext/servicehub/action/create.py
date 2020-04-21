@@ -1,10 +1,14 @@
 import json
+import keyword
 import random
+import string
 
 import pika_pool
 import requests
 import logging
-from ckanext.servicehub.model.ServiceModel import App, Call
+
+import slug
+from ckanext.servicehub.model.ServiceModel import App, Call, AppCategory, AppRelatedDataset
 from flask import jsonify
 from werkzeug.datastructures import FileStorage
 
@@ -15,6 +19,10 @@ from ckan.common import config
 import os
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+
+from ckanext.servicehub.action.read import service_by_slug_show
+
+from ckanext.servicehub.action import get_item_as_list
 
 http_session = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
@@ -50,7 +58,27 @@ pool = pika_pool.QueuedPool(
     stale=45,
 )
 
+def isidentifier(ident):
+    """Determines if string is valid Python identifier."""
 
+    ident=str(ident)
+
+    if not ident:
+        return False
+
+    if keyword.iskeyword(ident):
+        return False
+
+    first = '_' + string.lowercase + string.uppercase
+    if ident[0] not in first:
+        return False
+
+    other = first + string.digits
+    for ch in ident[1:]:
+        if ch not in other:
+            return False
+
+    return True
 def push_request_call(context, data_dict):
     with pool.acquire() as cxn:
         cxn.channel.queue_declare(queue='call_request', durable=True)
@@ -60,15 +88,36 @@ def push_request_call(context, data_dict):
 
 
 def service_create(context, data_dict):
+    session = context['session']
+    model = context['model']
     data_dict['owner'] = context['user']
-
-    # session = context['session']
+    data_dict['slug_name'] = slug.slug(data_dict['app_name'])
+    data_dict['image'] = data_dict['slug_name']
+    data_dict['datasets'] = get_item_as_list(data_dict,'datasets')
+    data_dict['var_name'] = get_item_as_list(data_dict,'var_name')
+    data_dict['label'] = get_item_as_list(data_dict,'label')
+    data_dict['type'] = get_item_as_list(data_dict,'type')
+    ############ validate
+    app_name_exist = session.query(App).filter(App.slug_name == data_dict['slug_name']).first() != None
+    if app_name_exist:
+        return dict(success=False, error="Service name exists")
+    groups = filter(lambda x: x.state == 'active' and x.is_organization, context['userobj'].get_groups())
+    if data_dict['organization'] not in map(lambda x: x.title, groups):
+        return dict(success=False, error="User is not a member of the organization")
+    if not all([isidentifier(i) for i in data_dict['var_name']]):
+        return dict(success=False, error="Variable names are not accepted")
+    for dataset in data_dict['datasets']:
+        try:
+            logic.get_action('package_show')(context, dict(id=dataset))
+        except:
+            return dict(success=False, error="Dataset not found")
+    #############
     params = makeReqFormJSON(
-        var_name=data_dict.get('var_name', []),
-        label=data_dict.get('label', []),
-        type=data_dict.get('type', []))
+        var_name=data_dict['var_name'],
+        label=data_dict['label'],
+        type=data_dict['type'])
     app_dict = dict(app_name=data_dict['app_name'],
-                    # data_dict['service_type'],
+                    organization=data_dict['organization'],
                     slug_name=data_dict['slug_name'],
                     image=data_dict['image'],
                     owner=data_dict['owner'],
@@ -81,7 +130,24 @@ def service_create(context, data_dict):
         'code_file': ('code.zip', data_dict['codeFile'].read()),
         'avatar_file': ('avatar', data_dict['avatar'].read())
     })
-    return response.json()
+    #############
+    print response.json()
+    if 'error' in response.json().keys() and response.json()['error']:
+        return dict(success=False, error=response.json()['error'])
+    if 'app_id' in response.json().keys():
+        for dataset in data_dict['datasets']:
+            package = model.Package.get(dataset)
+            ins= AppRelatedDataset(app_id=response.json()['app_id'],package_id=package.id)
+            session.add(ins)
+        for i in data_dict['app_category']:
+            ins = AppCategory(app_id=response.json()['app_id'], tag_name=i)
+            session.add(ins)
+        try:
+            session.commit()
+        except:
+            session.rollback()
+        ###### ###########
+    return dict(success=True)
 
 
 def makeReqFormJSON(**kwargs):
@@ -92,22 +158,21 @@ def makeReqFormJSON(**kwargs):
             zip(label, var_name, type)]
 
 
-
 def call_create(context, data_dict):
     # session = context['session']
     user = context['user']
-    app_id= data_dict['app_id']
+    app_id = data_dict['app_id']
     del data_dict['app_id']
     files = {}
     for k, v in data_dict.items():
         if isinstance(v, FileStorage):
             files[k] = (k, v.read())
-        elif isinstance(v, list) :
-            files[k]=(None,json.dumps(v))
+        elif isinstance(v, list):
+            files[k] = (None, json.dumps(v))
         else:
             files[k] = (None, v)
-    path = os.path.join(appserver_host, 'app', app_id, 'execute')+'?userId=%s'%user
-    response=http_session.post(path, files=files)
+    path = os.path.join(appserver_host, 'app', app_id, 'execute') + '?userId=%s' % user
+    response = http_session.post(path, files=files)
     # print files
     # print response.json()
     return response.json()
@@ -131,8 +196,6 @@ def storeOutput(file, call_id):
                       files=dict(file=output_file.read())
                       )
     return path
-
-
 
 
 public_functions = dict(service_create=service_create,

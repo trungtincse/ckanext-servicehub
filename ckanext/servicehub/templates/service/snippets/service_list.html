@@ -6,8 +6,31 @@
           <img src="{{ appserver_host }}/app/{{ service.app_id }}/avatar" alt="Avatar" style="width:100%">
           <div class="card-block row">
             <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
-              <h4><b>{{ service.app_name }}</b></h4>
-              <p>{{ service.description or ""|truncate(50) }}</p>
+              <h3><b>{{ service.app_name }}</b></h3>
+            <h5><b>Organization: {{ service.organization }}</b></h5>
+              {% if service.description %}
+                <p>{{ service.description|truncate(100) }}</p>
+              {% else %}
+                <p>Not have description</p>
+              {% endif %}
+            </div>
+          </div>
+          <hr style="margin-bottom: 0px;margin-top:0px ">
+          <div class="card-block row">
+            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+              <h4><b>Datasets related: </b></h4>
+              {% for dataset in service.dataset_related %}
+                <label class="label label-primary">{{ dataset.package_name }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          <hr style="margin-bottom: 0px;margin-top:0px ">
+          <div class="card-block row">
+            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+              <h4><b>Category: </b></h4>
+              {% for tag in service.category %}
+                <label class="label label-primary">{{ tag.tag_name }}</label>
+              {% endfor %}
             </div>
           </div>
         </div>
@@ -17,3 +40,8 @@
   {% endfor %}
 </ul>
 
+<style>
+  label:after {
+    content: "";
+  }
+</style>

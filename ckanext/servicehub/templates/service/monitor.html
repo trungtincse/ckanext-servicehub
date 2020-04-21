@@ -1,0 +1,56 @@
+{% extends "page.html" %}
+{% import 'macros/form.html' as form %}
+
+
+
+{% block breadcrumb_content %}
+  <li>{% link_for _('Applications'), named_route='service.index' %}</li>
+  <li>{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
+  <li class="active">{% link_for "Monitor", named_route='service.monitor', id=ins.app_id %}</li>
+{% endblock %}
+
+
+{% block content_action %}{% endblock %}
+
+
+{% block primary %}
+  <div class="primary col-md-12" style="padding-left: 0px;padding-right: 0px">
+    <article class="module">
+      <header class="module-content page-header">
+        <div class="content_action md-mr-10 md-mb-10">
+          <a class="btn btn-default" href="/service/{{ ins.app_id }}"><i class="fa fa-arrow-left"></i> Back to app</a>
+        </div>
+      </header>
+      <div class="module-content" style="padding-left: 15px;padding-right: 15px">
+        <div class="md-ml-12">
+
+        </div>
+      </div>
+    </article>
+  </div>
+{% endblock %}
+
+
+
+{% block secondary %}{% endblock %}
+
+
+
+{% block scripts %}
+  {{ super() }}
+  <style>
+    label:after {
+      content: "";
+    }
+
+    input[type='checkbox'] {
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 5px;
+      border: 2px solid #555;
+    }
+
+  </style>
+
+{% endblock %}

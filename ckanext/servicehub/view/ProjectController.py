@@ -69,6 +69,7 @@ def make_tag(session, tags, type, project_id):
 
 def map_dataset(context, project_id, name_or_id):
     session = context['session']
+    model=context['model']
     if isinstance(name_or_id, list):
         pass
     else:
@@ -77,15 +78,11 @@ def map_dataset(context, project_id, name_or_id):
         try:
             result = get_action(u'package_show')(context, dict(id=i))
         except:
-            ex = Exception()
-            ex.err_message = 'dataset: %s not found' % i
-            raise ex
+            raise Exception(err_message = 'dataset: %s not found' % i)
         if result['private'] or result['state'] != 'active':
-            ex = Exception()
-            ex.err_message = 'dataset: %s is private' % i
-            raise ex
+            raise Exception(err_message = 'dataset: %s is private' % i)
         instance = ProjectDatasetUsed()
-        instance.setOption(project_id=project_id, dataset_id=i, link='%s/dataset/%s' % (site_url, i))
+        instance.setOption(project_id=project_id, dataset_id=result[u'id'], link='%s/dataset/%s' % (site_url, i))
         session.add(instance)
 
 
@@ -93,11 +90,8 @@ def map_app(context, project_id, id):
     session = context['session']
     result = get_action(u'service_show')(context, dict(id=id))
     if 'app_detail' not in result:
-        ex = Exception()
-        ex.err_message = 'application: %s not found' % id
-        raise ex
-    instance = ProjectAppUsed()
-    instance.setOption(project_id=project_id, app_id=id, link='%s/service/%s' % (site_url, id))
+        raise Exception(err_message = 'application: %s not found' % id)
+    instance = ProjectAppUsed(project_id=project_id, app_id=id, link='%s/service/%s' % (site_url, id))
     session.add(instance)
 
 
@@ -131,13 +125,11 @@ class ProjectCreateView(MethodView):
             session.flush()
 
             make_tag(session, data_dict.get('project_category', None), 'project_category', ins.id)
-            # ex=Exception()
-            # ex.err_message="go here"
-            # raise ex
+
             make_tag(session, data_dict.get('project_tags', None), 'project_tags', ins.id)
             map_dataset(context, ins.id, data_dict.get('dataset-id',[]))
-            map_app(context, ins.id, data_dict['link_or_id'])
 
+            map_app(context, ins.id, data_dict['link_or_id'])
             session.commit()
         except Exception as ex:
             session.rollback()
@@ -184,7 +176,7 @@ class ProjectReadView(MethodView):
         else:
             extra_vars['category']=session.query(ProjectCategory).filter(ProjectCategory.project_id==id).all()
             extra_vars['tags']=session.query(ProjectTag).filter(ProjectTag.project_id==id).all()
-            extra_vars['datasets']=session.query(ProjectDatasetUsed).filter(ProjectDatasetUsed.project_id==id).all()
+            extra_vars['datasets']=[i.as_dict() for i in session.query(ProjectDatasetUsed).filter(ProjectDatasetUsed.project_id==id).all()]
             extra_vars['apps']=session.query(ProjectAppUsed).filter(ProjectAppUsed.project_id==id).all()
             extra_vars['instance']=ins
             print extra_vars
@@ -216,7 +208,6 @@ class ProjectReadView(MethodView):
             session.delete(ins)
             session.commit()
         except Exception as  ex:
-            print ex.message
             session.rollback()
             return jsonify(dict(success=False, error='Opps! Something is wrong'))
         dir_path = os.path.join(storage_path, 'project',

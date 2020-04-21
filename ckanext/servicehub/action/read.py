@@ -34,8 +34,9 @@ def service_list(context, data_dict):
     session = context['session']
     model = context['model']
     service_list = session.query(App).all()
-    map(lambda x:x.strftime(),service_list)
-    return [_asdict(i) for i in service_list]
+    # map(lambda x:x.strftime(),service_list)
+    print [i.as_dict() for i in service_list]
+    return [i.as_dict() for i in service_list]
 
 @logic.side_effect_free
 def service_show(context, data_dict):

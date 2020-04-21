@@ -15,6 +15,9 @@ from ckan import model, logic
 from ckan.common import g, request, config, c, _
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
+from ckanext.servicehub.model.ServiceModel import AppRelatedDataset, App
+
+from ckanext.servicehub.model.ProjectModel import ProjectDatasetUsed, Project
 
 get_action = logic.get_action
 NotFound = logic.NotFound
@@ -29,14 +32,32 @@ appserver_host = config.get('ckan.servicehub.appserver_host')
 package_blueprint = Blueprint(u'package', __name__, url_prefix=u'/dataset')
 
 
+def _prepare(self, data=None):
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+
+    return context
+
+
 @package_blueprint.route('/new', methods=["GET"])
 def new():
     extra_vars = PackageExtraController().new()
     return base.render('package/new.html', extra_vars)
 
+
 @package_blueprint.route('/<id>', methods=["GET"])
 def read(id):
     extra_vars = PackageExtraController().read(id)
+    package_id = model.Package.get(id).id
+    extra_vars['app_related'] = [ins.as_dict() for ins in model.Session.query(App)
+        .join(AppRelatedDataset, App.app_id == AppRelatedDataset.app_id)
+        .filter(AppRelatedDataset.package_id == package_id).all()]
+    extra_vars['project_related'] = [ins.as_dict() for ins in model.Session.query(Project)
+        .join(ProjectDatasetUsed, Project.id == ProjectDatasetUsed.project_id)
+        .filter(AppRelatedDataset.package_id == package_id).all()]
     return base.render('package/read.html', extra_vars)
 
 
@@ -44,9 +65,12 @@ def read(id):
 def app(id):
     extra_vars = PackageExtraController().edit(id)
     return base.render('package/relate_app.html')
-@package_blueprint.route('/new_app/<id>', methods=["GET","POST"])
+
+
+@package_blueprint.route('/new_app/<id>', methods=["GET", "POST"])
 def new_app(id):
     return PackageExtraController().new_app(id)
+
 
 class PackageExtraController(PackageController):
     def edit(self, id, data=None, errors=None, error_summary=None):
@@ -217,6 +241,7 @@ class PackageExtraController(PackageController):
         return {'form_vars': form_vars,
                 'form_snippet': form_snippet,
                 'dataset_type': package_type}
+
     def new_app(self, id):
         ''' FIXME: This is a temporary action to allow styling of the
         forms. '''

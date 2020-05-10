@@ -5,7 +5,6 @@ import random
 import string
 
 import slug
-import yaml
 import json
 import logging
 import ckan.lib.base as base

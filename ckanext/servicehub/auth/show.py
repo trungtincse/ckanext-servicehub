@@ -1,4 +1,4 @@
-from sphinx.locale import _
+# from sphinx.locale import _
 
 from ckan.lib.plugins import get_permission_labels
 from ckan.logic.auth import get_package_object
@@ -21,6 +21,6 @@ def package_show(context, data_dict):
     if not authorized:
         return {
             'success': False,
-            'msg': _('User %s not authorized to read package %s') % (user, package.id)}
+            'msg': 'User %s not authorized to read package %s' % (user, package.id)}
     else:
         return {'success': True}

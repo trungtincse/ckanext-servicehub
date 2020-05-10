@@ -5,3 +5,4 @@ Pillow
 ckanapi
 pika
 pika_pool
+urllib3

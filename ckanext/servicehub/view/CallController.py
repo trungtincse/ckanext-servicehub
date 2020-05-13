@@ -107,56 +107,60 @@ def read(id):
         return base.abort(404, _(u'Call not found'))
     service = get_action(u'service_show')(context, dict(id=instance['call_detail']['app_id']))
     # --------------COPY-------------
-    resource_url = "covid.xls"
-    try:
-        c.package = model.Package.get("1d0f9207-ea64-4e00-9045-edd1fae61503").as_dict()
-    except (NotFound, NotAuthorized):
-        base.abort(404, _('Dataset not found'))
-    print c.package.get('resources', [])
-    for resource in c.package.get('resources', []):
-        if resource['url'] == resource_url:
-            c.resource = resource
-            break
-    if not c.resource:
-        base.abort(404, _('Resource not found'))
-
-    # required for nav menu
-    c.pkg_dict = c.package
-    dataset_type = 'ouput'
-
-    # Deprecated: c.datastore_api - use h.action_url instead
-    c.datastore_api = '%s/api/action' % \
-                      config.get('ckan.site_url', '').rstrip('/')
-    controller = EnhancePackageController()
-    # print controller.resource_views('asdasd', resource_id)
-    c.resource['can_be_previewed'] = controller._resource_preview(
-        {'resource': c.resource, 'package': c.package})
-
-    resource_views = get_action('resource_view_list')(
-        context, {'id': c.resource['id']})
-    c.resource['has_views'] = len(resource_views) > 0
-
-    current_resource_view = None
-    view_id = request.params.get('view_id')
-    if c.resource['can_be_previewed'] and not view_id:
-        current_resource_view = None
-    elif c.resource['has_views']:
-        if view_id:
-            current_resource_view = [rv for rv in resource_views
-                                     if rv['id'] == view_id]
-            if len(current_resource_view) == 1:
-                current_resource_view = current_resource_view[0]
-            else:
-                base.abort(404, _('Resource view not found'))
-        else:
-            current_resource_view = resource_views[0]
-    vars = {'pkg': c.package,
-            'resource_views': resource_views,
-            'current_resource_view': current_resource_view,
-            'dataset_type': dataset_type,
+    # resource_url = "covid.xls"
+    # try:
+    #     c.package = model.Package.get("1d0f9207-ea64-4e00-9045-edd1fae61503").as_dict()
+    # except (NotFound, NotAuthorized):
+    #     base.abort(404, _('Dataset not found'))
+    # print c.package.get('resources', [])
+    # for resource in c.package.get('resources', []):
+    #     if resource['url'] == resource_url:
+    #         c.resource = resource
+    #         break
+    # if not c.resource:
+    #     base.abort(404, _('Resource not found'))
+    #
+    # # required for nav menu
+    # c.pkg_dict = c.package
+    # dataset_type = 'ouput'
+    #
+    # # Deprecated: c.datastore_api - use h.action_url instead
+    # c.datastore_api = '%s/api/action' % \
+    #                   config.get('ckan.site_url', '').rstrip('/')
+    # controller = EnhancePackageController()
+    # # print controller.resource_views('asdasd', resource_id)
+    # c.resource['can_be_previewed'] = controller._resource_preview(
+    #     {'resource': c.resource, 'package': c.package})
+    #
+    # resource_views = get_action('resource_view_list')(
+    #     context, {'id': c.resource['id']})
+    # c.resource['has_views'] = len(resource_views) > 0
+    #
+    # current_resource_view = None
+    # view_id = request.params.get('view_id')
+    # if c.resource['can_be_previewed'] and not view_id:
+    #     current_resource_view = None
+    # elif c.resource['has_views']:
+    #     if view_id:
+    #         current_resource_view = [rv for rv in resource_views
+    #                                  if rv['id'] == view_id]
+    #         if len(current_resource_view) == 1:
+    #             current_resource_view = current_resource_view[0]
+    #         else:
+    #             base.abort(404, _('Resource view not found'))
+    #     else:
+    #         current_resource_view = resource_views[0]
+    # vars = {'pkg': c.package,
+    #         'resource_views': resource_views,
+    #         'current_resource_view': current_resource_view,
+    #         'dataset_type': dataset_type,
+    #         'ins': instance['call_detail'],
+    #         'service_ins': service['app_detail'],
+    #         'res': c.resource['has_views']
+    #         }
+    vars = {
             'ins': instance['call_detail'],
             'service_ins': service['app_detail'],
-            'res': c.resource['has_views']
             }
     return base.render('call/read.html', vars)
 

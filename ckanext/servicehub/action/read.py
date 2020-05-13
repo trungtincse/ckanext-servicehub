@@ -3,6 +3,7 @@ import logging
 
 import requests
 from ckanext.servicehub.model.ServiceModel import App, Call
+
 from requests.adapters import HTTPAdapter
 from sqlalchemy import inspect
 from urllib3 import Retry

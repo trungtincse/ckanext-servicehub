@@ -1,15 +1,18 @@
 <div class="form-group param md-mt-5 md-mb-5">
-  <div class="col-md-1"></div>
-  <div class="col-md-2">
-    <label for="{{ field.name }}">{{ field.name }}:</label>
-  </div>
-  <div class="col-md-8">
-    {% if field.type =='FILE' %}
-      <a href="http://localhost:5001/call/{{ call_id }}/{{ type }}/{{ field.name }}">Download file here</a>
-      <button type="button" class="btn btn-primary md-ml-10" data-toggle="modal" data-target="#myModal">View</button>
-    {% else %}
-      <input class="form-control" readonly name="{{ field.name }}"
-             value="{{ field.value }}">
-    {% endif %}
-  </div>
+    <div class="col-md-1"></div>
+    <div class="col-md-2">
+        <label for="{{ field.name }}">{{ field.name }}:</label>
+    </div>
+    <div class="col-md-8">
+        {% if field.type =='FILE' %}
+            <a href="http://localhost:5001/call/{{ call_id }}/{{ type }}/{{ field.name }}">Download file here</a>
+            {% if type=='output' %}
+                <button type="button" class="btn btn-primary md-ml-10" data-toggle="modal" data-target="#myModal">View
+                </button>
+            {% endif %}
+        {% else %}
+            <input class="form-control" readonly name="{{ field.name }}"
+                   value="{{ field.value }}">
+        {% endif %}
+    </div>
 </div>

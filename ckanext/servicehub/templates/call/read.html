@@ -37,8 +37,8 @@
             <form id="input-form" class="dataset-form md-mb-15 form-horizontal"
                   data-module="basic-form" novalidate="">
               {% if ins.call_status=='SUCCESS' %}
-                {% for input in ins.outputs %}
-                  {% snippet "call/snippets/redirect_input.html",field=input,call_id=ins.call_id ,type='input' %}
+                {% for output in ins.outputs %}
+                  {% snippet "call/snippets/redirect_input.html",field=output,call_id=ins.call_id ,type='output' %}
                 {% endfor %}
               {% elif ins.call_status=='FAILED' %}
                 <p>Run failed: something go wrong</p>
@@ -63,78 +63,78 @@
       </div>
 
       <!-- Modal -->
-      <div id="myModal" class="modal" role="dialog" >
-        <div class="modal-dialog" style="width:1250px;">
-
-          <!-- Modal content-->
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal">&times;</button>
-              <h4 class="modal-title">Modal Header</h4>
-            </div>
-            <div class="modal-body">
-              {% block resource_view %}
-                {% block resource_view_nav %}
-                  {% set resource_preview = h.resource_preview(c.resource, c.package) %}
-                  {% snippet "call/snippets/resource_views_list.html",
-             views=resource_views,
-             pkg=pkg,
-             is_edit=false,
-             view_id=current_resource_view['id'],
-             resource_preview=resource_preview,
-             resource=c.resource,
-             extra_class="nav-tabs nav-tabs-plain" %}
-                {% endblock %}
-                {% block resource_view_content %}
-                  <div class="resource-view">
-                    {% set resource_preview = h.resource_preview(c.resource, c.package) %}
-                    {% set views_created = res or resource_preview %}
-                    {% if views_created %}
-                      {% if resource_preview and not current_resource_view %}
-                        {{ h.resource_preview(c.resource, c.package) }}
-                      {% else %}
-                        {% for resource_view in resource_views %}
-                          {% if resource_view == current_resource_view %}
-                            {% snippet 'call/snippets/resource_view.html',
-                         resource_view=resource_view,
-                         resource=c.resource,
-                         package=c.package %}
-                          {% endif %}
-                        {% endfor %}
-                      {% endif %}
-                    {% else %}
+{#      <div id="myModal" class="modal" role="dialog" >#}
+{#        <div class="modal-dialog" style="width:1250px;">#}
+{##}
+{#          <!-- Modal content-->#}
+{#          <div class="modal-content">#}
+{#            <div class="modal-header">#}
+{#              <button type="button" class="close" data-dismiss="modal">&times;</button>#}
+{#              <h4 class="modal-title">Modal Header</h4>#}
+{#            </div>#}
+{#            <div class="modal-body">#}
+{#              {% block resource_view %}#}
+{#                {% block resource_view_nav %}#}
+{#                  {% set resource_preview = h.resource_preview(c.resource, c.package) %}#}
+{#                  {% snippet "call/snippets/resource_views_list.html",#}
+{#             views=resource_views,#}
+{#             pkg=pkg,#}
+{#             is_edit=false,#}
+{#             view_id=current_resource_view['id'],#}
+{#             resource_preview=resource_preview,#}
+{#             resource=c.resource,#}
+{#             extra_class="nav-tabs nav-tabs-plain" %}#}
+{#                {% endblock %}#}
+{#                {% block resource_view_content %}#}
+{#                  <div class="resource-view">#}
+{#                    {% set resource_preview = h.resource_preview(c.resource, c.package) %}#}
+{#                    {% set views_created = res or resource_preview %}#}
+{#                    {% if views_created %}#}
+{#                      {% if resource_preview and not current_resource_view %}#}
+{#                        {{ h.resource_preview(c.resource, c.package) }}#}
+{#                      {% else %}#}
+{#                        {% for resource_view in resource_views %}#}
+{#                          {% if resource_view == current_resource_view %}#}
+{#                            {% snippet 'call/snippets/resource_view.html',#}
+{#                         resource_view=resource_view,#}
+{#                         resource=c.resource,#}
+{#                         package=c.package %}#}
+{#                          {% endif %}#}
+{#                        {% endfor %}#}
+{#                      {% endif %}#}
+{#                    {% else %}#}
                       {# Views not created #}
-                      <div class="data-viewer-info">
-                        <p>{{ _("There are no views created for this resource yet.") }}</p>
-                        {% if h.check_access('resource_view_create', {'resource_id': c.resource.id}) %}
-                          <p class="text-muted">
-                            <i class="fa fa-info-circle"></i>
-                            {{ _("Not seeing the views you were expecting?") }}
-                            <a href="javascript:void(0);" data-toggle="collapse" data-target="#data-view-info">
-                              {{ _('Click here for more information.') }}</a>
-                          </p>
-                          <div id="data-view-info" class="collapse">
-                            <p>{{ _('Here are some reasons you may not be seeing expected views:') }}</p>
-                            <ul>
-                              <li>{{ _("No view has been created that is suitable for this resource") }}</li>
-                              <li>{{ _("The site administrators may not have enabled the relevant view plugins") }}</li>
-                              <li>{{ _("If a view requires the DataStore, the DataStore plugin may not be enabled, or the data may not have been pushed to the DataStore, or the DataStore hasn't finished processing the data yet") }}</li>
-                            </ul>
-                          </div>
-                        {% endif %}
-                      </div>
-                    {% endif %}
-                  </div>
-                {% endblock %}
-              {% endblock %}
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
+{#                      <div class="data-viewer-info">#}
+{#                        <p>{{ _("There are no views created for this resource yet.") }}</p>#}
+{#                        {% if h.check_access('resource_view_create', {'resource_id': c.resource.id}) %}#}
+{#                          <p class="text-muted">#}
+{#                            <i class="fa fa-info-circle"></i>#}
+{#                            {{ _("Not seeing the views you were expecting?") }}#}
+{#                            <a href="javascript:void(0);" data-toggle="collapse" data-target="#data-view-info">#}
+{#                              {{ _('Click here for more information.') }}</a>#}
+{#                          </p>#}
+{#                          <div id="data-view-info" class="collapse">#}
+{#                            <p>{{ _('Here are some reasons you may not be seeing expected views:') }}</p>#}
+{#                            <ul>#}
+{#                              <li>{{ _("No view has been created that is suitable for this resource") }}</li>#}
+{#                              <li>{{ _("The site administrators may not have enabled the relevant view plugins") }}</li>#}
+{#                              <li>{{ _("If a view requires the DataStore, the DataStore plugin may not be enabled, or the data may not have been pushed to the DataStore, or the DataStore hasn't finished processing the data yet") }}</li>#}
+{#                            </ul>#}
+{#                          </div>#}
+{#                        {% endif %}#}
+{#                      </div>#}
+{#                    {% endif %}#}
+{#                  </div>#}
+{#                {% endblock %}#}
+{#              {% endblock %}#}
+{#            </div>#}
+{#            <div class="modal-footer">#}
+{#              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>#}
+{#            </div>#}
+{#          </div>#}
+{##}
+{#        </div>#}
+{#      </div>#}
     </article>
   </div>
 

@@ -35,7 +35,7 @@ class ServicehubPlugin(plugins.SingletonPlugin,toolkit.DefaultDatasetForm):
                 ]
 
     def get_auth_functions(self):
-        return {'service_create': create_auth.service_create,'package_show':show_auth.package_show}
+        return {'service_create': create_auth.service_create}
 
     def get_actions(self):
         all_function = dict()

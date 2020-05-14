@@ -9,11 +9,13 @@ from flask import Blueprint, Response, jsonify
 import json
 from ckanext.servicehub.model.ServiceModel import Call
 import ckan.lib.base as base
+from ckan.model.user import User
 from ckan import model, logic
 from ckan.common import g, c, request, config, _
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
 
+_check_access = logic.check_access
 get_action = logic.get_action
 NotFound = logic.NotFound
 NotAuthorized = logic.NotAuthorized
@@ -95,6 +97,118 @@ def index():
     return base.render('call/index.html', dict(results=results, len=len(results)))
 
 
+def create_output_view(call_id, filename, url):
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': u'seanh',
+        u'userobj': User.get(u'seanh')
+        # u'return_id_only':True
+    }
+    # instance = get_action(u'call_show')(context, dict(id=call_id))
+    try:
+        package = get_action(u'package_show')(context, dict(name_or_id=u'%s-output' % call_id))
+    except:
+        data = {
+            u'name': u'%s-output' % call_id,
+            u'private': False,
+            u'type': u'output',
+        }
+        context1 = {
+            u'model': model,
+            u'session': model.Session,
+            u'user': u'seanh',
+            u'userobj': User.get(u'seanh')
+            # u'return_id_only':True
+        }
+        package = get_action(u'package_create')(context1, data)
+        if any(map(lambda resource: resource['name'] == filename, package['resources'])):
+            pass
+        else:
+            data = {
+                u'package_id': u'%s-output' % call_id,
+                u'url': url,
+                u'name': filename
+            }
+            context2 = {
+                u'model': model,
+                u'session': model.Session,
+                u'user': u'seanh',
+                u'userobj': User.get(u'seanh')
+                # u'return_id_only':True
+            }
+            get_action(u'resource_create')(context2, data)
+    # return context
+
+
+def make_view(package_id, filename):
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': u'seanh',
+        u'userobj': User.get(u'seanh')
+    }
+    resource_name = filename
+    try:
+        c.package = model.Package.get(package_id).as_dict()
+    except (NotFound, NotAuthorized):
+        base.abort(404, _('Dataset not found'))
+    print c.package.get('resources', [])
+    for resource in c.package.get('resources', []):
+        if resource['name'] == filename:
+            c.resource = resource
+            break
+    if not c.resource:
+        base.abort(404, _('Resource not found'))
+
+    # required for nav menu
+    c.pkg_dict = c.package
+    dataset_type = 'ouput'
+
+    # Deprecated: c.datastore_api - use h.action_url instead
+    c.datastore_api = '%s/api/action' % \
+                      config.get('ckan.site_url', '').rstrip('/')
+    controller = EnhancePackageController()
+    # print controller.resource_views('asdasd', resource_id)
+    c.resource['can_be_previewed'] = controller._resource_preview(
+        {'resource': c.resource, 'package': c.package})
+
+    resource_views = get_action('resource_view_list')(
+        context, {'id': c.resource['id']})
+    c.resource['has_views'] = len(resource_views) > 0
+
+    current_resource_view = None
+    view_id = request.params.get('view_id')
+    if c.resource['can_be_previewed'] and not view_id:
+        current_resource_view = None
+    elif c.resource['has_views']:
+        if view_id:
+            current_resource_view = [rv for rv in resource_views
+                                     if rv['id'] == view_id]
+            if len(current_resource_view) == 1:
+                current_resource_view = current_resource_view[0]
+            else:
+                base.abort(404, _('Resource view not found'))
+        else:
+            current_resource_view = resource_views[0]
+    vars = {'pkg': c.package,
+            'resource_views': resource_views,
+            'current_resource_view': current_resource_view,
+            'dataset_type': dataset_type,
+            'res': c.resource['has_views']
+            }
+    return base.render(u'call/snippets/modal_content_output_view.html', vars)
+
+
+@call_blueprint.route('/output_read/<call_id>/<filename>', methods=["GET"])
+def output_read(call_id, filename):
+    data_dict = clean_dict(
+        dict_fns.unflatten(tuplize_dict(parse_params(request.params))))
+    url = data_dict['url']
+    create_output_view(call_id, filename, url)
+    return make_view(u'%s-output' % call_id, filename)
+
+
 @call_blueprint.route('/read/<id>', methods=["GET"])
 def read(id):
     context = {
@@ -107,61 +221,11 @@ def read(id):
         return base.abort(404, _(u'Call not found'))
     service = get_action(u'service_show')(context, dict(id=instance['call_detail']['app_id']))
     # --------------COPY-------------
-    # resource_url = "covid.xls"
-    # try:
-    #     c.package = model.Package.get("1d0f9207-ea64-4e00-9045-edd1fae61503").as_dict()
-    # except (NotFound, NotAuthorized):
-    #     base.abort(404, _('Dataset not found'))
-    # print c.package.get('resources', [])
-    # for resource in c.package.get('resources', []):
-    #     if resource['url'] == resource_url:
-    #         c.resource = resource
-    #         break
-    # if not c.resource:
-    #     base.abort(404, _('Resource not found'))
-    #
-    # # required for nav menu
-    # c.pkg_dict = c.package
-    # dataset_type = 'ouput'
-    #
-    # # Deprecated: c.datastore_api - use h.action_url instead
-    # c.datastore_api = '%s/api/action' % \
-    #                   config.get('ckan.site_url', '').rstrip('/')
-    # controller = EnhancePackageController()
-    # # print controller.resource_views('asdasd', resource_id)
-    # c.resource['can_be_previewed'] = controller._resource_preview(
-    #     {'resource': c.resource, 'package': c.package})
-    #
-    # resource_views = get_action('resource_view_list')(
-    #     context, {'id': c.resource['id']})
-    # c.resource['has_views'] = len(resource_views) > 0
-    #
-    # current_resource_view = None
-    # view_id = request.params.get('view_id')
-    # if c.resource['can_be_previewed'] and not view_id:
-    #     current_resource_view = None
-    # elif c.resource['has_views']:
-    #     if view_id:
-    #         current_resource_view = [rv for rv in resource_views
-    #                                  if rv['id'] == view_id]
-    #         if len(current_resource_view) == 1:
-    #             current_resource_view = current_resource_view[0]
-    #         else:
-    #             base.abort(404, _('Resource view not found'))
-    #     else:
-    #         current_resource_view = resource_views[0]
-    # vars = {'pkg': c.package,
-    #         'resource_views': resource_views,
-    #         'current_resource_view': current_resource_view,
-    #         'dataset_type': dataset_type,
-    #         'ins': instance['call_detail'],
-    #         'service_ins': service['app_detail'],
-    #         'res': c.resource['has_views']
-    #         }
+
     vars = {
-            'ins': instance['call_detail'],
-            'service_ins': service['app_detail'],
-            }
+        'ins': instance['call_detail'],
+        'service_ins': service['app_detail'],
+    }
     return base.render('call/read.html', vars)
 
 

@@ -92,7 +92,6 @@ class CreateFromCodeServiceView(MethodView):
 
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
             base.abort(404, _(u'Not found'))
-        print message
         return jsonify(message)
 
     def get(self):

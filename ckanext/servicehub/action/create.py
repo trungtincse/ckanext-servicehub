@@ -131,7 +131,7 @@ def service_create(context, data_dict):
         'avatar_file': ('avatar', data_dict['avatar'].read())
     })
     #############
-    print response.json()
+    # print response.json()
     if 'error' in response.json().keys() and response.json()['error']:
         return dict(success=False, error=response.json()['error'])
     if 'app_id' in response.json().keys():
@@ -146,8 +146,7 @@ def service_create(context, data_dict):
             session.commit()
         except:
             session.rollback()
-        ###### ###########
-    return dict(success=True)
+        return dict(success=True,app_id=response.json()['app_id'])
 
 
 def makeReqFormJSON(**kwargs):

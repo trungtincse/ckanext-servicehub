@@ -105,7 +105,7 @@
       $.ajax(settings).done(response => {
         swal({
                   title: "Approve project",
-                  text: response.toString(),
+                  {#text: response.toString(),#}
                   type: "success"
                 }
                 , () => {
@@ -126,7 +126,7 @@
                     type: "success"
                   }
                   , () => {
-                    location.href = "/project/index";
+                    location.href = "/project/";
                   });
         } else {
           swal({

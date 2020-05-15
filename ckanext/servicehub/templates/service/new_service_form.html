@@ -309,6 +309,8 @@
             title: "Application created!",
             {#text: "App created",#}
             type: "success"
+          },function(){
+              location.href=`/service/${response.app_id}`;
           });
         } else {
           swal({

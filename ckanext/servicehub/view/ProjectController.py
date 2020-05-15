@@ -154,7 +154,7 @@ class ProjectCreateView(MethodView):
         return base.render('project/new.html', extra_vars)
 
 
-@project_blueprint.route('/index', methods=['GET'])
+@project_blueprint.route('/', methods=['GET'])
 def index():
     context = _prepare()
     session = context['session']

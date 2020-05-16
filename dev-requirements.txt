@@ -1,3 +1,4 @@
+flask_debugtoolbar
 flake8    # for the travis build
 requests
 slug

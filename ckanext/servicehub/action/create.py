@@ -1,14 +1,17 @@
 import json
 import keyword
+import mimetypes
 import random
 import string
-
+from ckan.model import types as _types
 import pika_pool
 import requests
 import logging
 
 import slug
-from ckanext.servicehub.model.ServiceModel import App, Call, AppCategory, AppRelatedDataset
+
+from ckanext.servicehub.error.exception import CKANException
+from ckanext.servicehub.model.ServiceModel import App, Call, AppCategory, AppRelatedDataset, AppCodeVersion, AppParam
 from flask import jsonify
 from werkzeug.datastructures import FileStorage
 
@@ -34,6 +37,7 @@ _get_or_bust = logic.get_or_bust
 
 appserver_host = config.get('ckan.servicehub.appserver_host')
 fileserver_host = config.get('ckan.servicehub.fileserver_host')
+storage_path = config.get('ckan.storage_path')
 import pika
 
 credentials = pika.PlainCredentials('bpnkxscx', 'HJsvGjpmQdDrJiVuw5w36F1lWr63sEkR')
@@ -58,10 +62,11 @@ pool = pika_pool.QueuedPool(
     stale=45,
 )
 
+
 def isidentifier(ident):
     """Determines if string is valid Python identifier."""
 
-    ident=str(ident)
+    ident = str(ident)
 
     if not ident:
         return False
@@ -79,6 +84,8 @@ def isidentifier(ident):
             return False
 
     return True
+
+
 def push_request_call(context, data_dict):
     with pool.acquire() as cxn:
         cxn.channel.queue_declare(queue='call_request', durable=True)
@@ -93,10 +100,10 @@ def service_create(context, data_dict):
     data_dict['owner'] = context['user']
     data_dict['slug_name'] = slug.slug(data_dict['app_name'])
     data_dict['image'] = data_dict['slug_name']
-    data_dict['datasets'] = get_item_as_list(data_dict,'datasets')
-    data_dict['var_name'] = get_item_as_list(data_dict,'var_name')
-    data_dict['label'] = get_item_as_list(data_dict,'label')
-    data_dict['type'] = get_item_as_list(data_dict,'type')
+    data_dict['datasets'] = get_item_as_list(data_dict, 'datasets')
+    data_dict['var_name'] = get_item_as_list(data_dict, 'var_name')
+    data_dict['label'] = get_item_as_list(data_dict, 'label')
+    data_dict['type'] = get_item_as_list(data_dict, 'type')
     ############ validate
     app_name_exist = session.query(App).filter(App.slug_name == data_dict['slug_name']).first() != None
     if app_name_exist:
@@ -112,41 +119,107 @@ def service_create(context, data_dict):
         except:
             return dict(success=False, error="Dataset not found")
     #############
+    # app_dict = dict(app_name=data_dict['app_name'],
+    #                 organization=data_dict['organization'],
+    #                 slug_name=data_dict['slug_name'],
+    #                 image=data_dict['image'],
+    #                 owner=data_dict['owner'],
+    #                 description=data_dict['description'],
+    #                 language=data_dict['language'],
+    #                 params=params)
+    ####create app info
+    app_id = _types.make_uuid()
+    type = mimetypes.guess_type(data_dict['avatar'].filename)
+    if type[0] == None or type[0].find('image') >= 0:
+        avatar_path = os.path.join(storage_path, 'avatars', app_id)
+        if not os.path.exists(os.path.dirname(avatar_path)):
+            try:
+                os.makedirs(os.path.dirname(avatar_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+        data_dict['avatar'].save(avatar_path)
+    else:
+        return dict(success=False, error="Avatar is not image format")
+
+    app_dict = dict(app_id=app_id,
+                    app_name=data_dict['app_name'],
+                    avatar_path=avatar_path,
+                    organization=data_dict['organization'],
+                    slug_name=data_dict['slug_name'],
+                    type='BATCH',
+                    owner=data_dict['owner'],
+                    description=data_dict['description'],
+                    language=data_dict['language'])
+    ####
     params = makeReqFormJSON(
         var_name=data_dict['var_name'],
         label=data_dict['label'],
         type=data_dict['type'])
-    app_dict = dict(app_name=data_dict['app_name'],
-                    organization=data_dict['organization'],
-                    slug_name=data_dict['slug_name'],
-                    image=data_dict['image'],
-                    owner=data_dict['owner'],
-                    description=data_dict['description'],
-                    language=data_dict['language'],
-                    params=params)
-    path = appserver_host + "/app/create"
-    response = http_session.post(path, files={
-        'app_info': (None, json.dumps(app_dict)),
-        'code_file': ('code.zip', data_dict['codeFile'].read()),
-        'avatar_file': ('avatar', data_dict['avatar'].read())
-    })
+    #####
+    code_id = _types.make_uuid()
+
+    type = mimetypes.guess_type(data_dict['codeFile'].filename)
+    if type[0] == None or type[0].find('zip') >= 0:
+        code_path = os.path.join(storage_path, 'codes', code_id)
+        if not os.path.exists(os.path.dirname(code_path)):
+            try:
+                os.makedirs(os.path.dirname(code_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+        data_dict['avatar'].save(code_path)
+    else:
+        return dict(success=False, error="Code file is not zip format")
+    code_dict = dict(
+        code_id=code_id,
+        app_id=app_id,
+        code_path=code_path,
+        image=data_dict['slug_name'],
+    )
+    try:
+        session = context['session']
+        app = App()
+        app.setOption(**app_dict)
+        session.add(app)
+        session.commit()
+        code = AppCodeVersion()
+        app.setOption(**code_dict)
+        session.add(code)
+        for param in params:
+            param_dict = dict(app_id=app_id,
+                              label=param['label'],
+                              name=param['name'],
+                              type=param['type'])
+            param_ins = AppParam()
+            param_ins.setOption(**param_dict)
+            session.add(param_ins)
+            # session.flush()
+        session.commit()
+        path = appserver_host + "/app/create"
+        http_session.post(path, json=dict(code_id=code_id,app_id=app_id))
+        return dict(success=True, code_id=code_id, app_id=app_id)
+    except Exception as ex:
+        print ex
+        print ex.message
+        session.rollback()
+        return dict(success=False, error='Creating application is not success.')
     #############
     # print response.json()
-    if 'error' in response.json().keys() and response.json()['error']:
-        return dict(success=False, error=response.json()['error'])
-    if 'app_id' in response.json().keys():
-        for dataset in data_dict['datasets']:
-            package = model.Package.get(dataset)
-            ins= AppRelatedDataset(app_id=response.json()['app_id'],package_id=package.id)
-            session.add(ins)
-        for i in data_dict['app_category']:
-            ins = AppCategory(app_id=response.json()['app_id'], tag_name=i)
-            session.add(ins)
-        try:
-            session.commit()
-        except:
-            session.rollback()
-        return dict(success=True,app_id=response.json()['app_id'])
+    # if 'error' in response.json().keys() and response.json()['error']:
+    #     return dict(success=False, error=response.json()['error'])
+    # if 'app_id' in response.json().keys():
+    #     for dataset in data_dict['datasets']:
+    #         package = model.Package.get(dataset)
+    #         ins = AppRelatedDataset(app_id=response.json()['app_id'], package_id=package.id)
+    #         session.add(ins)
+    #     for i in data_dict['app_category']:
+    #         ins = AppCategory(app_id=response.json()['app_id'], tag_name=i)
+    #         session.add(ins)
+    #     try:
+    #         session.commit()
+    #     except:
+    #         session.rollback()
 
 
 def makeReqFormJSON(**kwargs):

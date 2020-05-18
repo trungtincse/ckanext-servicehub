@@ -35,9 +35,6 @@ appserver_host = config.get('ckan.servicehub.appserver_host')
 import ast
 
 
-
-
-
 def index():
     context = {
         u'model': model,
@@ -77,7 +74,6 @@ class CreateFromCodeServiceView(MethodView):
 
         return context
 
-
     def post(self):
         context = self._prepare()
         context['userobj'] = g.userobj
@@ -87,7 +83,7 @@ class CreateFromCodeServiceView(MethodView):
             data_dict.update(clean_dict(
                 dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
             ))
-            data_dict['app_category']=data_dict['app_category'].split(',')
+            data_dict['app_category'] = data_dict['app_category'].split(',')
             message = get_action(u'service_create')(context, data_dict)
 
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
@@ -97,13 +93,13 @@ class CreateFromCodeServiceView(MethodView):
     def get(self):
         extra_vars = {}
         context = self._prepare()
-        context['userobj']=g.userobj
-        model=context['model']
+        context['userobj'] = g.userobj
+        model = context['model']
         # print logic.get_action('package_show')(context,dict(id='covid-191'))
         # assert False
         extra_vars["is_code"] = True;
-        extra_vars['app_category']=model.Vocabulary.by_name('app_category').tags.all()
-        extra_vars['groups']=filter(lambda x: x.state=='active' and x.is_organization,g.userobj.get_groups())
+        extra_vars['app_category'] = model.Vocabulary.by_name('app_category').tags.all()
+        extra_vars['groups'] = filter(lambda x: x.state == 'active' and x.is_organization, g.userobj.get_groups())
         form = base.render(
             'service/new_service_form.html', extra_vars)
         g.form = form

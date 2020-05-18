@@ -69,5 +69,5 @@ class ServicehubPlugin(plugins.SingletonPlugin,toolkit.DefaultDatasetForm):
         # our custom field
         schema['owner_org']= [toolkit.get_validator(u'ignore_missing')]
         return schema
-logger= logging.getLogger('logserver')
-logger.info("a=5")
+# logger= logging.getLogger('logserver')
+# logger.info("a=5")

@@ -54,7 +54,7 @@ class App(Base):
     description = Column(types.UnicodeText, default='No description')
     language = Column(types.UnicodeText)  # optional batch
     created_at = Column(DateTime(timezone=True), default=func.now())  # optional both
-    curr_code_id = Column(ForeignKey('app_code_version.code_id', onupdate="CASCADE", ondelete="CASCADE"))
+    curr_code_id = Column(types.UnicodeText)
     app_status = Column(types.UnicodeText, default='DEBUG')  # optional both
 
     def setOption(self, **kwargs):

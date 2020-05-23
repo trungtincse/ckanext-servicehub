@@ -26,7 +26,7 @@ class Call(Base):
     elapsed_seconds = Column(types.BIGINT)
     call_status = Column(types.UnicodeText)
     logs = Column(types.UnicodeText)
-    created_at = Column(DateTime(timezone=True),default=func.now())
+    created_at = Column(DateTime(timezone=True), default=func.now())
 
     def __init__(self, user_id, app_id, call_status="PENDING"):
         self.call_id = _types.make_uuid()
@@ -51,11 +51,11 @@ class App(Base):
     slug_name = Column(types.UnicodeText, unique=True)
     owner = Column(types.UnicodeText)
     organization = Column(types.UnicodeText)  # optional both
-    description = Column(types.UnicodeText,default='No description')
+    description = Column(types.UnicodeText, default='No description')
     language = Column(types.UnicodeText)  # optional batch
-    created_at = Column(DateTime(timezone=True),default=func.now())# optional both
-    # sys_status = Column(types.UnicodeText)  # optional both
-    app_status = Column(types.UnicodeText,default='DEBUG')  # optional both
+    created_at = Column(DateTime(timezone=True), default=func.now())  # optional both
+    curr_code_id = Column(ForeignKey('app_code_version.code_id', onupdate="CASCADE", ondelete="CASCADE"))
+    app_status = Column(types.UnicodeText, default='DEBUG')  # optional both
 
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
@@ -73,20 +73,23 @@ class App(Base):
                              meta.Session.query(AppCategory).filter(AppCategory.app_id == self.app_id).all()]
         return _dict
 
+
 class AppCodeVersion(Base):
-    __tablename__='app_code_version'
+    __tablename__ = 'app_code_version'
     code_id = Column(types.UnicodeText,
-                    primary_key=True,
-                    default=_types.make_uuid)
+                     primary_key=True,
+                     default=_types.make_uuid)
     app_id = Column(ForeignKey('app_info.app_id', onupdate="CASCADE", ondelete="CASCADE"))
     code_path = Column(types.UnicodeText)
     image = Column(types.UnicodeText)
     image_id = Column(types.UnicodeText)
-    build_status = Column(types.UnicodeText,default='BUILDING')  # optional both
+    build_status = Column(types.UnicodeText, default='BUILDING')  # optional both
     created_at = Column(DateTime(timezone=True), default=func.now())  # optional both
+
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+
 
 class AppParam(Base):
     __tablename__ = 'app_param'
@@ -96,10 +99,12 @@ class AppParam(Base):
     name = Column(types.UnicodeText, primary_key=True)
     type = Column(types.UnicodeText)
     label = Column(types.UnicodeText)
-    description = Column(types.UnicodeText,default='No description')
+    description = Column(types.UnicodeText, default='No description')
+
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+
 
 class CallInput(Base):
     __tablename__ = 'call_input'
@@ -162,4 +167,4 @@ class AppRelatedDataset(Base):
         # _dict = {c.key: getattr(self, c.key)
         #          for c in inspect(self).mapper.column_attrs}
         # del _dict['package_id']
-        return dict(app_id=self.app_id,package_name=model.Package.get(self.package_id).name)
+        return dict(app_id=self.app_id, package_name=model.Package.get(self.package_id).name)

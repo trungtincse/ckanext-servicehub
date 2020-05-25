@@ -48,11 +48,13 @@ def service_show(context, data_dict):
     if service != None:
         params = session.query(AppParam).filter(AppParam.app_id == data_dict['id']).all()
         code = session.query(AppCodeVersion).filter(AppCodeVersion.code_id == service.curr_code_id).first()
+        all_codes = session.query(AppCodeVersion).filter(AppCodeVersion.app_id == data_dict['id']).all()
         assert code != None
         params = [i.as_dict() for i in params]
         service = _asdict(service)
         service['params'] = params
         service['code'] = _asdict(code)
+        service['all_codes'] = [i.as_dict() for i in all_codes]
         return service
     else:
         return _asdict(service)

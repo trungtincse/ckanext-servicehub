@@ -122,7 +122,7 @@ def service_create(context, data_dict):
             return dict(success=False, error="Dataset not found")
     app_id = _types.make_uuid()
     type = mimetypes.guess_type(data_dict['avatar'].filename)
-    if type[0] == None or type[0].find('image') >= 0:
+    if type[0] != None and type[0].find('image') >= 0:
         avatar_path = os.path.join(storage_path, 'avatars', app_id)
         if not os.path.exists(os.path.dirname(avatar_path)):
             try:
@@ -132,7 +132,7 @@ def service_create(context, data_dict):
                     raise
         data_dict['avatar'].save(avatar_path)
     else:
-        return dict(success=False, error="Avatar is not image format")
+        return jsonify(success=False, error="Avatar is not image format")
 
     app_dict = dict(app_id=app_id,
                     app_name=data_dict['app_name'],
@@ -152,7 +152,7 @@ def service_create(context, data_dict):
     code_id = _types.make_uuid()
 
     type = mimetypes.guess_type(data_dict['codeFile'].filename)
-    if type[0] == None or type[0].find('zip') >= 0:
+    if type[0] != None and type[0].find('zip') >= 0:
         code_path = os.path.join(storage_path, 'codes', code_id)
         if not os.path.exists(os.path.dirname(code_path)):
             try:
@@ -163,7 +163,7 @@ def service_create(context, data_dict):
         assert code_path != None
         data_dict['codeFile'].save(code_path)
     else:
-        return dict(success=False, error="Code file is not zip format")
+        return jsonify(success=False, error="Code file is not zip format")
     code_dict = dict(
         code_id=code_id,
         app_id=app_id,
@@ -198,22 +198,7 @@ def service_create(context, data_dict):
         print ex.message
         session.rollback()
         return dict(success=False, error='Creating application is not success.')
-    #############
-    # print response.json()
-    # if 'error' in response.json().keys() and response.json()['error']:
-    #     return dict(success=False, error=response.json()['error'])
-    # if 'app_id' in response.json().keys():
-    #     for dataset in data_dict['datasets']:
-    #         package = model.Package.get(dataset)
-    #         ins = AppRelatedDataset(app_id=response.json()['app_id'], package_id=package.id)
-    #         session.add(ins)
-    #     for i in data_dict['app_category']:
-    #         ins = AppCategory(app_id=response.json()['app_id'], tag_name=i)
-    #         session.add(ins)
-    #     try:
-    #         session.commit()
-    #     except:
-    #         session.rollback()
+
 
 
 def makeReqFormJSON(**kwargs):

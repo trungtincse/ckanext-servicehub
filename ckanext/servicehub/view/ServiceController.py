@@ -1,6 +1,9 @@
 # encoding: utf-8
 import collections
+import errno
 import keyword
+import mimetypes
+import os
 import random
 import string
 import slug
@@ -15,9 +18,10 @@ from ckan.common import OrderedDict, c, g, config, request, _
 from flask import Blueprint, jsonify, send_file
 from flask.views import MethodView
 from ckanext.servicehub.model.ServiceModel import *
-
+from ckan.model import types as _types
 from ckanext.servicehub.model.ServiceModel import App
 
+storage_path = config.get('ckan.storage_path')
 NotFound = logic.NotFound
 NotAuthorized = logic.NotAuthorized
 ValidationError = logic.ValidationError
@@ -201,3 +205,57 @@ def getAvatar(id):
         error = getattr(ex, "err_message", 'Opps! Something is wrong')
         return jsonify(dict(success=False, error=error))
     # return jsonify(dict(success=True))
+
+
+@service.route('/<string:id>/update', methods=['POST'])
+def update(id):
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    data_dict = clean_dict(
+        dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
+    data_dict.update(clean_dict(
+        dict_fns.unflatten(tuplize_dict(parse_params(request.files)))
+    ))
+    session = context['session']
+    try:
+        service = session.query(App).filter(App.app_id == id).first()
+        if service == None:
+            raise
+    except:
+        base.abort(404, _(u'Service not found'))
+    try:
+        code_id = _types.make_uuid()
+        type = mimetypes.guess_type(data_dict['codeFile'].filename)
+        if type[0] != None and type[0].find('zip') >= 0:
+            code_path = os.path.join(storage_path, 'codes', code_id)
+            if not os.path.exists(os.path.dirname(code_path)):
+                try:
+                    os.makedirs(os.path.dirname(code_path))
+                except OSError as exc:  # Guard against race condition
+                    if exc.errno != errno.EEXIST:
+                        raise
+            assert code_path != None
+            data_dict['codeFile'].save(code_path)
+        else:
+            return jsonify(success=False, error="Code file is not zip format")
+        code_dict = dict(
+            code_id=code_id,
+            app_id=id,
+            code_path=code_path,
+            image=data_dict['slug_name']
+        )
+        code = AppCodeVersion()
+        code.setOption(**code_dict)
+        session.add(code)
+
+        service.curr_code_id=code_id
+        session.add(service)
+        session.commit()
+    except Exception as ex:
+        session.rollback()
+        error = getattr(ex, "err_message", 'Opps! Something is wrong')
+        return jsonify(dict(success=False, error=error))
+    return jsonify(dict(success=True))

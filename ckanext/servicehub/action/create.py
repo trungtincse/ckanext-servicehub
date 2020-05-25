@@ -161,7 +161,7 @@ def service_create(context, data_dict):
                 if exc.errno != errno.EEXIST:
                     raise
         assert code_path != None
-        data_dict['avatar'].save(code_path)
+        data_dict['codeFile'].save(code_path)
     else:
         return dict(success=False, error="Code file is not zip format")
     code_dict = dict(

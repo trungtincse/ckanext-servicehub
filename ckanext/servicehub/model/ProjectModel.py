@@ -130,3 +130,6 @@ class ProjectAppUsed(Base):
         _dict = {c.key: getattr(self, c.key)
                  for c in inspect(self).mapper.column_attrs}
         return _dict
+
+from ckanext.servicehub.model.BaseModel import Base, engine
+Base.metadata.create_all(engine)

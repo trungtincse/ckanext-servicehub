@@ -164,3 +164,7 @@ class AppRelatedDataset(Base):
         #          for c in inspect(self).mapper.column_attrs}
         # del _dict['package_id']
         return dict(app_id=self.app_id,package_name=model.Package.get(self.package_id).name)
+
+
+from ckanext.servicehub.model.BaseModel import Base, engine
+Base.metadata.create_all(engine)

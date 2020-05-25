@@ -3,7 +3,6 @@ import collections
 import keyword
 import random
 import string
-
 import slug
 import json
 import logging
@@ -13,7 +12,7 @@ import ckan.lib.navl.dictization_functions as dict_fns
 import ckan.logic as logic
 import ckan.model as model
 from ckan.common import OrderedDict, c, g, config, request, _
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, send_file
 from flask.views import MethodView
 from ckanext.servicehub.model.ServiceModel import *
 
@@ -59,7 +58,7 @@ def read(id):
     if service_ins.get('error', '') != '':
         base.abort(404, _(u'Service not found'))
 
-    return base.render('service/read.html', dict(ins=service_ins.get('app_detail')))
+    return base.render('service/read.html', dict(ins=service_ins))
 
 
 class CreateFromCodeServiceView(MethodView):
@@ -149,7 +148,7 @@ def monitor(id):
     if service_ins.get('error', '') != '':
         base.abort(404, _(u'Service not found'))
 
-    return base.render('service/monitor.html', dict(ins=service_ins.get('app_detail')))
+    return base.render('service/monitor.html', dict(ins=service_ins))
 
 
 @service.route('/<string:id>/setting', methods=['POST'])
@@ -169,7 +168,7 @@ def setting(id):
             ex = Exception()
             ex.message = "Application not found"
             raise ex
-        ins.sys_status = data_dict.get('mode', ins.sys_status)
+        ins.app_status = data_dict.get('mode', ins.app_status)
         ins.description = data_dict.get('description', ins.description)
         session.add(ins)
         session.commit()
@@ -178,3 +177,27 @@ def setting(id):
         error = getattr(ex, "err_message", 'Opps! Something is wrong')
         return jsonify(dict(success=False, error=error))
     return jsonify(dict(success=True))
+
+
+@service.route('/<string:id>/avatar', methods=['GET'])
+def getAvatar(id):
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    session = context['session']
+    try:
+        ins = session.query(App).filter(App.app_id == id).first()
+        if ins == None:
+            ex = Exception()
+            ex.message = "Application not found"
+            raise ex
+        file_path = ins.avatar_path
+        return send_file(file_path)
+    except Exception as ex:
+        print ex
+        error = getattr(ex, "err_message", 'Opps! Something is wrong')
+        return jsonify(dict(success=False, error=error))
+    # return jsonify(dict(success=True))

@@ -1,3 +1,4 @@
+import errno
 import json
 import keyword
 import mimetypes
@@ -27,10 +28,10 @@ from ckanext.servicehub.action.read import service_by_slug_show
 
 from ckanext.servicehub.action import get_item_as_list
 
-http_session = requests.Session()
-retry = Retry(connect=3, backoff_factor=0.5)
-adapter = HTTPAdapter(max_retries=retry)
-http_session.mount('http://', adapter)
+# http_session = requests.Session()
+# retry = Retry(connect=3, backoff_factor=0.5)
+# adapter = HTTPAdapter(max_retries=retry)
+# http_session.mount('http://', adapter)
 
 log = logging.getLogger(__name__)
 _get_or_bust = logic.get_or_bust
@@ -40,12 +41,13 @@ fileserver_host = config.get('ckan.servicehub.fileserver_host')
 storage_path = config.get('ckan.storage_path')
 import pika
 
-credentials = pika.PlainCredentials('bpnkxscx', 'HJsvGjpmQdDrJiVuw5w36F1lWr63sEkR')
-parameters = pika.ConnectionParameters('mustang.rmq.cloudamqp.com',
-                                       5672,
-                                       'bpnkxscx',
-                                       credentials,
-                                       connection_attempts=2, socket_timeout=10)
+
+# credentials = pika.PlainCredentials('bpnkxscx', 'HJsvGjpmQdDrJiVuw5w36F1lWr63sEkR')
+# parameters = pika.ConnectionParameters('mustang.rmq.cloudamqp.com',
+#                                        5672,
+#                                        'bpnkxscx',
+#                                        credentials,
+#                                        connection_attempts=2, socket_timeout=10)
 # connection = pika.BlockingConnection(parameters)
 # params = pika.URLParameters(
 #     'amqp://bpnkxscx:HJsvGjpmQdDrJiVuw5w36F1lWr63sEkR@mustang.rmq.cloudamqp.com/bpnkxscx'
@@ -53,14 +55,14 @@ parameters = pika.ConnectionParameters('mustang.rmq.cloudamqp.com',
 #     'connection_attempts=2'
 # )
 
-pool = pika_pool.QueuedPool(
-    create=lambda: pika.BlockingConnection(parameters=parameters),
-    max_size=10,
-    max_overflow=10,
-    timeout=10,
-    recycle=3600,
-    stale=45,
-)
+# pool = pika_pool.QueuedPool(
+#     create=lambda: pika.BlockingConnection(parameters=parameters),
+#     max_size=10,
+#     max_overflow=10,
+#     timeout=10,
+#     recycle=3600,
+#     stale=45,
+# )
 
 
 def isidentifier(ident):
@@ -118,16 +120,6 @@ def service_create(context, data_dict):
             logic.get_action('package_show')(context, dict(id=dataset))
         except:
             return dict(success=False, error="Dataset not found")
-    #############
-    # app_dict = dict(app_name=data_dict['app_name'],
-    #                 organization=data_dict['organization'],
-    #                 slug_name=data_dict['slug_name'],
-    #                 image=data_dict['image'],
-    #                 owner=data_dict['owner'],
-    #                 description=data_dict['description'],
-    #                 language=data_dict['language'],
-    #                 params=params)
-    ####create app info
     app_id = _types.make_uuid()
     type = mimetypes.guess_type(data_dict['avatar'].filename)
     if type[0] == None or type[0].find('image') >= 0:
@@ -168,6 +160,7 @@ def service_create(context, data_dict):
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
+        assert code_path != None
         data_dict['avatar'].save(code_path)
     else:
         return dict(success=False, error="Code file is not zip format")
@@ -180,11 +173,12 @@ def service_create(context, data_dict):
     try:
         session = context['session']
         app = App()
+        app_dict['curr_code_id'] = code_id
         app.setOption(**app_dict)
         session.add(app)
         session.commit()
         code = AppCodeVersion()
-        app.setOption(**code_dict)
+        code.setOption(**code_dict)
         session.add(code)
         for param in params:
             param_dict = dict(app_id=app_id,
@@ -197,7 +191,7 @@ def service_create(context, data_dict):
             # session.flush()
         session.commit()
         path = appserver_host + "/app/create"
-        http_session.post(path, json=dict(code_id=code_id,app_id=app_id))
+        requests.post(path, json=dict(code_id=code_id, app_id=app_id))
         return dict(success=True, code_id=code_id, app_id=app_id)
     except Exception as ex:
         print ex
@@ -244,9 +238,7 @@ def call_create(context, data_dict):
         else:
             files[k] = (None, v)
     path = os.path.join(appserver_host, 'app', app_id, 'execute') + '?userId=%s' % user
-    response = http_session.post(path, files=files)
-    # print files
-    # print response.json()
+    response = requests.post(path, files=files)
     return response.json()
 
 
@@ -254,9 +246,9 @@ def storeInput(file, call_id):
     input_file = file
     file_name = input_file.filename
     path = os.path.join(fileserver_host, 'file', 'input', call_id, file_name)
-    http_session.post(path,
-                      files=dict(file=input_file.read())
-                      )
+    requests.post(path,
+                  files=dict(file=input_file.read())
+                  )
     return path
 
 
@@ -264,9 +256,9 @@ def storeOutput(file, call_id):
     output_file = file
     file_name = output_file.filename
     path = os.path.join(fileserver_host, 'file', 'output', call_id, file_name)
-    http_session.post(path,
-                      files=dict(file=output_file.read())
-                      )
+    requests.post(path,
+                  files=dict(file=output_file.read())
+                  )
     return path
 
 

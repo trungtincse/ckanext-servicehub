@@ -32,19 +32,19 @@
         </div>
         <div class=" md-ml-10">
           <h3>Status</h3>
-          {% if ins.app_status == 'BUILD_FAILED' %}
+          {% if ins.code.build_status == 'BUILD_FAILED' %}
             <label class="label label-danger">BUILDING FAILED</label>
-          {% elif ins.app_status == 'BUILDING' %}
+          {% elif ins.code.build_status == 'BUILDING' %}
             <label class="label label-warning">BUILDING</label>
-          {% elif ins.app_status == 'BUILD_DONE' %}
+          {% elif ins.code.build_status == 'BUILD_DONE' %}
             <label class="label label-success">BUILD DONE</label>
           {% endif %}
-          {% if ins.sys_status == 'STOP' %}
+          {% if ins.app_status == 'STOP' %}
             <label class="label label-danger">STOP</label>
-          {% elif ins.sys_status == 'DEBUG' %}
+          {% elif ins.app_status == 'DEBUG' %}
             <label class="label label-warning">DEBUG</label>
-          {% elif ins.sys_status == 'AVAILABLE' %}
-            <label class="label label-success">AVAILABLE</label>
+          {% elif ins.app_status == 'START' %}
+            <label class="label label-success">START</label>
           {% endif %}
         </div>
         <div class=" md-ml-10">
@@ -108,7 +108,7 @@
 
                   <option value="STOP">Stop</option>
 
-                  <option value="TEST">Test</option>
+                  <option value="DEBUG">Debug</option>
 
                   <option value="START">Start</option>
 

@@ -51,11 +51,11 @@ class App(Base):
     slug_name = Column(types.UnicodeText, unique=True)
     owner = Column(types.UnicodeText)
     organization = Column(types.UnicodeText)  # optional both
-    description = Column(types.UnicodeText, default='No description')
+    description = Column(types.UnicodeText, default=u'No description')
     language = Column(types.UnicodeText)  # optional batch
     created_at = Column(DateTime(timezone=True), default=func.now())  # optional both
     curr_code_id = Column(types.UnicodeText)
-    app_status = Column(types.UnicodeText, default='DEBUG')  # optional both
+    app_status = Column(types.UnicodeText, default=u'DEBUG')  # optional both
 
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
@@ -83,13 +83,16 @@ class AppCodeVersion(Base):
     code_path = Column(types.UnicodeText)
     image = Column(types.UnicodeText)
     image_id = Column(types.UnicodeText)
-    build_status = Column(types.UnicodeText, default='BUILDING')  # optional both
+    build_status = Column(types.UnicodeText, default=u'BUILDING')  # optional both
     created_at = Column(DateTime(timezone=True), default=func.now())  # optional both
 
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-
+    def as_dict(self):
+        _dict = {c.key: getattr(self, c.key)
+                 for c in inspect(self).mapper.column_attrs}
+        return _dict
 
 class AppParam(Base):
     __tablename__ = 'app_param'
@@ -99,12 +102,15 @@ class AppParam(Base):
     name = Column(types.UnicodeText, primary_key=True)
     type = Column(types.UnicodeText)
     label = Column(types.UnicodeText)
-    description = Column(types.UnicodeText, default='No description')
+    description = Column(types.UnicodeText, default=u'No description')
 
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-
+    def as_dict(self):
+        _dict = {c.key: getattr(self, c.key)
+                 for c in inspect(self).mapper.column_attrs}
+        return _dict
 
 class CallInput(Base):
     __tablename__ = 'call_input'

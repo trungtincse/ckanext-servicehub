@@ -23,6 +23,10 @@
             <th scope="row" class="dataset-label">{{ _("Owner") }}</th>
             <td class="dataset-details" property="dc:creator">{{ pkg_dict.owner }}</td>
           </tr>
+                    <tr>
+            <th scope="row" class="dataset-label">{{ _("Slug name") }}</th>
+            <td class="dataset-details" property="dc:creator">{{ pkg_dict.slug_name }}</td>
+          </tr>
       {% endblock %}
     </tbody>
   </table>

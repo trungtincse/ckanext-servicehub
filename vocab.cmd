@@ -2,8 +2,8 @@
 
 APIKEY=$1
 
-`curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
---header 'X-CKAN-API-Key: ${APIKEY}' \
+curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
+--header "X-CKAN-API-Key: ${APIKEY}" \
 --data-raw '{
     "name": "app_category",
     "tags": [
@@ -32,10 +32,10 @@ APIKEY=$1
             "name": "Miscellaneous"
         }
     ]
-}'`
+}'
 
-`curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
---header 'X-CKAN-API-Key: ${APIKEY}' \
+curl --location --request POST http://localhost:5000/api/action/vocabulary_create' \
+--header "X-CKAN-API-Key: ${APIKEY}" \
 --data-raw '{
     "name": "project_category",
     "tags": [
@@ -64,10 +64,10 @@ APIKEY=$1
             "name": "Miscellaneous"
         }
     ]
-}'`
+}'
 
-`curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
---header 'X-CKAN-API-Key: ${APIKEY}' \
+curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
+--header "X-CKAN-API-Key: ${APIKEY}" \
 --data-raw '{
     "name": "project_tags",
     "tags": [
@@ -96,4 +96,4 @@ APIKEY=$1
             "name": "Python"
         }
     ]
-}'`
+}'

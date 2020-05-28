@@ -43,7 +43,6 @@ def service_list(context, data_dict):
 def service_show(context, data_dict):
     model = context['model']
     session = context['session']
-    path = os.path.join(appserver_host, 'app', data_dict['id'])
     service = session.query(App).filter(App.app_id == data_dict['id']).first()
     if service != None:
         params = session.query(AppParam).filter(AppParam.app_id == data_dict['id']).all()
@@ -55,6 +54,11 @@ def service_show(context, data_dict):
         service['params'] = params
         service['code'] = _asdict(code)
         service['all_codes'] = [i.as_dict() for i in all_codes]
+
+        #####
+        path = os.path.join(appserver_host, 'app', data_dict['id'])
+        service['app_detail'] = requests.get(path).json()
+        #####
         return service
     else:
         return _asdict(service)

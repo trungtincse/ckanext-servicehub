@@ -211,9 +211,9 @@ def makeReqFormJSON(**kwargs):
 
 def call_create(context, data_dict):
     session = context['session']
-    user = context['user']
+    userId = context['user']
     app_id = data_dict.pop('app_id')
-    code_version = session.query(App.curr_code_id).filter(App.app_id == app_id).first()
+    code_version = session.query(App.curr_code_id).filter(App.app_id == app_id).scalar()
     # code = session.query(AppCodeVersion).filter(AppCodeVersion.code_id == code_version).first()
     files = {}
     for k, v in data_dict.items():
@@ -223,8 +223,8 @@ def call_create(context, data_dict):
             files[k] = (None, json.dumps(v))
         else:
             files[k] = (None, v)
-    url = appserver_host + "/app/{}/{}/execute".format(app_id, code_version)
-    path = os.path.join(appserver_host, 'app', app_id, 'execute') + '?userId=%s' % user
+    path = appserver_host + "/app/{}/{}/execute?userId={}".format(app_id, code_version, userId)
+    # path = os.path.join(appserver_host, 'app', app_id, 'execute') + '?userId=%s' % userId
     response = requests.post(path, files=files)
     return response.json()
 

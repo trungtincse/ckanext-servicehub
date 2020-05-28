@@ -34,7 +34,7 @@ class ResourceNotFoundException(Exception):
 
 
 def modify_input(context, data_dict):
-    data_dict['ckan_resources'] = data_dict.get('ckan_resources', [])
+    data_dict['ckan_resources'] = data_dict.pop('ckan_resources', [])
     ckan_resources = data_dict['ckan_resources'] if isinstance(data_dict['ckan_resources'], list) else [
         data_dict['ckan_resources']]
 

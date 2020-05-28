@@ -190,8 +190,8 @@ def service_create(context, data_dict):
             session.add(param_ins)
             # session.flush()
         session.commit()
-        path = appserver_host + "/app/create"
-        requests.post(path, json=dict(code_id=code_id, app_id=app_id))
+        path = appserver_host + "/app/{}/{}/build".format(app_id, code_id)
+        requests.post(path, headers={'content-type': 'application/json'})
         return dict(success=True, code_id=code_id, app_id=app_id)
     except Exception as ex:
         print ex
@@ -210,10 +210,11 @@ def makeReqFormJSON(**kwargs):
 
 
 def call_create(context, data_dict):
-    # session = context['session']
+    session = context['session']
     user = context['user']
-    app_id = data_dict['app_id']
-    del data_dict['app_id']
+    app_id = data_dict.pop('app_id')
+    code_version = session.query(App.curr_code_id).filter(App.app_id == app_id).first()
+    # code = session.query(AppCodeVersion).filter(AppCodeVersion.code_id == code_version).first()
     files = {}
     for k, v in data_dict.items():
         if isinstance(v, FileStorage):
@@ -222,6 +223,7 @@ def call_create(context, data_dict):
             files[k] = (None, json.dumps(v))
         else:
             files[k] = (None, v)
+    url = appserver_host + "/app/{}/{}/execute".format(app_id, code_version)
     path = os.path.join(appserver_host, 'app', app_id, 'execute') + '?userId=%s' % user
     response = requests.post(path, files=files)
     return response.json()

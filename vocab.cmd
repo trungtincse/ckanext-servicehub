@@ -1,6 +1,9 @@
 #! /bin/bash
-curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
---header 'X-CKAN-API-Key: aee93875-75c7-481a-aa11-27c9bb72a2bf' \
+
+APIKEY=$1
+
+`curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
+--header 'X-CKAN-API-Key: ${APIKEY}' \
 --data-raw '{
     "name": "app_category",
     "tags": [
@@ -29,10 +32,10 @@ curl --location --request POST 'http://localhost:5000/api/action/vocabulary_crea
             "name": "Miscellaneous"
         }
     ]
-}'
+}'`
 
-curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
---header 'X-CKAN-API-Key: aee93875-75c7-481a-aa11-27c9bb72a2bf' \
+`curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
+--header 'X-CKAN-API-Key: ${APIKEY}' \
 --data-raw '{
     "name": "project_category",
     "tags": [
@@ -61,10 +64,10 @@ curl --location --request POST 'http://localhost:5000/api/action/vocabulary_crea
             "name": "Miscellaneous"
         }
     ]
-}'
+}'`
 
-curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
---header 'X-CKAN-API-Key: aee93875-75c7-481a-aa11-27c9bb72a2bf' \
+`curl --location --request POST 'http://localhost:5000/api/action/vocabulary_create' \
+--header 'X-CKAN-API-Key: ${APIKEY}' \
 --data-raw '{
     "name": "project_tags",
     "tags": [
@@ -93,4 +96,4 @@ curl --location --request POST 'http://localhost:5000/api/action/vocabulary_crea
             "name": "Python"
         }
     ]
-}'
+}'`

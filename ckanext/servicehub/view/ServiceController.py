@@ -14,7 +14,7 @@ import ckan.lib.helpers as h
 import ckan.lib.navl.dictization_functions as dict_fns
 import ckan.logic as logic
 import ckan.model as model
-from action.create import build_code
+from ckanext.servicehub.action.create import build_code
 from ckan.common import OrderedDict, c, g, config, request, _
 from flask import Blueprint, jsonify, send_file
 from flask.views import MethodView

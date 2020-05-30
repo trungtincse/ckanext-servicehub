@@ -5,7 +5,11 @@
 
 {% block breadcrumb_content %}
     <li>{% link_for _('Call'), named_route='call.index' %}</li>
-    <li>{% link_for _(service_ins.app_name), named_route='service.read',id=ins.app_id %}</li>
+    {% if service_ins!=None %}
+        <li>{% link_for _(service_ins.app_name), named_route='service.read',id=service_ins.app_id %}</li>
+    {% else %}
+        <li>Deleted app</li>
+    {% endif %}
     <li class="active">{% link_for ins.call_id, named_route='call.read', id=ins.call_id %}</li>
 {% endblock %}
 

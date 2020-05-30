@@ -39,30 +39,7 @@ _get_or_bust = logic.get_or_bust
 appserver_host = config.get('ckan.servicehub.appserver_host')
 fileserver_host = config.get('ckan.servicehub.fileserver_host')
 storage_path = config.get('ckan.storage_path')
-import pika
-
-
-# credentials = pika.PlainCredentials('bpnkxscx', 'HJsvGjpmQdDrJiVuw5w36F1lWr63sEkR')
-# parameters = pika.ConnectionParameters('mustang.rmq.cloudamqp.com',
-#                                        5672,
-#                                        'bpnkxscx',
-#                                        credentials,
-#                                        connection_attempts=2, socket_timeout=10)
-# connection = pika.BlockingConnection(parameters)
-# params = pika.URLParameters(
-#     'amqp://bpnkxscx:HJsvGjpmQdDrJiVuw5w36F1lWr63sEkR@mustang.rmq.cloudamqp.com/bpnkxscx'
-#     'socket_timeout=10&'
-#     'connection_attempts=2'
-# )
-
-# pool = pika_pool.QueuedPool(
-#     create=lambda: pika.BlockingConnection(parameters=parameters),
-#     max_size=10,
-#     max_overflow=10,
-#     timeout=10,
-#     recycle=3600,
-#     stale=45,
-# )
+logger = logging.getLogger('logserver')
 
 
 def isidentifier(ident):
@@ -86,14 +63,6 @@ def isidentifier(ident):
             return False
 
     return True
-
-
-def push_request_call(context, data_dict):
-    with pool.acquire() as cxn:
-        cxn.channel.queue_declare(queue='call_request', durable=True)
-        cxn.channel.basic_publish(exchange='',
-                                  routing_key='call_request',
-                                  body=data_dict['call_id'])
 
 
 def service_create(context, data_dict):
@@ -132,7 +101,7 @@ def service_create(context, data_dict):
                     raise
         data_dict['avatar'].save(avatar_path)
     else:
-        return jsonify(success=False, error="Avatar is not image format")
+        return dict(success=False, error="Avatar is not image format")
 
     app_dict = dict(app_id=app_id,
                     app_name=data_dict['app_name'],
@@ -149,9 +118,67 @@ def service_create(context, data_dict):
         label=data_dict['label'],
         type=data_dict['type'])
     #####
-    code_id = _types.make_uuid()
+    # code_id = _types.make_uuid()
 
-    type = mimetypes.guess_type(data_dict['codeFile'].filename)
+    # type = mimetypes.guess_type(data_dict['codeFile'].filename)
+    # if type[0] != None and type[0].find('zip') >= 0:
+    #     code_path = os.path.join(storage_path, 'codes', code_id)
+    #     if not os.path.exists(os.path.dirname(code_path)):
+    #         try:
+    #             os.makedirs(os.path.dirname(code_path))
+    #         except OSError as exc:  # Guard against race condition
+    #             if exc.errno != errno.EEXIST:
+    #                 raise
+    #     assert code_path != None
+    #     data_dict['codeFile'].save(code_path)
+    # else:
+    #     return jsonify(success=False, error="Code file is not zip format")
+    # code_dict = dict(
+    #     code_id=code_id,
+    #     app_id=app_id,
+    #     code_path=code_path,
+    #     image=data_dict['slug_name'],
+    # )
+    try:
+        session = context['session']
+        app = App()
+
+        app.setOption(**app_dict)
+        session.add(app)
+        session.flush()
+        # code = AppCodeVersion()
+        # code.setOption(**code_dict)
+        # session.add(code)
+        for param in params:
+            param_dict = dict(app_id=app_id,
+                              label=param['label'],
+                              name=param['name'],
+                              type=param['type'])
+            param_ins = AppParam()
+            param_ins.setOption(**param_dict)
+            session.add(param_ins)
+        for dataset in data_dict['datasets']:
+            package = model.Package.get(dataset)
+            ins = AppRelatedDataset(app_id=app_id, package_id=package.id)
+            session.add(ins)
+        for i in data_dict['app_category']:
+            ins = AppCategory(app_id=app_id, tag_name=i)
+            session.add(ins)
+        session.commit()
+        logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
+        code_response = build_code(session, data_dict['codeFile'], app)
+        return dict(success=True, code_id=code_response['code_id'], app_id=app_id)
+    except Exception as ex:
+        logger.error(ex.message)
+        session.rollback()
+        return dict(success=False, error='Creating application is not success.')
+
+
+def build_code(session, code_file, app_ins):
+    code_id = _types.make_uuid()
+    app_id = app_ins.app_id
+    slug_name = app_ins.slug_name
+    type = mimetypes.guess_type(code_file.filename)
     if type[0] != None and type[0].find('zip') >= 0:
         code_path = os.path.join(storage_path, 'codes', code_id)
         if not os.path.exists(os.path.dirname(code_path)):
@@ -161,44 +188,32 @@ def service_create(context, data_dict):
                 if exc.errno != errno.EEXIST:
                     raise
         assert code_path != None
-        data_dict['codeFile'].save(code_path)
+        code_file.save(code_path)
     else:
-        return jsonify(success=False, error="Code file is not zip format")
+        return dict(success=False, error="Code file is not zip format")
     code_dict = dict(
         code_id=code_id,
         app_id=app_id,
         code_path=code_path,
-        image=data_dict['slug_name'],
+        image=slug_name
     )
+    code = AppCodeVersion()
+    code.setOption(**code_dict)
     try:
-        session = context['session']
-        app = App()
-        app_dict['curr_code_id'] = code_id
-        app.setOption(**app_dict)
-        session.add(app)
-        session.commit()
-        code = AppCodeVersion()
-        code.setOption(**code_dict)
         session.add(code)
-        for param in params:
-            param_dict = dict(app_id=app_id,
-                              label=param['label'],
-                              name=param['name'],
-                              type=param['type'])
-            param_ins = AppParam()
-            param_ins.setOption(**param_dict)
-            session.add(param_ins)
-            # session.flush()
-        session.commit()
-        path = appserver_host + "/app/create"
-        requests.post(path, json=dict(code_id=code_id, app_id=app_id))
-        return dict(success=True, code_id=code_id, app_id=app_id)
-    except Exception as ex:
-        print ex
-        print ex.message
-        session.rollback()
-        return dict(success=False, error='Creating application is not success.')
+        app_ins.curr_code_id = code_id
+        session.add(app_ins)
 
+        build_url = os.path.join(appserver_host, 'app', app_id, code_id, 'build')
+        # WILL DO
+        requests.post(build_url)
+        session.commit()
+        logger.info('app_id=%s&message=Source code %s uploading success.' % (app_id, code_id))
+        return dict(code_id=code_id, success=True);
+    except Exception as ex:
+        logger.error(ex.message)
+        session.rollback()
+        return dict(success=False, error="Something wrong.")
 
 
 def makeReqFormJSON(**kwargs):
@@ -210,9 +225,14 @@ def makeReqFormJSON(**kwargs):
 
 
 def call_create(context, data_dict):
-    # session = context['session']
+    session = context['session']
     user = context['user']
     app_id = data_dict['app_id']
+    app = session.query(App).filter(App.app_id == app_id).first()
+    if app == None:
+        return dict(success=False, error="Application not found.")
+    curr_code_id = app.curr_code_id
+    assert curr_code_id != None
     del data_dict['app_id']
     files = {}
     for k, v in data_dict.items():
@@ -222,7 +242,7 @@ def call_create(context, data_dict):
             files[k] = (None, json.dumps(v))
         else:
             files[k] = (None, v)
-    path = os.path.join(appserver_host, 'app', app_id, 'execute') + '?userId=%s' % user
+    path = os.path.join(appserver_host, 'app', app_id, curr_code_id, 'execute') + '?userId=%s' % user
     response = requests.post(path, files=files)
     return response.json()
 
@@ -249,5 +269,5 @@ def storeOutput(file, call_id):
 
 public_functions = dict(service_create=service_create,
                         call_create=call_create,
-                        push_request_call=push_request_call
+                        # push_request_call=push_request_call
                         )

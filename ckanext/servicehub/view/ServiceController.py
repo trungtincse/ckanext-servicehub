@@ -14,6 +14,7 @@ import ckan.lib.helpers as h
 import ckan.lib.navl.dictization_functions as dict_fns
 import ckan.logic as logic
 import ckan.model as model
+from action.create import build_code
 from ckan.common import OrderedDict, c, g, config, request, _
 from flask import Blueprint, jsonify, send_file
 from flask.views import MethodView
@@ -31,7 +32,8 @@ tuplize_dict = logic.tuplize_dict
 clean_dict = logic.clean_dict
 parse_params = logic.parse_params
 
-log = logging.getLogger(__name__)
+# log = logging.getLogger(__name__)
+logger = logging.getLogger('logserver')
 
 appserver_host = config.get('ckan.servicehub.appserver_host')
 
@@ -88,7 +90,7 @@ class CreateFromCodeServiceView(MethodView):
             ))
             data_dict['app_category'] = data_dict['app_category'].split(',')
             message = get_action(u'service_create')(context, data_dict)
-
+            # logger.info("app_id=%s&message=Application %s start to create")
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
             base.abort(404, _(u'Not found'))
         return jsonify(message)
@@ -172,10 +174,21 @@ def setting(id):
             ex = Exception()
             ex.message = "Application not found"
             raise ex
+        app_id = ins.app_id
+        log_app_status = ins.app_status
+        log_description = ins.description
+        log_curr_code_id = ins.curr_code_id
         ins.app_status = data_dict.get('mode', ins.app_status)
         ins.description = data_dict.get('description', ins.description)
+        ins.curr_code_id = data_dict.get('version', ins.curr_code_id)
         session.add(ins)
         session.commit()
+        if log_app_status != ins.app_status:
+            logger.info('app_id=%s&message=Mode is updated.' % app_id)
+        if log_description != ins.description:
+            logger.info('app_id=%s&message=Description is updated.' % app_id)
+        if log_curr_code_id != ins.curr_code_id:
+            logger.info('app_id=%s&message=Version of source code is updated.' % app_id)
     except Exception as ex:
         session.rollback()
         error = getattr(ex, "err_message", 'Opps! Something is wrong')
@@ -221,39 +234,13 @@ def update(id):
     ))
     session = context['session']
     try:
-        service = session.query(App).filter(App.app_id == id).first()
-        if service == None:
+        app = session.query(App).filter(App.app_id == id).first()
+        if app == None:
             raise
     except:
         base.abort(404, _(u'Service not found'))
     try:
-        code_id = _types.make_uuid()
-        type = mimetypes.guess_type(data_dict['codeFile'].filename)
-        if type[0] != None and type[0].find('zip') >= 0:
-            code_path = os.path.join(storage_path, 'codes', code_id)
-            if not os.path.exists(os.path.dirname(code_path)):
-                try:
-                    os.makedirs(os.path.dirname(code_path))
-                except OSError as exc:  # Guard against race condition
-                    if exc.errno != errno.EEXIST:
-                        raise
-            assert code_path != None
-            data_dict['codeFile'].save(code_path)
-        else:
-            return jsonify(success=False, error="Code file is not zip format")
-        code_dict = dict(
-            code_id=code_id,
-            app_id=id,
-            code_path=code_path,
-            image=data_dict['slug_name']
-        )
-        code = AppCodeVersion()
-        code.setOption(**code_dict)
-        session.add(code)
-
-        service.curr_code_id=code_id
-        session.add(service)
-        session.commit()
+        build_code(session,data_dict['codeFile'],app)
     except Exception as ex:
         session.rollback()
         error = getattr(ex, "err_message", 'Opps! Something is wrong')

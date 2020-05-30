@@ -7,7 +7,7 @@ from ckan.controllers.package import PackageController
 from ckan.lib import helpers
 from flask import Blueprint, Response, jsonify
 import json
-from ckanext.servicehub.model.ServiceModel import Call
+from ckanext.servicehub.model.ServiceModel import Call, App
 import ckan.lib.base as base
 from ckan.model.user import User
 from ckan import model, logic
@@ -81,6 +81,7 @@ def create(app_id):
     except ResourceNotFoundException:
         return jsonify(dict(error="Resource not found!"))
     data_dict["app_id"] = app_id
+
     result_ins = get_action(u'call_create')(context, data_dict)
     # get_action(u'push_request_call')(context, dict(call_id=result_ins['id']))
     return jsonify(result_ins)
@@ -103,9 +104,7 @@ def create_output_view(call_id, filename, url):
         u'session': model.Session,
         u'user': u'seanh',
         u'userobj': User.get(u'seanh')
-        # u'return_id_only':True
     }
-    # instance = get_action(u'call_show')(context, dict(id=call_id))
     try:
         package = get_action(u'package_show')(context, dict(name_or_id=u'%s-output' % call_id))
     except:
@@ -153,7 +152,6 @@ def make_view(package_id, filename):
         c.package = model.Package.get(package_id).as_dict()
     except (NotFound, NotAuthorized):
         base.abort(404, _('Dataset not found'))
-    print c.package.get('resources', [])
     for resource in c.package.get('resources', []):
         if resource['name'] == filename:
             c.resource = resource
@@ -219,12 +217,13 @@ def read(id):
     instance = get_action(u'call_show')(context, dict(id=id))
     if instance.get('error', '') != '':
         return base.abort(404, _(u'Call not found'))
-    service = get_action(u'service_show')(context, dict(id=instance['call_detail']['app_id']))
-    # --------------COPY-------------
-
+    session = context['session']
+    call_ins = session.query(Call).filter(Call.call_id == id).first()
+    app_id = call_ins.app_id
+    app_ins = session.query(App).filter(App.app_id == app_id).first()
     vars = {
         'ins': instance['call_detail'],
-        'service_ins': service['app_detail'],
+        'service_ins': app_ins,
     }
     return base.render('call/read.html', vars)
 

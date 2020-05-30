@@ -70,4 +70,4 @@ class ServicehubPlugin(plugins.SingletonPlugin,toolkit.DefaultDatasetForm):
         schema['owner_org']= [toolkit.get_validator(u'ignore_missing')]
         return schema
 # logger= logging.getLogger('logserver')
-# logger.info("a=5")
+# logger.info("id=125&info=Tindang")

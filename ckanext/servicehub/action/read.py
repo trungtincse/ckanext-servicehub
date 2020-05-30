@@ -67,7 +67,7 @@ def service_by_slug_show(context, data_dict):
     service = session.query(App).filter(App.slug_name == slug_name).first()
     return _asdict(service)
 
-
+@logic.side_effect_free
 def call_show(context, data_dict):
     model = context['model']
     session = context['session']

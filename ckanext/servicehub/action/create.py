@@ -117,28 +117,6 @@ def service_create(context, data_dict):
         var_name=data_dict['var_name'],
         label=data_dict['label'],
         type=data_dict['type'])
-    #####
-    # code_id = _types.make_uuid()
-
-    # type = mimetypes.guess_type(data_dict['codeFile'].filename)
-    # if type[0] != None and type[0].find('zip') >= 0:
-    #     code_path = os.path.join(storage_path, 'codes', code_id)
-    #     if not os.path.exists(os.path.dirname(code_path)):
-    #         try:
-    #             os.makedirs(os.path.dirname(code_path))
-    #         except OSError as exc:  # Guard against race condition
-    #             if exc.errno != errno.EEXIST:
-    #                 raise
-    #     assert code_path != None
-    #     data_dict['codeFile'].save(code_path)
-    # else:
-    #     return jsonify(success=False, error="Code file is not zip format")
-    # code_dict = dict(
-    #     code_id=code_id,
-    #     app_id=app_id,
-    #     code_path=code_path,
-    #     image=data_dict['slug_name'],
-    # )
     try:
         session = context['session']
         app = App()
@@ -146,9 +124,6 @@ def service_create(context, data_dict):
         app.setOption(**app_dict)
         session.add(app)
         session.flush()
-        # code = AppCodeVersion()
-        # code.setOption(**code_dict)
-        # session.add(code)
         for param in params:
             param_dict = dict(app_id=app_id,
                               label=param['label'],
@@ -227,7 +202,9 @@ def makeReqFormJSON(**kwargs):
 def call_create(context, data_dict):
     session = context['session']
     user = context['user']
-    app_id = data_dict['app_id']
+    app_id = data_dict.get('app_id',None)
+    if app_id==None:
+        return dict(success=False, error="Miss app_id field.")
     app = session.query(App).filter(App.app_id == app_id).first()
     if app == None:
         return dict(success=False, error="Application not found.")

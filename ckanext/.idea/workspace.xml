@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b020d3fa-a2e1-4b83-af73-1f3d2559d29a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/servicehub/action/create.py" beforeDir="false" afterPath="$PROJECT_DIR$/servicehub/action/create.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicehub/fanstatic/ServiceRequest.js" beforeDir="false" afterPath="$PROJECT_DIR$/servicehub/fanstatic/ServiceRequest.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicehub/model/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/servicehub/model/service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicehub/templates/service/read.html" beforeDir="false" afterPath="$PROJECT_DIR$/servicehub/templates/service/read.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicehub/test/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/servicehub/test/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/servicehub/view/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/servicehub/view/service.py" afterDir="false" />
-    </list>
+    <list default="true" id="b020d3fa-a2e1-4b83-af73-1f3d2559d29a" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,25 +14,12 @@
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../ckan" />
-  </component>
-  <component name="ServiceViewManager">
-    <option name="viewStates">
-      <list>
-        <serviceView>
-          <treeState>
-            <expand />
-            <select />
-          </treeState>
-        </serviceView>
-      </list>
-    </option>
+    <property name="last_opened_file_path" value="$USER_HOME$/ckan" />
   </component>
   <component name="SvnConfiguration">
     <configuration />

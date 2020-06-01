@@ -56,7 +56,7 @@ def modify_input(context, data_dict):
     for i in lst:
         data_dict[i] = data_dict[i] if isinstance(data_dict[i], list) else [data_dict[i]]
     for i in check_box_inputs:
-        data_dict[i] = 'true' if data_dict[i] == 'on' else 'false'
+        data_dict[i] = 'true' if data_dict.get(i,'off') == 'on' else 'false'
 
     del data_dict['check_box_inputs']
     del data_dict['lst']

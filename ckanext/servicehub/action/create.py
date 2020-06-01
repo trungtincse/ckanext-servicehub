@@ -184,7 +184,7 @@ def build_code(session, code_file, app_ins):
         requests.post(build_url)
         session.commit()
         logger.info('app_id=%s&message=Source code %s uploading success.' % (app_id, code_id))
-        return dict(code_id=code_id, success=True);
+        return dict(code_id=code_id, success=True)
     except Exception as ex:
         logger.error(ex.message)
         session.rollback()
@@ -202,9 +202,11 @@ def makeReqFormJSON(**kwargs):
 def call_create(context, data_dict):
     session = context['session']
     user = context['user']
-    app_id = data_dict.get('app_id',None)
-    if app_id==None:
+    app_id = data_dict.get('app_id', None)
+    if app_id == None:
         return dict(success=False, error="Miss app_id field.")
+    if isinstance(app_id,list):
+        return dict(success=False, error="Duplicate app_id.")
     app = session.query(App).filter(App.app_id == app_id).first()
     if app == None:
         return dict(success=False, error="Application not found.")
@@ -212,6 +214,29 @@ def call_create(context, data_dict):
     assert curr_code_id != None
     del data_dict['app_id']
     files = {}
+    param_inses = session.query(AppParam).filter(AppParam.app_id == app_id).all()
+    ### validate
+    for ins in param_inses:
+        param_value = data_dict.get(ins.name, None)
+        if param_value == None:
+            return dict(success=False, error="Parameter not found.")
+        if ins.type.find("FILE") >= 0 :
+            if not isinstance(param_value, FileStorage):
+                return dict(success=False, error="Parameter %s is not a %s type." % (ins.name,ins.type))
+        elif ins.type.find("LIST") >= 0:
+            if not isinstance(param_value, list):
+                data_dict[ins.name]=[param_value]
+                param_value=[param_value]
+            for e in param_value:
+                if not isinstance(e,unicode):
+                    return dict(success=False, error="Parameter %s is not a %s type." % (ins.name,ins.type))
+        elif ins.type.find("BOOLEAN") >= 0:
+            if not isinstance(param_value, unicode) or param_value.lower() not in ['false', 'true']:
+                return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
+        else:
+            if not isinstance(param_value, unicode):
+                return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
+    ####
     for k, v in data_dict.items():
         if isinstance(v, FileStorage):
             files[k] = (k, v.read())

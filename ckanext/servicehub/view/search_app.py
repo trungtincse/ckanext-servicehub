@@ -67,12 +67,18 @@ def index():
         language=request.params.get('language')
     )
 
-    c.page = h.Page(collection=docs(search_result), page=h.get_page_number(request.params), item_count=len(docs(search_result)))
+    page = h.Page(
+        collection=docs(search_result),
+        page=h.get_page_number(request.params),
+        item_count=len(docs(search_result))
+    )
+
     return base.render('service/search.html', {
         'query': query() or '',
         'sort_by_selected': request.params.get('sort', 'score desc, metadata_modified desc'),
         'selected_filtered_fields': selected_filtered_fields(),
-        'selected_filtered_fields_grouped': selected_filtered_fields_grouped()
+        'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
+        'page': page
     })
 
 

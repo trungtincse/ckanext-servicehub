@@ -31,16 +31,16 @@
           (_('Name Ascending'), 'name asc'),
           (_('Name Descending'), 'name desc') ]
         %}
-        {# {% snippet 'snippets/search_form.html', form_id='app-search-form', query=c.q, sorting=sorting, sorting_selected=c.sort_by_selected, count=c.page.item_count, placeholder=_('Search') + '...', facets=facets, show_empty=request.params, error=c.query_error, fields=c.fields %} #}
-      {% snippet 'snippets/search_form.html', form_id='app-search-form', type='app', query=query, sorting=sorting, sorting_selected=sort_by_selected, fields=selected_filtered_fields, count=c.page.item_count, placeholder=_('Search apps...'), show_empty=request.params, no_bottom_border=true if c.page.items %}
+        {# {% snippet 'snippets/search_form.html', placeholder=_('Search') + '...', facets=facets, show_empty=request.params, error=c.query_error, fields=c.fields %} #}
+      {% snippet 'snippets/search_form.html', form_id='app-search-form', type='app', query=query, sorting=sorting, sorting_selected=sort_by_selected, fields=selected_filtered_fields, count=page.item_count, placeholder=_('Search apps...'), show_empty=request.params, no_bottom_border=true if page.items %}
       {% endblock %}
       {% block app_search_results_list %}
-        {# {{ h.snippet('snippets/package_list.html', packages=c.page.items) }} #}
+        {# {{ h.snippet('snippets/package_list.html', packages=page.items) }} #}
       {% endblock %}
     </div>
 
     {% block page_pagination %}
-      {# {{ c.page.pager(q=c.q) }} #}
+      {# {{ page.pager(q=c.q) }} #}
     {% endblock %}
   </section>
 

@@ -124,44 +124,55 @@ def service_create(context, data_dict):
         app.setOption(**app_dict)
         session.add(app)
         session.flush()
-        for param in params:
-            param_dict = dict(app_id=app_id,
-                              label=param['label'],
-                              name=param['name'],
-                              type=param['type'])
-            param_ins = AppParam()
-            param_ins.setOption(**param_dict)
-            session.add(param_ins)
-        for dataset in data_dict['datasets']:
-            package = model.Package.get(dataset)
-            ins = AppRelatedDataset(app_id=app_id, package_id=package.id)
-            session.add(ins)
-        for i in data_dict['app_category']:
-            ins = AppCategory(app_id=app_id, tag_name=i)
-            session.add(ins)
-        session.commit()
-        logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
-        code_response = build_code(session, data_dict['codeFile'], app)
-        logic.get_action('app_index')({}, {
-            'name': app.app_name,
-            'language': app.language,
-            'organization': session.query(model.Group.id == app.organization).first(),
-            'owner': session.query(model.User.id == app.owner).first(),
-            'categories': session.query(AppCategory.app_id == app_id).all(),
-            'description': app.description,
-        })
-        return dict(success=True, code_id=code_response['code_id'], app_id=app_id)
+        # logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
+        code_id = build_code(session, data_dict['codeFile'], app)
     except Exception as ex:
         logger.error(ex.message)
-        session.rollback()
-        raise
-        return dict(success=False, error='Creating application is not success.')
+        session.delete(app)
+        session.commit()
+        return dict(success=False, error='Creating application is not success: ' + str(ex.message))
+
+    logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
+
+    logic.get_action('app_index')({}, {
+        'name': app.app_name,
+        'language': app.language,
+        'organization': session.query(model.Group.id == app.organization).first(),
+        'owner': session.query(model.User.id == app.owner).first(),
+        'categories': session.query(AppCategory.app_id == app_id).all(),
+        'description': app.description,
+    })
+
+    # success
+    for param in params:
+        param_dict = dict(app_id=app_id,
+                          label=param['label'],
+                          name=param['name'],
+                          type=param['type'])
+        param_ins = AppParam()
+        param_ins.setOption(**param_dict)
+        session.add(param_ins)
+
+    for dataset in data_dict['datasets']:
+        package = model.Package.get(dataset)
+        ins = AppRelatedDataset(app_id=app_id, package_id=package.id)
+        session.add(ins)
+
+    for i in data_dict['app_category']:
+        ins = AppCategory(app_id=app_id, tag_name=i)
+        session.add(ins)
+    session.commit()
+    return dict(success=True, code_id=code_id, app_id=app_id)
 
 
-def build_code(session, code_file, app_ins):
+
+class BuildAppFailed(Exception):
+    pass
+
+def build_code(session, code_file, app):
     code_id = _types.make_uuid()
-    app_id = app_ins.app_id
-    slug_name = app_ins.slug_name
+    app_id = app.app_id
+    slug_name = app.slug_name
     type = mimetypes.guess_type(code_file.filename)
     if type[0] != None and type[0].find('zip') >= 0:
         code_path = os.path.join(storage_path, 'codes', code_id)
@@ -185,19 +196,24 @@ def build_code(session, code_file, app_ins):
     code.setOption(**code_dict)
     try:
         session.add(code)
-        app_ins.curr_code_id = code_id
-        session.add(app_ins)
 
         build_url = os.path.join(appserver_host, 'app', app_id, code_id, 'build')
         # WILL DO
-        requests.post(build_url)
+        session.commit() # make appserver see code version
+        r = requests.post(build_url).json()
+        if r['error']:
+            session.delete(code)
+            raise BuildAppFailed(r['error'])
+
+        # success
+        app.curr_code_id = code_id
+        session.add(app)
         session.commit()
-        logger.info('app_id=%s&message=Source code %s uploading success.' % (app_id, code_id))
-        return dict(code_id=code_id, success=True)
+
+        return code_id
     except Exception as ex:
-        logger.error(ex.message)
-        session.rollback()
-        return dict(success=False, error="Something wrong.")
+        session.delete(code)
+        raise
 
 
 def makeReqFormJSON(**kwargs):

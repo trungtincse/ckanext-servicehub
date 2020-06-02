@@ -12,14 +12,6 @@ log = logging.getLogger('ckan.logic')
 solr_url = config.get('ckan.servicehub.app_solr_url')
 
 
-def _asdict(obj):
-    if obj == None:
-        return dict(success=False, error="Not found")
-    return {c.key: getattr(obj, c.key)
-            for c in inspect(obj).mapper.column_attrs}
-
-
-@logic.side_effect_free
 def app_index(context, data_dict):
     app = data_dict
     """
@@ -27,22 +19,104 @@ def app_index(context, data_dict):
     :return:
     """
     app['data_dict'] = json.dumps(app, ensure_ascii=False)
-    org = app.pop('organization', None)
-    if org:
-        app['organization'] = org['name']
+    # org = app.pop('organization', None)
+    # print org
+    # if org:
+    #     app['organization'] = org['name']
 
-    app['owner'] = app['owner']['name']
+    # app['owner'] = app['owner']['name']
 
     url = solr_url + '/update/json/docs?commit=true'
     try:
         r = requests.post(url, json=app).json()
         if r['responseHeader']['status'] != 0:
             print('Index error: ' + json.dumps(r['error']))
+        else:
+            print('Index success!')
     except Exception as e:
         print('Failed to do request to Solr server')
         raise SearchIndexError(e)
 
 
+def app_index_delete(context, data_dict):
+    requests.delete(solr_url + '/update?commit=true', json={
+        'delete': {
+            'id': data_dict['app_id']
+        }
+    })
+
+
+@logic.side_effect_free
+def app_search(context, data_dict):
+
+    return query_app(
+        text=data_dict.get('text'),
+        categories=data_dict.get('categories'),
+        language=data_dict.get('language'),
+        organizations=data_dict.get('organizations'),
+        # related_datasets=data_dict.get('related_datasets'),
+    )
+
+
+def query_app(text=None, categories=None, language=None, organizations=None, related_datasets=None):
+    """
+    :param text: str: text in the search box
+    :param categories: list[str]: AND
+    :param language: str
+    :param organizations: list[str]: OR
+    :param related_datasets: list[str]: AND
+    :return:
+    """
+    text = text or "*:*"  # avoid None
+
+    filters = []
+
+    if categories:
+        for cate in categories:
+            filters.append('categories:"%s"' % cate) # AND
+
+    if language:
+        filters.append('language:"%s"' % language)
+
+    if organizations:
+        v = ' OR '.join('"%s"' % org for org in organizations)
+        filters.append('organization:(%s)' % v)
+
+    if related_datasets:
+        for dataset in related_datasets:
+            filters.append('related_datasets:"%s"' % dataset)
+
+    query = {
+        'query': text,
+        'filter': filters,
+        'facet': {
+            'language': {
+                'terms': {
+                    'field': 'language',
+                    'limit': 5
+                }
+            },
+            'organization': {
+                'terms': {
+                    'field': 'organization',
+                    'limit': 5
+                }
+            },
+            'related_datasets': {
+                'terms': {
+                    'field': 'related_datasets',
+                    'limit': 5
+                }
+            },
+        }
+    }
+
+    r = requests.get(solr_url + '/query', json=query).json()
+    return r
+
+
 public_functions = {
-    'app_index': app_index
+    'app_index': app_index,
+    'app_index_delete': app_index_delete,
+    'app_search': app_search,
 }

@@ -142,10 +142,19 @@ def service_create(context, data_dict):
         session.commit()
         logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
         code_response = build_code(session, data_dict['codeFile'], app)
+        logic.get_action('app_index')({}, {
+            'name': app.app_name,
+            'language': app.language,
+            'organization': session.query(model.Group.id == app.organization).first(),
+            'owner': session.query(model.User.id == app.owner).first(),
+            'categories': session.query(AppCategory.app_id == app_id).all(),
+            'description': app.description,
+        })
         return dict(success=True, code_id=code_response['code_id'], app_id=app_id)
     except Exception as ex:
         logger.error(ex.message)
         session.rollback()
+        raise
         return dict(success=False, error='Creating application is not success.')
 
 

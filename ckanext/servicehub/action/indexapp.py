@@ -56,7 +56,7 @@ def app_search(context, data_dict):
     )
 
 
-def query_app(text=None, categories=None, language=None, organizations=None, related_datasets=None):
+def query_app(text, categories, language, organizations, related_datasets=None):
     """
     :param text: str: text in the search box
     :param categories: list[str]: AND

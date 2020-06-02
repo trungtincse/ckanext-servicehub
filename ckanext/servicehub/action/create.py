@@ -135,6 +135,7 @@ def service_create(context, data_dict):
     logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
 
     logic.get_action('app_index')({}, {
+        'id': app.app_id,
         'name': app.app_name,
         'language': app.language,
         'organization': session.query(model.Group.id == app.organization).first(),

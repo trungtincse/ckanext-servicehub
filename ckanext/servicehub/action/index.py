@@ -31,20 +31,18 @@ def app_index(context, data_dict):
         r = requests.post(url, json=app).json()
         if r['responseHeader']['status'] != 0:
             print('Index error: ' + json.dumps(r['error']))
-        else:
-            print('Index success!')
     except Exception as e:
         print('Failed to do request to Solr server')
         raise SearchIndexError(e)
 
 
 def app_index_delete(context, data_dict):
-    requests.delete(solr_url + '/update?commit=true', json={
+    r = requests.post(solr_url + '/update?commit=true', json={
         'delete': {
             'id': data_dict['app_id']
         }
     })
-
+    # print(r.json())
 
 @logic.side_effect_free
 def app_search(context, data_dict):

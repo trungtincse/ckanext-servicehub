@@ -32,4 +32,4 @@ def create_service_sample(service_name):
 print client_req('service_list')
 # print client_req('service_show', dict(id=id))
 # print client_req('reqform_show', dict(app_id=id))
-# print client_req('service_delete', dict(id=id))
+# print client_req( 'service_delete', dict(id=id))

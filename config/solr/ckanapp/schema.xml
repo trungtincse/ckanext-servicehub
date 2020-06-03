@@ -87,7 +87,7 @@ schema. In this case the version should be set to the next CKAN version number.
 
     <field name="_version_"       type="string" indexed="true"  stored="true"                   multiValued="false" />
 
-    <field name="data_dict" type="string" indexed="false" stored="true" /> <!-- store more detailed data (owner_id, group_id, ...) -->
+    <field name="data_dict"       type="string" indexed="false" stored="true"                   multiValued="false" /> <!-- store more detailed data (owner_id, group_id, ...) -->
     
     <!-- catchall field, containing all other searchable text fields (implemented
          via copyField further on in this schema  -->

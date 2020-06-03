@@ -9,7 +9,7 @@ from sqlalchemy import inspect
 from ckan.common import OrderedDict, c, g, config, request, _
 import ckan.logic as logic
 from ckan.lib.search.common import SearchIndexError
-from ckanext.servicehub.cuong import cprint
+from ckanext.servicehub.cuong import cprint, ccprint
 from ckanext.servicehub.model.ServiceModel import App
 
 log = logging.getLogger('ckan.logic')
@@ -102,11 +102,16 @@ def query_app(text, categories, language, organizations, related_datasets=None):
     }
 
     r = requests.get(solr_url + '/query', json=query).json()
-    # cprint(json.dumps(r, indent=4))
+    # recover apps: deserialize 'data_dict' key
+    recovered_docs = []
+    for ori_doc in r['response']['docs']:
+        new_doc = json.loads(ori_doc['data_dict'])
+        recovered_docs.append(new_doc)
+    r['response']['docs'] = recovered_docs
     return r
 
 
-facet_fields = ['organization', 'language', 'categories']
+facet_fields = ['organization', 'language', 'category']
 
 
 def query_facets():

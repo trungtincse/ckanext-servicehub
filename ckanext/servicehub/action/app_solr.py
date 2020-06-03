@@ -9,16 +9,16 @@ from ckan.common import OrderedDict, c, g, config, request, _
 import ckan.logic as logic
 from ckan.lib.search.common import SearchIndexError
 from ckanext.servicehub.cuong import cprint
+from ckanext.servicehub.model.ServiceModel import App
 
 log = logging.getLogger('ckan.logic')
 
 solr_url = config.get('ckan.servicehub.app_solr_url')
 
 
-def index_app(context, data_dict):
-    app = data_dict
+def index_app(context, app):
     """
-    :param app: dict
+    :param app: App model
     :return:
     """
     app['data_dict'] = json.dumps(app, ensure_ascii=False)

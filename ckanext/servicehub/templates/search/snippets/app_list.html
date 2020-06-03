@@ -11,17 +11,56 @@ truncate_title - The length to truncate the title to (default: 80).
 
 Example:
 
-  {% snippet 'snippets/package_list.html', packages=c.datasets %}
+  {% snippet 'snippets/app_list.html', services=c.apps %}
 
 #}
-{% block package_list %}
-  {% if packages %}
-    <ul class="{{ list_class or 'dataset-list list-unstyled' }}">
-    	{% block package_list_inner %}
-	      {% for package in packages %}
-	        {% snippet 'snippets/app_item.html', package=package, item_class=item_class, hide_resources=hide_resources, banner=banner, truncate=truncate, truncate_title=truncate_title %}
-	      {% endfor %}
-	    {% endblock %}
-    </ul>
-  {% endif %}
+{% block app_list %}
+  <ul class="media-grid" data-module="media-grid">
+  {% for service in services %}
+    <li class="media-item">
+      <a href="/service/{{ service.app_id }}">
+        <div class="card">
+          <img src="/service/{{ service.app_id }}/avatar" alt="Avatar" style="width:100%">
+          <div class="card-block row">
+            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+              <h3><b>{{ service.app_name }}</b></h3>
+            <h5><b>Organization: {{ service.organization }}</b></h5>
+              {% if service.description %}
+                <p>{{ service.description|truncate(100) }}</p>
+              {% else %}
+                <p>Not have description</p>
+              {% endif %}
+            </div>
+          </div>
+          <hr style="margin-bottom: 0px;margin-top:0px ">
+          <div class="card-block row">
+            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+              <h4><b>Datasets related: </b></h4>
+              {% for dataset in service.dataset_related %}
+                <label class="label label-primary">{{ dataset.package_name }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          <hr style="margin-bottom: 0px;margin-top:0px ">
+          <div class="card-block row">
+            <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+              <h4><b>Category: </b></h4>
+              {% for tag in service.category %}
+                <label class="label label-primary">{{ tag.tag_name }}</label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+      </a>
+    </li>
+  {% endfor %}
+</ul>
+
+<style>
+  label:after {
+    content: "";
+  }
+</style>
+
 {% endblock %}

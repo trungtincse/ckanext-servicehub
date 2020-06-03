@@ -3,6 +3,7 @@ import os
 import logging
 
 import pysolr
+import pytz
 import requests
 from sqlalchemy import inspect
 from ckan.common import OrderedDict, c, g, config, request, _
@@ -21,7 +22,14 @@ def index_app(context, app):
     :param app: App model
     :return:
     """
-    app['data_dict'] = json.dumps(app, ensure_ascii=False)
+    app = app.as_dict()
+
+    app['created_at'] = datetime_to_utc_string(app['created_at'])
+    app['data_dict'] = json.dumps(app, ensure_ascii=False) # serialize first
+
+    # change now
+    app['category'] = [cate['tag_name'] for cate in app['category']]
+    app['dataset_related'] = [dataset['package_id'] for dataset in app['dataset_related']]
     url = solr_url + '/update/json/docs?commit=true'
     try:
         r = requests.post(url, json=app).json()
@@ -30,6 +38,12 @@ def index_app(context, app):
     except Exception as e:
         print('Failed to do request to Solr server')
         raise SearchIndexError(e)
+
+
+def datetime_to_utc_string(dt):
+    # timezone = pytz.timezone('Asia/Ho_Chi_Minh')
+    # return timezone.normalize(timezone.localize(dt, is_dst=True)).isoformat()
+    return dt.isoformat()
 
 
 def app_index_delete(context, data_dict):

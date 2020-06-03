@@ -98,7 +98,7 @@ schema. In this case the version should be set to the next CKAN version number.
 <df>text</df>
 <solrQueryParser q.op="AND"/>
 
-<copyField source="id" dest="text"  />
+<!-- <copyField source="app_id" dest="text"  /> -->
 <copyField source="app_name" dest="text"  />
 <copyField source="owner" dest="text"  />
 <copyField source="description" dest="text"/>

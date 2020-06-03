@@ -127,6 +127,7 @@ def service_create(context, data_dict):
         session.flush()
         # logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
         code_id = build_code(session, data_dict['codeFile'], app)
+        app_solr.index_app({}, app)
     except Exception as ex:
         logger.error(ex.message)
         session.delete(app)
@@ -135,15 +136,6 @@ def service_create(context, data_dict):
 
     logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
 
-    app_solr.index_app({}, {
-        'id': app.app_id,
-        'name': app.app_name,
-        'language': app.language,
-        'organization': session.query(model.Group.id == app.organization).first(),
-        'owner': session.query(model.User.id == app.owner).first(),
-        'categories': session.query(AppCategory.app_id == app_id).all(),
-        'description': app.description,
-    })
 
     # success
     for param in params:

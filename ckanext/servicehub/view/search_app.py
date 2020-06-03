@@ -1,33 +1,18 @@
 # encoding: utf-8
-from __future__ import print_function
-cprint = print
-from collections import defaultdict
-import errno
-import keyword
-import mimetypes
-import os
-import random
-import string
-from pprint import pprint
 
-import slug
-import json
+from ckanext.servicehub.cuong import cprint
+from collections import defaultdict
+
 import logging
 
-from ckanext.servicehub.action import indexapp
+from ckanext.servicehub.action import app_solr
 
 import ckan.lib.base as base
 import ckan.lib.helpers as h
-import ckan.lib.navl.dictization_functions as dict_fns
 import ckan.logic as logic
-import ckan.model as model
-from ckanext.servicehub.action.create import build_code
-from ckan.common import OrderedDict, c, g, config, request, _
-from flask import Blueprint, jsonify, send_file
-from flask.views import MethodView
+from ckan.common import OrderedDict, c, request, _
+from flask import Blueprint
 from ckanext.servicehub.model.ServiceModel import *
-from ckan.model import types as _types
-from ckanext.servicehub.model.ServiceModel import App
 
 storage_path = config.get('ckan.storage_path')
 NotFound = logic.NotFound
@@ -42,9 +27,6 @@ parse_params = logic.parse_params
 # log = logging.getLogger(__name__)
 logger = logging.getLogger('logserver')
 
-appserver_host = config.get('ckan.servicehub.appserver_host')
-
-
 blueprint = Blueprint('appsearch', __name__, url_prefix='/app/search')
 
 
@@ -53,14 +35,7 @@ def register_rules():
 
 
 def index():
-    # co`ntext = {
-    #     'model': model,
-    #     'session': model.Session,
-    #     'user': g.user,
-    #     # 'for_view': True
-    # }
-
-    search_result = indexapp.query_app(
+    search_result = app_solr.query_app(
         text=query() or '*:*',
         organizations=request.params.getlist('organization'),
         categories=request.params.getlist('categories'),
@@ -73,12 +48,18 @@ def index():
         item_count=len(docs(search_result))
     )
 
+    # cprint(json.dumps(search_result['response'], indent=4))
+
+    # cprint(app_solr.ckan_search_facets(search_result))
     return base.render('service/search.html', {
         'query': query() or '',
         'sort_by_selected': request.params.get('sort', 'score desc, metadata_modified desc'),
         'selected_filtered_fields': selected_filtered_fields(),
         'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
-        'page': page
+        'page': page,
+        'facet_titles': facet_titles(),
+        'search_facets': app_solr.ckan_search_facets(search_result),
+        'remove_field': remove_field
     })
 
 
@@ -115,6 +96,39 @@ def search_filter_fields():
     for (param, value) in request.params.items():
         if param not in ['q', 'page', 'sort'] and value != '' and not param.startswith('_'):
             yield param, value
+
+
+def facet_titles():
+    default_facet_titles = {
+        'organization': _('Organizations'),
+        'categories': _('Categories'),
+        'language': _('Language')
+    }
+
+    return default_facet_titles
+
+
+def remove_field(key, value=None, replace=None):
+    return h.remove_url_param(key, value=value, replace=replace, controller='appsearch', action='index')
+
+
+def facets():
+    result = OrderedDict()
+
+
+
+    for facet in h.facets():
+        if facet in default_facet_titles:
+            result[facet] = default_facet_titles[facet]
+        else:
+            result[facet] = facet
+
+    # Facet titles
+    for plugin in p.PluginImplementations(p.IFacets):
+        result = plugin.dataset_facets(result, package_type)
+
+    c.facet_titles = result
+
 
 
 register_rules()

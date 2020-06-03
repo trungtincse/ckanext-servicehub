@@ -21,9 +21,8 @@
       {% block form %}
         {% set facets = {
           'fields': selected_filtered_fields_grouped,
-          'search': c.search_facets,
-          'titles': c.facet_titles,
-          'translated_fields': c.translated_fields,
+          'search': search_facets,
+          'titles': facet_titles,
           'remove_field': c.remove_field }
         %}
         {% set sorting = [
@@ -31,8 +30,8 @@
           (_('Name Ascending'), 'name asc'),
           (_('Name Descending'), 'name desc') ]
         %}
-        {# {% snippet 'snippets/search_form.html', placeholder=_('Search') + '...', facets=facets, show_empty=request.params, error=c.query_error, fields=c.fields %} #}
-      {% snippet 'snippets/search_form.html', form_id='app-search-form', type='app', query=query, sorting=sorting, sorting_selected=sort_by_selected, fields=selected_filtered_fields, count=page.item_count, placeholder=_('Search apps...'), show_empty=request.params, no_bottom_border=true if page.items %}
+        {# {% snippet 'snippets/search_form.html', show_empty=request.params, error=c.query_error, fields=c.fields %} #}
+      {% snippet 'snippets/search_form.html', form_id='app-search-form', placeholder=_('Search apps...'), type='app', query=query, sorting=sorting, sorting_selected=sort_by_selected, fields=selected_filtered_fields, count=page.item_count, facets=facets, show_empty=request.params, no_bottom_border=true if page.items %}
       {% endblock %}
       {% block app_search_results_list %}
         {# {{ h.snippet('snippets/package_list.html', packages=page.items) }} #}

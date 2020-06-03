@@ -26,7 +26,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from ckanext.servicehub.action.read import service_by_slug_show
 
-from ckanext.servicehub.action import get_item_as_list
+from ckanext.servicehub.action import get_item_as_list, app_solr
 
 # http_session = requests.Session()
 # retry = Retry(connect=3, backoff_factor=0.5)
@@ -63,6 +63,7 @@ def isidentifier(ident):
             return False
 
     return True
+
 
 
 def service_create(context, data_dict):
@@ -134,7 +135,7 @@ def service_create(context, data_dict):
 
     logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
 
-    logic.get_action('app_index')({}, {
+    app_solr.index_app({}, {
         'id': app.app_id,
         'name': app.app_name,
         'language': app.language,

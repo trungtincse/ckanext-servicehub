@@ -43,9 +43,9 @@ def index():
     )
 
     page = h.Page(
-        collection=docs(search_result),
+        collection=app_solr.docs(search_result),
         page=h.get_page_number(request.params),
-        item_count=len(docs(search_result))
+        item_count=len(app_solr.docs(search_result))
     )
 
     # cprint(json.dumps(search_result['response'], indent=4))
@@ -65,10 +65,6 @@ def index():
 
 def query():
     request.params.get('q')
-
-
-def docs(search_result):
-    return search_result['response']['docs']
 
 
 def selected_filtered_fields():

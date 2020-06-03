@@ -106,6 +106,10 @@ def query_facets():
     return facets
 
 
+def docs(search_result):
+    return search_result['response']['docs']
+
+
 def ckan_search_facets(solr_response):
     """create key 'search_facets' of solr response like in action package_search"""
     result = {}

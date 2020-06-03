@@ -39,7 +39,7 @@
     </div>
 
     {% block page_pagination %}
-      {# {{ page.pager(q=c.q) }} #}
+    {{ page.pager(q=query) }}
     {% endblock %}
   </section>
 

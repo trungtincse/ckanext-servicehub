@@ -29,7 +29,7 @@ def service_delete(context, data_dict):
     session = context['session']
     session.query(App).filter(App.app_id == app_id).delete()
     session.commit()
-    logic.get_action('app_index_delete')({}, {'app_id': app_id})
+    # logic.get_action('app_index_delete')({}, {'app_id': app_id})
 
 
 def call_delete(context, data_dict):

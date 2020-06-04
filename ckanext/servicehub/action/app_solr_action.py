@@ -101,8 +101,9 @@ def query_app(text, categories, language, organizations, related_datasets=None):
         'facet': query_facets()
     }
 
+
     r = requests.get(solr_url + '/query', json=query).json()
-    # recover apps: deserialize 'data_dict' key
+    # recover docs: deserialize 'data_dict' key
     recovered_docs = []
     for ori_doc in r['response']['docs']:
         new_doc = json.loads(ori_doc['data_dict'])
@@ -120,7 +121,8 @@ def query_facets():
         facets[field] = {
             'type': 'terms',
             'field': field,
-            'limit': 5
+            'limit': 5,
+            'mincount': 0
         }
     return facets
 
@@ -131,20 +133,35 @@ def docs(search_result):
 
 def ckan_search_facets(solr_response):
     """create key 'search_facets' of solr response like in action package_search"""
-    result = {}
     facets = solr_response['facets']
-    for field in facet_fields:
-        items = []
-        for bucket in facets[field]['buckets']:
-            item = {
-                'name': bucket['val'],
-                'display_name': bucket['val'].title() if field == 'language' else bucket['val'],
-                'count': bucket['count']
+    if facets['count'] == 0:
+        # solr will not return any keys => fake empty response
+        result = {}
+        for field in facet_fields:
+            result[field] = {
+                'title': field,
+                'items': []
             }
-            items.append(item)
+        return result
+    else:
+        result = {}
+        for field in facet_fields:
+            items = []
+            for bucket in facets[field]['buckets']:
+                item = {
+                    'name': bucket['val'],
+                    'display_name': bucket['val'].title() if field == 'language' else bucket['val'],
+                    'count': bucket['count'],
+                    'active': bucket['val'] in request.params.getlist(field)
+                }
+                items.append(item)
 
-        result[field] = items
-    return result
+            result[field] = {
+                'title': field,
+                'items': items
+            }
+        return result
+
 
 
 public_functions = {

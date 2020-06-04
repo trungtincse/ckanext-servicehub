@@ -26,7 +26,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from ckanext.servicehub.action.read import service_by_slug_show
 
-from ckanext.servicehub.action import get_item_as_list, app_solr
+from ckanext.servicehub.action import get_item_as_list, app_solr_action
 
 # http_session = requests.Session()
 # retry = Retry(connect=3, backoff_factor=0.5)
@@ -127,7 +127,7 @@ def service_create(context, data_dict):
         session.flush()
         # logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
         code_id = build_code(session, data_dict['codeFile'], app)
-        app_solr.index_app({}, app)
+        app_solr_action.index_app({}, app)
     except Exception as ex:
         logger.error(ex.message)
         session.delete(app)

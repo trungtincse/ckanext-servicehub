@@ -1,8 +1,8 @@
 import logging
 
 from ckanext.servicehub.action import index
-from ckanext.servicehub.view import ServiceController, CallController, TestController, \
-    ViewController, PackageController, ProjectController, SearchAppController
+from ckanext.servicehub.view import ServiceController, CallController, \
+    PackageController, ProjectController, SearchAppController
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import ckanext.servicehub.auth.create as create_auth
@@ -28,9 +28,6 @@ class ServicehubPlugin(plugins.SingletonPlugin,toolkit.DefaultDatasetForm):
     def get_blueprint(self):
         return [ServiceController.service,
                 CallController.call_blueprint,
-                TestController.test_blueprint,
-                # AppServer.appserver_blueprint,
-                ViewController.view_blueprint,
                 PackageController.package_blueprint,
                 ProjectController.project_blueprint,
                 SearchAppController.blueprint

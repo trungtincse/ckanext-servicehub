@@ -5,7 +5,7 @@
     </div>
     <div class="col-md-8">
         {% if field.type =='FILE' %}
-            <a href="http://localhost:5001/call/{{ call_id }}/{{ type }}/{{ field.name }}">Download file here</a>
+            <a href="{{ field.value }}">Download file here</a>
             {% if type=='output' %}
                 <button type="button" class="btn btn-primary md-ml-10" onclick="output_view('{{ call_id }}','{{ field.name }}')">View
                 </button>

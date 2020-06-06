@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-
+import os
 from ckan import model
 from ckan.common import config
 from ckan.model import meta, package_table, domain_object
@@ -13,6 +13,9 @@ from ckan.model.user import User
 import ckan.plugins.toolkit as tk
 # Session = sessionmaker(bind=engine)
 from ckanext.servicehub.model.BaseModel import Base
+
+storage_path = config.get('ckan.storage_path')
+site_url = config.get('ckan.site_url')
 
 
 class Call(Base):
@@ -37,7 +40,12 @@ class Call(Base):
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+    def as_dict(self):
+        _dict = {c.key: getattr(self, c.key)
+                 for c in inspect(self).mapper.column_attrs}
+        _dict['created_at'] = self.created_at.strftime("%d-%m-%Y %H:%M:%S")
 
+        return _dict
 
 class App(Base):
     __tablename__ = 'app_info'
@@ -89,10 +97,12 @@ class AppCodeVersion(Base):
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+
     def as_dict(self):
         _dict = {c.key: getattr(self, c.key)
                  for c in inspect(self).mapper.column_attrs}
         return _dict
+
 
 class AppParam(Base):
     __tablename__ = 'app_param'
@@ -107,10 +117,12 @@ class AppParam(Base):
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+
     def as_dict(self):
         _dict = {c.key: getattr(self, c.key)
                  for c in inspect(self).mapper.column_attrs}
         return _dict
+
 
 class CallInput(Base):
     __tablename__ = 'call_input'
@@ -120,6 +132,12 @@ class CallInput(Base):
     type = Column(types.UnicodeText)
     value = Column(types.UnicodeText)
 
+    def as_dict(self):
+        _dict = dict(call_id=self.call_id, name=self.name, type=self.type,value=self.value)
+        if self.type == 'FILE':
+            _dict['value'] = os.path.join(site_url, 'call', 'file', 'input', self.call_id, self.name)
+        return _dict
+
 
 class CallOutput(Base):
     __tablename__ = 'call_output'
@@ -128,6 +146,12 @@ class CallOutput(Base):
     name = Column(types.UnicodeText, primary_key=True)
     type = Column(types.UnicodeText)
     value = Column(types.UnicodeText)
+
+    def as_dict(self):
+        _dict = dict(call_id=self.call_id, name=self.name, type=self.type,value=self.value)
+        if self.type == 'FILE':
+            _dict['value'] = os.path.join(site_url, 'call', 'file', 'output', self.call_id, self.name)
+        return _dict
 
 
 class AppCategory(Base):

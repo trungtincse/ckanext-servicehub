@@ -254,13 +254,13 @@ def call_create(context, data_dict):
                 data_dict[ins.name]=[param_value]
                 param_value=[param_value]
             for e in param_value:
-                if not isinstance(e,unicode):
+                if not (isinstance(e,unicode) or isinstance(e,str)):
                     return dict(success=False, error="Parameter %s is not a %s type." % (ins.name,ins.type))
         elif ins.type.find("BOOLEAN") >= 0:
-            if not isinstance(param_value, unicode) or param_value.lower() not in ['false', 'true']:
+            if not (isinstance(param_value,unicode) or isinstance(param_value,str) and param_value.lower() in ['false', 'true']) :
                 return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
         else:
-            if not isinstance(param_value, unicode):
+            if not (isinstance(param_value,unicode) or isinstance(param_value,str)):
                 return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
     ####
     for k, v in data_dict.items():

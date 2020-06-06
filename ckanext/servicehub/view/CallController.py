@@ -1,11 +1,12 @@
 import ast
+import os
 
 import requests
 from werkzeug.datastructures import FileStorage
 
 from ckan.controllers.package import PackageController
 from ckan.lib import helpers
-from flask import Blueprint, Response, jsonify
+from flask import Blueprint, Response, jsonify, send_file
 import json
 from ckanext.servicehub.model.ServiceModel import Call, App
 import ckan.lib.base as base
@@ -25,7 +26,7 @@ tuplize_dict = logic.tuplize_dict
 clean_dict = logic.clean_dict
 parse_params = logic.parse_params
 appserver_host = config.get('ckan.servicehub.appserver_host')
-
+storage_path = config.get('ckan.storage_path')
 call_blueprint = Blueprint(u'call', __name__, url_prefix=u'/call')
 
 
@@ -56,7 +57,7 @@ def modify_input(context, data_dict):
     for i in lst:
         data_dict[i] = data_dict[i] if isinstance(data_dict[i], list) else [data_dict[i]]
     for i in check_box_inputs:
-        data_dict[i] = 'true' if data_dict.get(i,'off') == 'on' else 'false'
+        data_dict[i] = 'true' if data_dict.get(i, 'off') == 'on' else 'false'
 
     del data_dict['check_box_inputs']
     del data_dict['lst']
@@ -218,15 +219,20 @@ def read(id):
     if instance.get('error', '') != '':
         return base.abort(404, _(u'Call not found'))
     session = context['session']
-    call_ins = session.query(Call).filter(Call.call_id == id).first()
-    app_id = call_ins.app_id
+    # call_ins = session.query(Call).filter(Call.call_id == id).first()
+    app_id = instance['app_id']
     app_ins = session.query(App).filter(App.app_id == app_id).first()
     vars = {
-        'ins': instance['call_detail'],
+        'ins': instance,
         'service_ins': app_ins,
     }
     return base.render('call/read.html', vars)
 
+
+@call_blueprint.route('/file/<type>/<call_id>/<file_name>')
+def serve_file(type, call_id, file_name):
+    path = os.path.join(storage_path, '%s-files' % type, call_id, "files", file_name)
+    return send_file(path)
 
 class EnhancePackageController(PackageController):
     def resource_view(self, id, resource_id, view_id=None):

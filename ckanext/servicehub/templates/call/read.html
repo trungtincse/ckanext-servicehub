@@ -131,7 +131,7 @@
         function output_view(call_id, filename) {
             setting = {
                 url: `/call/output_read/${call_id}/${filename}`,
-                data: {url: `http://localhost:5001/call/${call_id}/output/${filename}`},
+                data: {url: `/call/file/output/${call_id}/${filename}`},
                 method: 'GET',
                 beforeSend: function () {
                     $('#myModal .modal-body').html('<p>Loading</p>');

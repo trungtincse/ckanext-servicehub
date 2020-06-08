@@ -24,11 +24,10 @@
 <!-- We update the version when there is a backward-incompatible change to this
 schema. In this case the version should be set to the next CKAN version number.
 (x.y but not x.y.z since it needs to be a float) -->
-<schema name="ckanapp" version="0.0">
+<schema name="project" version="0.0">
 
 <types>
     <!-- 
-    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
     <fieldtype name="binary" class="solr.BinaryField"/>
     <fieldType name="int" class="solr.TrieIntField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
     <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
@@ -50,6 +49,7 @@ schema. In this case the version should be set to the next CKAN version number.
 
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
     <fieldType name="date" class="solr.TrieDateField" omitNorms="true" precisionStep="0" positionIncrementGap="0"/>
+    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
     <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
         <analyzer type="index">
             <tokenizer class="solr.WhitespaceTokenizerFactory"/>
@@ -67,37 +67,21 @@ schema. In this case the version should be set to the next CKAN version number.
             <filter class="solr.ASCIIFoldingFilterFactory"/>
         </analyzer>
     </fieldType>
-    <!-- case-insensitive string -->
-    <fieldType name="string_ci" class="solr.TextField">
-        <analyzer type="index">
-            <!-- https://stackoverflow.com/questions/7645465/difference-between-standardtokenizerfactory-and-keywordtokenizerfactory-in-solr -->
-            <tokenizer class="solr.KeywordTokenizerFactory"/>
-            <filter class="solr.LowerCaseFilterFactory"/>
-        </analyzer>
-
-        <analyzer type="query">
-            <tokenizer class="solr.KeywordTokenizerFactory"/>
-            <filter class="solr.LowerCaseFilterFactory"/>
-        </analyzer>
-    </fieldType>
 </types>
 <fields>
     <!-- always stored=true => easier to debug -->
-    <field name="app_id"          type="string" indexed="true"  stored="true"  required="true"  multiValued="false" />
-    <field name="avatar_path"     type="string" indexed="false" stored="true"                   multiValued="false" />
-    <field name="type"            type="string" indexed="false" stored="true"                   multiValued="false" />
-    <field name="app_name"        type="string" indexed="true"  stored="true"  omitNorms="true" multiValued="false" />
-    <field name="slug_name"       type="string" indexed="false" stored="true"                   multiValued="false" />  <!-- already indexed at app_name -->
-    <field name="owner"           type="string" indexed="true"  stored="true"                   multiValued="false" />
-    <field name="organization"    type="string" indexed="true"  stored="true"                   multiValued="false" />
-    <field name="description"     type="string" indexed="true"  stored="true"                   multiValued="false" />
-    <field name="language"        type="string" indexed="true"  stored="true"                   multiValued="false" />
-    <field name="language_ci"     type="string_ci" indexed="true"  stored="true"  omitNorms="true"                 multiValued="false" />
-    <field name="created_at"      type="date"   indexed="true"  stored="true"                   multiValued="false" />
-    <field name="curr_code_id"    type="string" indexed="false" stored="true"                   multiValued="false" />  <!-- already indexed at app_name -->
-    <field name="app_status"      type="string" indexed="false" stored="true"                   multiValued="false" />
-    <field name="category"        type="string" indexed="true"  stored="true"                   multiValued="true"  />
-    <field name="dataset_related" type="string" indexed="true"  stored="true"                   multiValued="true"  />
+    <field name="id"                type="string"  indexed="true"   stored="true"  required="true"  multiValued="false" />
+    <field name="name"              type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="email"             type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="organization_name" type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="o_description"     type="text"    indexed="true"   stored="true"                   multiValued="false" />
+    <field name="o_avatar_image"    type="string"  indexed="false"  stored="true"                   multiValued="false" />
+    <field name="project_name"      type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="header_image"      type="text"    indexed="false"  stored="true"                   multiValued="false" />
+    <field name="prj_summary"       type="text"    indexed="true"   stored="true"                   multiValued="false" />
+    <field name="prj_goal"          type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="draft"             type="boolean" indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="active"            type="boolean" indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
 
     <field name="_version_"       type="string" indexed="true"  stored="true"                   multiValued="false" />
 
@@ -108,18 +92,16 @@ schema. In this case the version should be set to the next CKAN version number.
     <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
 </fields>
 
-<uniqueKey>app_id</uniqueKey>
+<uniqueKey>id</uniqueKey>
 <df>text</df>
 <solrQueryParser q.op="AND"/>
 
 <!-- <copyField source="app_id" dest="text"  /> -->
-<copyField source="app_name" dest="text"  />
-<copyField source="owner" dest="text"  />
-<copyField source="description" dest="text"/>
-<copyField source="organization" dest="text"/>
-<copyField source="category" dest="text" />
-<copyField source="dataset_related" dest="text" />
-
-<copyField source="language" dest="language_ci" />
+<copyField source="name" dest="text"  />
+<copyField source="organization_name" dest="text"  />
+<copyField source="o_description" dest="text"  />
+<copyField source="project_name" dest="text"  />
+<copyField source="prj_summary" dest="text"  />
+<copyField source="prj_goal" dest="text"  />
 
 </schema>

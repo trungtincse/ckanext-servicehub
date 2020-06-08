@@ -85,7 +85,7 @@ def query_app(text, categories, language, organizations, related_datasets=None):
             filters.append('categories:"%s"' % cate)  # AND
 
     if language:
-        filters.append('language:"%s"' % language)
+        filters.append('language_ci:"%s"' % language) # search case insensitive field
 
     if organizations:
         v = ' OR '.join('"%s"' % org for org in organizations)
@@ -122,7 +122,7 @@ def query_facets():
             'type': 'terms',
             'field': field,
             'limit': 5,
-            'mincount': 0
+            'mincount': 1
         }
     return facets
 

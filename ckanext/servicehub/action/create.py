@@ -26,7 +26,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from ckanext.servicehub.action.read import service_by_slug_show
 
-from ckanext.servicehub.action import get_item_as_list
+from ckanext.servicehub.action import get_item_as_list, app_solr_action
 
 # http_session = requests.Session()
 # retry = Retry(connect=3, backoff_factor=0.5)
@@ -126,6 +126,7 @@ def service_create(context, data_dict):
         session.flush()
         # logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
         code_id = build_code(session, data_dict['codeFile'], app)
+        app_solr_action.index_app({}, app)
     except Exception as ex:
         logger.error(ex.message)
         session.delete(app)
@@ -133,16 +134,6 @@ def service_create(context, data_dict):
         return dict(success=False, error='Creating application is not success: ' + str(ex.message))
 
     logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
-
-    logic.get_action('app_index')({}, {
-        'id': app.app_id,
-        'name': app.app_name,
-        'language': app.language,
-        'organization': session.query(model.Group.id == app.organization).first(),
-        'owner': session.query(model.User.id == app.owner).first(),
-        'categories': session.query(AppCategory.app_id == app_id).all(),
-        'description': app.description,
-    })
 
     # success
     for param in params:
@@ -166,9 +157,9 @@ def service_create(context, data_dict):
     return dict(success=True, code_id=code_id, app_id=app_id)
 
 
-
 class BuildAppFailed(Exception):
     pass
+
 
 def build_code(session, code_file, app):
     code_id = _types.make_uuid()
@@ -200,7 +191,7 @@ def build_code(session, code_file, app):
 
         build_url = os.path.join(appserver_host, 'app', app_id, code_id, 'build')
         # WILL DO
-        session.commit() # make appserver see code version
+        session.commit()  # make appserver see code version
         r = requests.post(build_url).json()
         if r['error']:
             session.delete(code)
@@ -231,7 +222,7 @@ def call_create(context, data_dict):
     app_id = data_dict.get('app_id', None)
     if app_id == None:
         return dict(success=False, error="Miss app_id field.")
-    if isinstance(app_id,list):
+    if isinstance(app_id, list):
         return dict(success=False, error="Duplicate app_id.")
     app = session.query(App).filter(App.app_id == app_id).first()
     if app == None:
@@ -246,21 +237,22 @@ def call_create(context, data_dict):
         param_value = data_dict.get(ins.name, None)
         if param_value == None:
             return dict(success=False, error="Parameter not found.")
-        if ins.type.find("FILE") >= 0 :
+        if ins.type.find("FILE") >= 0:
             if not isinstance(param_value, FileStorage):
-                return dict(success=False, error="Parameter %s is not a %s type." % (ins.name,ins.type))
+                return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
         elif ins.type.find("LIST") >= 0:
             if not isinstance(param_value, list):
-                data_dict[ins.name]=[param_value]
-                param_value=[param_value]
+                data_dict[ins.name] = [param_value]
+                param_value = [param_value]
             for e in param_value:
-                if not (isinstance(e,unicode) or isinstance(e,str)):
-                    return dict(success=False, error="Parameter %s is not a %s type." % (ins.name,ins.type))
+                if not (isinstance(e, unicode) or isinstance(e, str)):
+                    return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
         elif ins.type.find("BOOLEAN") >= 0:
-            if not (isinstance(param_value,unicode) or isinstance(param_value,str) and param_value.lower() in ['false', 'true']) :
+            if not (isinstance(param_value, unicode) or isinstance(param_value, str) and param_value.lower() in [
+                'false', 'true']):
                 return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
         else:
-            if not (isinstance(param_value,unicode) or isinstance(param_value,str)):
+            if not (isinstance(param_value, unicode) or isinstance(param_value, str)):
                 return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
     ####
     for k, v in data_dict.items():

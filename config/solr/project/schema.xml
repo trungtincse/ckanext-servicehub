@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!--
+     NB Please copy changes to this file into the multilingual schema:
+        ckanext/multilingual/solr/schema.xml
+-->
+
+<!-- We update the version when there is a backward-incompatible change to this
+schema. In this case the version should be set to the next CKAN version number.
+(x.y but not x.y.z since it needs to be a float) -->
+<schema name="project" version="0.0">
+
+<types>
+    <!-- 
+    <fieldtype name="binary" class="solr.BinaryField"/>
+    <fieldType name="int" class="solr.TrieIntField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="long" class="solr.TrieLongField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="tint" class="solr.TrieIntField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="tfloat" class="solr.TrieFloatField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="tdouble" class="solr.TrieDoubleField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="date" class="solr.TrieDateField" omitNorms="true" precisionStep="0" positionIncrementGap="0"/>
+    <fieldType name="tdate" class="solr.TrieDateField" omitNorms="true" precisionStep="6" positionIncrementGap="0"/>
+
+    <fieldType name="tdates" class="solr.TrieDateField" precisionStep="7" positionIncrementGap="0" multiValued="true"/>
+    <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+    <fieldType name="tints" class="solr.TrieIntField" precisionStep="8" positionIncrementGap="0" multiValued="true"/>
+    <fieldType name="tfloats" class="solr.TrieFloatField" precisionStep="8" positionIncrementGap="0" multiValued="true"/>
+    <fieldType name="tlongs" class="solr.TrieLongField" precisionStep="8" positionIncrementGap="0" multiValued="true"/>
+    <fieldType name="tdoubles" class="solr.TrieDoubleField" precisionStep="8" positionIncrementGap="0" multiValued="true"/> -->
+
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="date" class="solr.TrieDateField" omitNorms="true" precisionStep="0" positionIncrementGap="0"/>
+    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
+        <analyzer type="index">
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
+            <filter class="solr.ASCIIFoldingFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+            <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
+            <filter class="solr.ASCIIFoldingFilterFactory"/>
+        </analyzer>
+    </fieldType>
+</types>
+<fields>
+    <!-- always stored=true => easier to debug -->
+    <field name="id"                type="string"  indexed="true"   stored="true"  required="true"  multiValued="false" />
+    <field name="name"              type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="email"             type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="organization_name" type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="o_description"     type="text"    indexed="true"   stored="true"                   multiValued="false" />
+    <field name="o_avatar_image"    type="string"  indexed="false"  stored="true"                   multiValued="false" />
+    <field name="project_name"      type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="header_image"      type="text"    indexed="false"  stored="true"                   multiValued="false" />
+    <field name="prj_summary"       type="text"    indexed="true"   stored="true"                   multiValued="false" />
+    <field name="prj_goal"          type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="draft"             type="boolean" indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="active"            type="boolean" indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+
+    <field name="_version_"       type="string" indexed="true"  stored="true"                   multiValued="false" />
+
+    <field name="data_dict"       type="string" indexed="false" stored="true"                   multiValued="false" /> <!-- store more detailed data (owner_id, group_id, ...) -->
+    
+    <!-- catchall field, containing all other searchable text fields (implemented
+         via copyField further on in this schema  -->
+    <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+</fields>
+
+<uniqueKey>id</uniqueKey>
+<df>text</df>
+<solrQueryParser q.op="AND"/>
+
+<!-- <copyField source="app_id" dest="text"  /> -->
+<copyField source="name" dest="text"  />
+<copyField source="organization_name" dest="text"  />
+<copyField source="o_description" dest="text"  />
+<copyField source="project_name" dest="text"  />
+<copyField source="prj_summary" dest="text"  />
+<copyField source="prj_goal" dest="text"  />
+
+</schema>

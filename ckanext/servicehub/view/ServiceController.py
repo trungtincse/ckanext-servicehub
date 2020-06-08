@@ -112,6 +112,7 @@ class CreateFromCodeServiceView(MethodView):
         return base.render('service/new.html', extra_vars)
 
 
+
 service = Blueprint(u'service', __name__, url_prefix=u'/service')
 
 

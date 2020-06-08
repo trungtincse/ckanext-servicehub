@@ -1,8 +1,9 @@
 import logging
 
-from ckanext.servicehub.action import index
+
+from ckanext.servicehub.action import app_solr_action
 from ckanext.servicehub.view import ServiceController, CallController, \
-    PackageController, ProjectController, SearchAppController
+    PackageController, ProjectController, app_search_controller
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import ckanext.servicehub.auth.create as create_auth
@@ -30,7 +31,7 @@ class ServicehubPlugin(plugins.SingletonPlugin,toolkit.DefaultDatasetForm):
                 CallController.call_blueprint,
                 PackageController.package_blueprint,
                 ProjectController.project_blueprint,
-                SearchAppController.blueprint
+                app_search_controller.blueprint
                 ]
 
     def get_auth_functions(self):
@@ -41,7 +42,7 @@ class ServicehubPlugin(plugins.SingletonPlugin,toolkit.DefaultDatasetForm):
         all_function.update(read.public_functions)
         all_function.update(create.public_functions)
         all_function.update(delete.public_functions)
-        all_function.update(index.public_functions)
+        all_function.update(app_solr_action.public_functions)
         return all_function
 
     def create_package_schema(self):

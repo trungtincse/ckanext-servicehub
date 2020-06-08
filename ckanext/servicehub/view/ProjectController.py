@@ -242,3 +242,8 @@ project_blueprint.add_url_rule(
     u'/read/<id>',
     methods=[u'GET', u'POST', u'DELETE'],
     view_func=ProjectReadView.as_view(str(u'read')))
+
+
+@project_blueprint.route('/search', methods=['GET'])
+def search():
+    pass

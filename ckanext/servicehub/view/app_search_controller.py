@@ -40,7 +40,8 @@ def index():
         text=query() or '*:*',
         organizations=request.params.getlist('organization'),
         categories=request.params.getlist('categories'),
-        language=request.params.get('language')
+        language=request.params.get('language'),
+        sort=request.params.get('sort', 'score asc, created_at desc')
     )
 
     page = h.Page(

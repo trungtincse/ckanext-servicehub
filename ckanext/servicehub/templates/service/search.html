@@ -27,9 +27,9 @@
           'remove_field': remove_field }
         %}
         {% set sorting = [
-          (_('Relevance'), 'score desc, metadata_modified desc'),
-          (_('Name Ascending'), 'name asc'),
-          (_('Name Descending'), 'name desc') ]
+          (_('Relevance'), 'score desc, created_at desc'),
+          (_('Name Ascending'), 'app_name asc'),
+          (_('Name Descending'), 'app_name desc') ]
         %}
 <!--      <p>facets.search {{facets.search}}</p>-->
 <!--      <p>facets.titles {{facets.titles}}</p>-->

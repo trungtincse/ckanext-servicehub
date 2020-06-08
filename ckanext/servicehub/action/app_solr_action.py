@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+from pprint import pprint
 
 import pysolr
 import pytz
@@ -67,13 +68,12 @@ def app_index_delete(context, data_dict):
 #     )
 
 
-def query_app(text, categories, language, organizations, related_datasets=None):
+def query_app(text, categories, language, organizations, sort):
     """
     :param text: str: text in the search box
     :param categories: list[str]: AND
     :param language: str
     :param organizations: list[str]: OR
-    :param related_datasets: list[str]: AND
     :return:
     """
     text = text or "*:*"  # avoid None
@@ -91,18 +91,19 @@ def query_app(text, categories, language, organizations, related_datasets=None):
         v = ' OR '.join('"%s"' % org for org in organizations)
         filters.append('organization:(%s)' % v)
 
-    if related_datasets:
-        for dataset in related_datasets:
-            filters.append('related_datasets:"%s"' % dataset)
+    # if related_datasets:
+    #     for dataset in related_datasets:
+    #         filters.append('related_datasets:"%s"' % dataset)
 
     query = {
         'query': text,
         'filter': filters,
-        'facet': query_facets()
+        'facet': query_facets(),
+        'sort': sort
     }
 
-
     r = requests.get(solr_url + '/query', json=query).json()
+
     # recover docs: deserialize 'data_dict' key
     recovered_docs = []
     for ori_doc in r['response']['docs']:

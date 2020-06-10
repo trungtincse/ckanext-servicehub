@@ -4,6 +4,8 @@ import keyword
 import mimetypes
 import random
 import string
+from pprint import pprint
+
 from ckan.model import types as _types
 import pika_pool
 import requests
@@ -262,8 +264,11 @@ def call_create(context, data_dict):
             files[k] = (None, json.dumps(v))
         else:
             files[k] = (None, v)
-    path = os.path.join(appserver_host, 'app', app_id, curr_code_id, 'execute') + '?userId=%s' % user
-    response = requests.post(path, files=files)
+    path = os.path.join(appserver_host, 'app', app_id, curr_code_id, 'execute')
+    if files:
+        response = requests.post(path, files=files, params={'userId': user})
+    else:
+        response = requests.post(path + '/empty', params={'userId': user})
     return response.json()
 
 

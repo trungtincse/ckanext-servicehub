@@ -2,7 +2,7 @@ import logging
 
 from ckanext.servicehub.action import app_solr_action
 from ckanext.servicehub.view import ServiceController, CallController, TestController, \
-    ViewController, PackageController, ProjectController, app_search_controller
+    ViewController, PackageController, ProjectController
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 import ckanext.servicehub.auth.create as create_auth
@@ -33,7 +33,7 @@ class ServicehubPlugin(plugins.SingletonPlugin,toolkit.DefaultDatasetForm):
                 ViewController.view_blueprint,
                 PackageController.package_blueprint,
                 ProjectController.project_blueprint,
-                app_search_controller.blueprint
+                # app_search_controller.blueprint
                 ]
 
     def get_auth_functions(self):

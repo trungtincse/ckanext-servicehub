@@ -28,11 +28,11 @@ parse_params = logic.parse_params
 # log = logging.getLogger(__name__)
 logger = logging.getLogger('logserver')
 
-blueprint = Blueprint('appsearch', __name__, url_prefix='/app/search')
+# blueprint = Blueprint('appsearch', __name__, url_prefix='/app/search')
 
 
-def register_rules():
-    blueprint.add_url_rule('', view_func=index, strict_slashes=True)
+# def register_rules():
+#     blueprint.add_url_rule('', view_func=index, strict_slashes=True)
 
 
 def index():
@@ -60,7 +60,7 @@ def index():
     c.search_facets_limits = False
     c.remove_url_param = cuong_remove_url_param # override
     return base.render('service/search.html', {
-        'query': query() or '',
+        'query': query_content() or '',
         'sort_by_selected': request.params.get('sort', 'score desc, metadata_modified desc'),
         'facet_titles': facet_titles(),
         'selected_filtered_fields': selected_filtered_fields(),
@@ -72,8 +72,17 @@ def index():
 
 
 def query():
-    request.params.get('q')
-
+    q=request.params.get('q')
+    if q:
+        return "text:"+q
+    else:
+        return None
+def query_content():
+    q=request.params.get('q')
+    if q:
+        return q
+    else:
+        return None
 
 def cuong_remove_url_param(key, value=None, replace=None, controller=None,
                      action=None, extras=None, alternative_url=None):
@@ -237,4 +246,4 @@ def remove_field(key, value=None, replace=None):
     return h.remove_url_param(key, value=value, replace=replace, controller='appsearch', action='index')
 
 
-register_rules()
+# register_rules()

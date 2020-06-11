@@ -1,4 +1,6 @@
 # encoding: utf-8
+from pprint import pprint
+
 import six
 
 from ckanext.servicehub.cuong import cprint, ccprint
@@ -60,7 +62,7 @@ def index():
     c.search_facets_limits = False
     c.remove_url_param = cuong_remove_url_param # override
     return base.render('service/search.html', {
-        'query': query() or '',
+        'query': request.params.get('q', ''),
         'sort_by_selected': request.params.get('sort', 'score desc, metadata_modified desc'),
         'facet_titles': facet_titles(),
         'selected_filtered_fields': selected_filtered_fields(),
@@ -72,7 +74,11 @@ def index():
 
 
 def query():
-    request.params.get('q')
+    q = request.params.get('q')
+    if q:
+        return "text:" + q
+    else:
+        return None
 
 
 def cuong_remove_url_param(key, value=None, replace=None, controller=None,

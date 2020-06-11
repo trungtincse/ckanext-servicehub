@@ -21,6 +21,7 @@ from flask.views import MethodView
 from ckanext.servicehub.model.ServiceModel import *
 from ckan.model import types as _types
 from ckanext.servicehub.model.ServiceModel import App
+from view import app_search_supporter
 
 storage_path = config.get('ckan.storage_path')
 NotFound = logic.NotFound
@@ -49,9 +50,9 @@ def index():
         u'with_private': False
     }
 
-    results = get_action(u'service_list')(context, dict())
-    return base.render('service/index.html', dict(results=results, len=len(results), appserver_host=appserver_host))
-
+    # results = get_action(u'service_list')(context, dict())
+    # return base.render('service/index.html', dict(results=results, len=len(results), appserver_host=appserver_host))
+    return app_search_supporter.index()
 
 def read(id):
     extra_vars = {}

@@ -1,9 +1,12 @@
+# coding=utf-8
 import errno
 import json
 import keyword
 import mimetypes
 import random
 import string
+from pprint import pprint
+
 from ckan.model import types as _types
 import pika_pool
 import requests
@@ -82,7 +85,7 @@ def service_create(context, data_dict):
     groups = filter(lambda x: x.state == 'active' and x.is_organization, context['userobj'].get_groups())
     if data_dict['organization'] not in map(lambda x: x.title, groups):
         return dict(success=False, error="User is not a member of the organization")
-    if not all([isidentifier(i) for i in data_dict['var_name']]):
+    if not all([isidentifier(cate) for cate in data_dict['var_name']]):
         return dict(success=False, error="Variable names are not accepted")
     for dataset in data_dict['datasets']:
         try:
@@ -126,14 +129,12 @@ def service_create(context, data_dict):
         session.flush()
         # logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
         code_id = build_code(session, data_dict['codeFile'], app)
-        app_solr_action.index_app({}, app)
     except Exception as ex:
         logger.error(ex.message)
         session.delete(app)
         session.commit()
         return dict(success=False, error='Creating application is not success: ' + str(ex.message))
 
-    logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
 
     # success
     for param in params:
@@ -145,15 +146,31 @@ def service_create(context, data_dict):
         param_ins.setOption(**param_dict)
         session.add(param_ins)
 
+    datasets = []
     for dataset in data_dict['datasets']:
         package = model.Package.get(dataset)
         ins = AppRelatedDataset(app_id=app_id, package_id=package.id)
+        datasets.append(ins)
         session.add(ins)
 
-    for i in data_dict['app_category']:
-        ins = AppCategory(app_id=app_id, tag_name=i)
+    categories = []
+    for cate in data_dict['app_category']:
+        ins = AppCategory(app_id=app_id, tag_name=cate)
+        categories.append(ins)
         session.add(ins)
+
+    try:
+        app_solr_action.index_app({}, app, categories, datasets)
+    except Exception as e:
+        session.delete(app)  # do app đã commit từ trước
+        session.delete_all(categories)
+        session.delete_all(datasets)
+        session.commit()
+        logger.error("Failed to index solr %s" % e.message)
+        return {'success': False, 'error': 'Failed to index app to Solr %s' % e.message}
+
     session.commit()
+    logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
     return dict(success=True, code_id=code_id, app_id=app_id)
 
 
@@ -262,8 +279,11 @@ def call_create(context, data_dict):
             files[k] = (None, json.dumps(v))
         else:
             files[k] = (None, v)
-    path = os.path.join(appserver_host, 'app', app_id, curr_code_id, 'execute') + '?userId=%s' % user
-    response = requests.post(path, files=files)
+    path = os.path.join(appserver_host, 'app', app_id, curr_code_id, 'execute')
+    if files:
+        response = requests.post(path, files=files, params={'userId': user})
+    else:
+        response = requests.post(path + '/empty', params={'userId': user})
     return response.json()
 
 

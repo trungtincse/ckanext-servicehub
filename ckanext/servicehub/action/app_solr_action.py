@@ -11,40 +11,37 @@ from ckan.common import OrderedDict, c, g, config, request, _
 import ckan.logic as logic
 from ckan.lib.search.common import SearchIndexError
 from ckanext.servicehub.cuong import cprint, ccprint
-from ckanext.servicehub.model.ServiceModel import App
+from ckanext.servicehub.model.ServiceModel import App, AppCategory, AppRelatedDataset
 
 log = logging.getLogger('ckan.logic')
 
 solr_url = config.get('ckan.servicehub.app_solr_url')
 
 
-def index_app(context, app):
+def index_app(context, app, categories, datasets):
     """
     :param app: App model
     :return:
     """
-    app = app.as_dict()
+    categories_json = list(map(AppCategory.as_dict, categories))
+    datasets_json = list(map(AppRelatedDataset.as_dict_raw, datasets))
 
-    app['created_at'] = datetime_to_utc_string(app['created_at'])
-    app['data_dict'] = json.dumps(app, ensure_ascii=False) # serialize first
+    app_json = app.as_dict_raw()
+    app_json['category'] = categories_json
+    app_json['dataset_related'] = datasets_json
+
+    app_json['data_dict'] = json.dumps(app_json, ensure_ascii=False) # serialize first
 
     # change now
-    app['category'] = [cate['tag_name'] for cate in app['category']]
-    app['dataset_related'] = [dataset['package_id'] for dataset in app['dataset_related']]
-    url = solr_url + '/update/json/docs?commit=true'
+    app_json['category'] = [cate['tag_name'] for cate in categories_json]
+    app_json['dataset_related'] = [dataset['package_id'] for dataset in datasets_json]
     try:
-        r = requests.post(url, json=app).json()
+        url = solr_url + '/update/json/docs?commit=true'
+        r = requests.post(url, json=app_json).json()
         if r['responseHeader']['status'] != 0:
-            print('Index error: ' + json.dumps(r['error']))
+            raise SearchIndexError('Solr request failed: %s' % r)
     except Exception as e:
-        print('Failed to do request to Solr server')
         raise SearchIndexError(e)
-
-
-def datetime_to_utc_string(dt):
-    # timezone = pytz.timezone('Asia/Ho_Chi_Minh')
-    # return timezone.normalize(timezone.localize(dt, is_dst=True)).isoformat()
-    return dt.isoformat()
 
 
 def app_index_delete(context, data_dict):

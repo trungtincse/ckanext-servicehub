@@ -83,6 +83,12 @@ class App(Base):
                              meta.Session.query(AppCategory).filter(AppCategory.app_id == self.app_id).all()]
         return _dict
 
+    def as_dict_raw(self):
+        result = {c.key: getattr(self, c.key)
+                 for c in inspect(self).mapper.column_attrs}
+        result['created_at'] = self.created_at.isoformat()
+        return result
+
 
 class AppCodeVersion(Base):
     __tablename__ = 'app_code_version'
@@ -200,3 +206,11 @@ class AppRelatedDataset(Base):
         #          for c in inspect(self).mapper.column_attrs}
         # del _dict['package_id']
         return dict(app_id=self.app_id, package_name=model.Package.get(self.package_id).name)
+
+    def as_dict_raw(self):
+        return {
+            'id': self.id,
+            'app_id': self.app_id,
+            'package_id': self.package_id,
+            'package_name': model.Package.get(self.package_id).name
+        }

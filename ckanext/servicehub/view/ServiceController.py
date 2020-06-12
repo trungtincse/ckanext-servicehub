@@ -21,7 +21,7 @@ from flask.views import MethodView
 from ckanext.servicehub.model.ServiceModel import *
 from ckan.model import types as _types
 from ckanext.servicehub.model.ServiceModel import App
-from view import app_search_supporter
+from ckanext.servicehub.view import app_search_supporter
 
 storage_path = config.get('ckan.storage_path')
 NotFound = logic.NotFound

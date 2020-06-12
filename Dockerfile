@@ -5,6 +5,7 @@ COPY development.ini /etc/ckan/default/
 COPY ./ ./
 
 RUN ["chmod", "+x", "/project/ckanext-servicehub/createadmin.cmd"]
+RUN ["chmod", "+x", "/project/ckanext-servicehub/vocab.cmd"]
 
 RUN cd /project/ckanext-servicehub &&\
 	. /usr/lib/ckan/default/bin/activate &&\

@@ -56,7 +56,12 @@
     {% endblock %}
 
     {% block code_fields %}
-      {{ form.select('language', label='Select program language', id='programmingLanguage', options=[{'value':'PYTHON','text':'Python'},{'text':'Java','value':'JAVA'},{'text':'Javascript','value':'Javascript'}], classes=['control-full'],is_required=True) }}
+      {% set languages = [
+        {'text':'Python 3.6', 'value':'python_36'},
+        {'text':'Java 8','value':'java_8'},
+        {'text':'Javascript','value':'javascript'} ]
+      %}
+      {{ form.select('language', label='Select program language', id='programmingLanguage', options=languages, classes=['control-full'],is_required=True) }}
       <div class="form-group control-full">
         <label class="control-label" for="codeFile"><span title="This field is required"
                                                           class="control-required">*</span> Upload code</label>

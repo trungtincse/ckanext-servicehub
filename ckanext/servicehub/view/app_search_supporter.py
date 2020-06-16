@@ -145,8 +145,6 @@ def has_more_facets(facet, limit=None, exclude_active=False):
     exclude_active -- only return unselected facets.
 
     '''
-    cprint('params:', request.params.items())
-    cprint('getlist: organization:', request.params.getlist('organization'))
     facets = []
     for facet_item in c.search_facets.get(facet)['items']:
         # cprint('facet: %s, ["name"]: %s' % (facet, facet_item['name']), end=', ')
@@ -182,8 +180,6 @@ def has_more_facets(facet, limit=None, exclude_active=False):
     exclude_active -- only return unselected facets.
 
     '''
-    cprint('params:', request.params.items())
-    cprint('getlist: organization:', request.params.getlist('organization'))
     facets = []
     for facet_item in c.search_facets.get(facet)['items']:
         # cprint('facet: %s, ["name"]: %s' % (facet, facet_item['name']), end=', ')

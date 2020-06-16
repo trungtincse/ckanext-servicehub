@@ -6,6 +6,8 @@ import mimetypes
 import os
 import random
 import string
+from pprint import pprint
+
 import slug
 import json
 import logging
@@ -18,6 +20,8 @@ from ckanext.servicehub.action.create import build_code
 from ckan.common import OrderedDict, c, g, config, request, _
 from flask import Blueprint, jsonify, send_file
 from flask.views import MethodView
+
+from ckanext.servicehub.main.config_and_common import ServiceLanguage
 from ckanext.servicehub.model.ServiceModel import *
 from ckan.model import types as _types
 from ckanext.servicehub.model.ServiceModel import App
@@ -103,9 +107,10 @@ class CreateFromCodeServiceView(MethodView):
         model = context['model']
         # print logic.get_action('package_show')(context,dict(id='covid-191'))
         # assert False
-        extra_vars["is_code"] = True;
+        extra_vars["is_code"] = True
         extra_vars['app_category'] = model.Vocabulary.by_name('app_category').tags.all()
         extra_vars['groups'] = filter(lambda x: x.state == 'active' and x.is_organization, g.userobj.get_groups())
+        extra_vars['languages'] = ({'text': language.ui_text, 'value': language.appserver_value} for language in ServiceLanguage)
         form = base.render(
             'service/new_service_form.html', extra_vars)
         g.form = form

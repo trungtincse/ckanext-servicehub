@@ -75,7 +75,7 @@ def index():
 def query():
     q = request.params.get('q')
     if q:
-        return 'text:"%s"' % q
+        return 'text:"%s"' % q.replace('"', '')
     else:
         return '*:*'
 

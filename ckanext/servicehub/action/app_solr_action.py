@@ -85,8 +85,8 @@ def query_app(text, categories, language, organizations, sort):
     }
 
     r = requests.get(solr_url + '/query', json=query).json()
+
     # recover docs: deserialize 'data_dict' key
-    print r
     recovered_docs = []
     for ori_doc in r['response']['docs']:
         new_doc = json.loads(ori_doc['data_dict'])

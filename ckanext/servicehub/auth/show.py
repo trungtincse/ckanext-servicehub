@@ -5,7 +5,7 @@ from ckan.common import _
 from ckanext.servicehub.model.ServiceModel import App
 
 
-def list_all_service_of_user(context, data_dict=None):
+def list_all_services_of_user(context, data_dict=None):
     session = context['session']
     user = context['user']
     app_list = session.query(App).all()
@@ -20,7 +20,7 @@ def service_show(context, data_dict=None):
     session = context['session']
     user = context['user']
     app_id = data_dict['app_id']
-    if app_id in list_all_service_of_user(context):
+    if app_id in list_all_services_of_user(context):
         return {'success': True}
     else:
         return {'success': False,

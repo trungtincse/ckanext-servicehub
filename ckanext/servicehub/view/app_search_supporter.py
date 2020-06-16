@@ -1,19 +1,15 @@
 # encoding: utf-8
-from pprint import pprint
-
-import six
-
-from collections import defaultdict
 
 import logging
+from collections import defaultdict
 
-from ckanext.servicehub.action import app_solr_action
+import six
 
 import ckan.lib.base as base
 import ckan.lib.helpers as h
 import ckan.logic as logic
-from ckan.common import OrderedDict, c, request, _
-from flask import Blueprint
+from ckan.common import c, request, _
+from ckanext.servicehub.action import app_solr_action
 from ckanext.servicehub.model.ServiceModel import *
 
 storage_path = config.get('ckan.storage_path')
@@ -75,9 +71,24 @@ def index():
 def query():
     q = request.params.get('q')
     if q:
-        return 'text:"%s"' % q.replace('"', '')
+        return 'text:(%s)' % clean_query(q)
     else:
         return '*:*'
+
+
+# https://docs.datastax.com/en/dse/5.1/dse-dev/datastax_enterprise/search/siQuerySyntax.html#Escapingcharactersinasolr_query
+_bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
+# _bad_chars = {}
+
+
+def clean_query(q):
+    for char in _bad_chars:
+        q = q.replace(char, '')
+    return q
+
+
+def remove_char(s, char):
+    return s.replace(char, '')
 
 
 def cuong_remove_url_param(key, value=None, replace=None, controller=None,

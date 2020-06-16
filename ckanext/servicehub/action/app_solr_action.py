@@ -85,13 +85,8 @@ def query_app(text, categories, language, organizations, sort):
     }
 
     r = requests.get(solr_url + '/query', json=query).json()
-
-    # recover docs: deserialize 'data_dict' key
-    recovered_docs = []
-    for ori_doc in r['response']['docs']:
-        new_doc = json.loads(ori_doc['data_dict'])
-        recovered_docs.append(new_doc)
-    r['response']['docs'] = recovered_docs
+    pprint(r)
+    r['response']['docs'] = list(map(recover_app_data, r['response']['docs']))
     return r
 
 
@@ -113,6 +108,9 @@ def query_facets():
 def docs(search_result):
     return search_result['response']['docs']
 
+
+def recover_app_data(solr_doc):
+    return json.loads(solr_doc['data_dict'])
 
 def ckan_search_facets(solr_response):
     """create key 'search_facets' of solr response like in action package_search"""

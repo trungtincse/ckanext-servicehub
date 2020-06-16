@@ -123,7 +123,7 @@ service = Blueprint(u'service', __name__, url_prefix=u'/service')
 
 
 def register_rules(blueprint):
-    blueprint.add_url_rule(u'/', view_func=index, strict_slashes=False)
+    blueprint.add_url_rule(u'/', view_func=index, strict_slashes=True)
     # blueprint.add_url_rule(
     #     u'/new',
     #     methods=[u'GET', u'POST'],

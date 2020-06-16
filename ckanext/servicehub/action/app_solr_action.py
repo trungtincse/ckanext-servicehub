@@ -9,7 +9,7 @@ import requests
 from sqlalchemy import inspect
 from ckan.common import OrderedDict, c, g, config, request, _
 import ckan.logic as logic
-from ckan.lib.search.common import SearchIndexError
+from ckan.lib.search.common import SearchIndexError, SearchError
 from ckanext.servicehub.model.ServiceModel import App, AppCategory, AppRelatedDataset
 
 log = logging.getLogger('ckan.logic')
@@ -85,7 +85,9 @@ def query_app(text, categories, language, organizations, sort):
     }
 
     r = requests.get(solr_url + '/query', json=query).json()
-    pprint(r)
+    if r.get('error'):
+        raise SearchError(r['error']['msg'])
+
     r['response']['docs'] = list(map(recover_app_data, r['response']['docs']))
     return r
 

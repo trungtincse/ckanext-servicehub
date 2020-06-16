@@ -9,6 +9,7 @@ import ckan.lib.base as base
 import ckan.lib.helpers as h
 import ckan.logic as logic
 from ckan.common import c, request, _
+from ckan.lib.search import SearchError
 from ckanext.servicehub.action import app_solr_action
 from ckanext.servicehub.model.ServiceModel import *
 
@@ -33,26 +34,23 @@ logger = logging.getLogger('logserver')
 
 
 def index():
-    search_result = app_solr_action.query_app(
-        text=query(),
-        organizations=request.params.getlist('organization'),
-        categories=request.params.getlist('categories'),
-        language=request.params.get('language'),
-        sort=request.params.get('sort', 'score asc, created_at desc')
-    )
 
+    try:
+        search_result = app_solr_action.query_app(
+            text=query(),
+            organizations=request.params.getlist('organization'),
+            categories=request.params.getlist('categories'),
+            language=request.params.get('language'),
+            sort=request.params.get('sort', 'score asc, created_at desc')
+        )
+    except SearchError as e:
+        pass
     page = h.Page(
         collection=app_solr_action.docs(search_result),
         page=h.get_page_number(request.params),
         item_count=len(app_solr_action.docs(search_result))
     )
 
-    # cprint(json.dumps(search_result['response'], indent=4))
-
-    # cprint('app solr')
-    # ccprint(app_solr_action.ckan_search_facets(search_result))
-    # ccprint(selected_filtered_fields_grouped())
-    # ccprint(app_solr_action.ckan_search_facets(search_result))
     c.search_facets = app_solr_action.ckan_search_facets(search_result)
     c.search_facets_limits = False
     c.remove_url_param = cuong_remove_url_param # override
@@ -77,8 +75,8 @@ def query():
 
 
 # https://docs.datastax.com/en/dse/5.1/dse-dev/datastax_enterprise/search/siQuerySyntax.html#Escapingcharactersinasolr_query
-_bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
-# _bad_chars = {}
+# _bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
+_bad_chars = {}
 
 
 def clean_query(q):
@@ -246,7 +244,7 @@ def facet_titles():
 
 
 def remove_field(key, value=None, replace=None):
-    return h.remove_url_param(key, value=value, replace=replace, controller='appsearch', action='index')
+    return h.remove_url_param(key, value=value, replace=replace, controller='service', action='index')
 
 
 # register_rules()

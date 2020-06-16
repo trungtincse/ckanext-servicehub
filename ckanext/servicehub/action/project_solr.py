@@ -9,7 +9,6 @@ from sqlalchemy import inspect
 from ckan.common import OrderedDict, c, g, config, request, _
 import ckan.logic as logic
 from ckan.lib.search.common import SearchIndexError
-from ckanext.servicehub.cuong import cprint, ccprint
 from ckanext.servicehub.model.ServiceModel import App
 
 log = logging.getLogger('ckan.logic')

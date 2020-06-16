@@ -3,7 +3,6 @@ from pprint import pprint
 
 import six
 
-from ckanext.servicehub.cuong import cprint, ccprint
 from collections import defaultdict
 
 import logging

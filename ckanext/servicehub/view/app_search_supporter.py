@@ -38,7 +38,7 @@ logger = logging.getLogger('logserver')
 
 def index():
     search_result = app_solr_action.query_app(
-        text=query() or '*:*',
+        text=query(),
         organizations=request.params.getlist('organization'),
         categories=request.params.getlist('categories'),
         language=request.params.get('language'),
@@ -73,11 +73,11 @@ def index():
 
 
 def query():
-    q=request.params.get('q')
+    q = request.params.get('q')
     if q:
-        return "text:"+q
+        return 'text:"%s"' % q
     else:
-        return None
+        return '*:*'
 
 
 def cuong_remove_url_param(key, value=None, replace=None, controller=None,

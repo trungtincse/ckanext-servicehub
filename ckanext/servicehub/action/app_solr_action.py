@@ -52,28 +52,14 @@ def app_index_delete(context, data_dict):
     # print(r.json())
 
 
-# @logic.side_effect_free
-# def app_search(context, data_dict):
-#
-#     return query_app(
-#         text=data_dict.get('text'),
-#         categories=data_dict.get('categories'),
-#         language=data_dict.get('language'),
-#         organizations=data_dict.get('organizations'),
-#         # related_datasets=data_dict.get('related_datasets'),
-#     )
-
-
 def query_app(text, categories, language, organizations, sort):
     """
     :param text: str: text in the search box
-    :param categories: list[str]: AND
+    :param categories: list[str]
     :param language: str
     :param organizations: list[str]: OR
     :return:
     """
-    text = text or "*:*"  # avoid None
-
     filters = []
 
     if categories:

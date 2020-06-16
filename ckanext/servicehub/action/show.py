@@ -1,6 +1,6 @@
 import os
 import logging
-
+import ckan.logic
 import requests
 from ckanext.servicehub.model.ServiceModel import App, Call, AppParam, AppCodeVersion, CallInput, CallOutput
 from requests.adapters import HTTPAdapter
@@ -12,7 +12,7 @@ import ckan.logic as logic
 log = logging.getLogger('ckan.logic')
 
 _get_or_bust = logic.get_or_bust
-
+_check_access = ckan.logic.check_access
 # http_session = requests.Session()
 # retry = Retry(connect=3, backoff_factor=0.5)
 # adapter = HTTPAdapter(max_retries=retry)
@@ -43,6 +43,11 @@ def service_list(context, data_dict):
 def service_show(context, data_dict):
     model = context['model']
     session = context['session']
+    try:
+        _check_access('service_show', context, dict(app_id=data_dict['id']))
+    except Exception as ex:
+        return dict(success=False,error=ex.message)
+
     path = os.path.join(appserver_host, 'app', data_dict['id'])
     service = session.query(App).filter(App.app_id == data_dict['id']).first()
     if service != None:

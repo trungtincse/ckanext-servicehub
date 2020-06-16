@@ -22,7 +22,9 @@ from ckanext.servicehub.model.ServiceModel import *
 from ckan.model import types as _types
 from ckanext.servicehub.model.ServiceModel import App
 from ckanext.servicehub.view import app_search_supporter
-
+from ckanext.servicehub.auth.show import list_all_service_of_user
+import ckan.authz as authz
+import ckan.logic
 storage_path = config.get('ckan.storage_path')
 NotFound = logic.NotFound
 NotAuthorized = logic.NotAuthorized
@@ -32,7 +34,7 @@ get_action = logic.get_action
 tuplize_dict = logic.tuplize_dict
 clean_dict = logic.clean_dict
 parse_params = logic.parse_params
-
+_check_access = ckan.logic.check_access
 # log = logging.getLogger(__name__)
 logger = logging.getLogger('logserver')
 
@@ -54,6 +56,7 @@ def index():
     # return base.render('service/index.html', dict(results=results, len=len(results), appserver_host=appserver_host))
     return app_search_supporter.index()
 
+
 def read(id):
     extra_vars = {}
     context = {
@@ -61,6 +64,10 @@ def read(id):
         u'session': model.Session,
         u'user': g.user
     }
+    try:
+        _check_access('service_show', context, dict(app_id=id))
+    except Exception as ex:
+        return base.abort(404, _(u'Page not found'))
     service_ins = get_action(u'service_show')(context, dict(id=id))
     if service_ins.get('error', '') != '':
         base.abort(404, _(u'Service not found'))
@@ -105,13 +112,17 @@ class CreateFromCodeServiceView(MethodView):
         # assert False
         extra_vars["is_code"] = True;
         extra_vars['app_category'] = model.Vocabulary.by_name('app_category').tags.all()
+        if g.userobj == None:
+            base.abort(404, _(u'Page not found'))
         extra_vars['groups'] = filter(lambda x: x.state == 'active' and x.is_organization, g.userobj.get_groups())
+        has_create_app = authz.has_user_permission_for_some_org(context['user'], 'create_service')
+        if not has_create_app:
+            base.abort(404, _(u'User %s can not create application')%context['user'])
         form = base.render(
             'service/new_service_form.html', extra_vars)
         g.form = form
         extra_vars["form"] = form
         return base.render('service/new.html', extra_vars)
-
 
 
 service = Blueprint(u'service', __name__, url_prefix=u'/service')
@@ -152,6 +163,10 @@ def monitor(id):
         u'session': model.Session,
         u'user': g.user
     }
+    try:
+        _check_access('update_service',context,dict(app_id=id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
     service_ins = get_action(u'service_show')(context, dict(id=id))
     if service_ins.get('error', '') != '':
         base.abort(404, _(u'Service not found'))
@@ -167,6 +182,10 @@ def setting(id):
         u'session': model.Session,
         u'user': g.user
     }
+    try:
+        _check_access('update_service',context,dict(app_id=id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
     data_dict = clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
     session = context['session']
@@ -229,6 +248,10 @@ def update(id):
         u'session': model.Session,
         u'user': g.user
     }
+    try:
+        _check_access('update_service',context,dict(app_id=id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
     data_dict = clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
     data_dict.update(clean_dict(
@@ -242,7 +265,7 @@ def update(id):
     except:
         base.abort(404, _(u'Service not found'))
     try:
-        build_code(session,data_dict['codeFile'],app)
+        build_code(session, data_dict['codeFile'], app)
     except Exception as ex:
         session.rollback()
         error = getattr(ex, "err_message", 'Opps! Something is wrong')

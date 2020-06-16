@@ -11,9 +11,8 @@ from ckan.model import types as _types
 import pika_pool
 import requests
 import logging
-
 import slug
-
+import ckan.logic
 from ckanext.servicehub.error.exception import CKANException
 from ckanext.servicehub.model.ServiceModel import App, Call, AppCategory, AppRelatedDataset, AppCodeVersion, AppParam
 from flask import jsonify
@@ -27,7 +26,7 @@ import os
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-from ckanext.servicehub.action.read import service_by_slug_show
+from ckanext.servicehub.action.show import service_by_slug_show
 
 from ckanext.servicehub.action import get_item_as_list, app_solr_action
 
@@ -39,6 +38,7 @@ from ckanext.servicehub.action import get_item_as_list, app_solr_action
 log = logging.getLogger(__name__)
 _get_or_bust = logic.get_or_bust
 
+_check_access = ckan.logic.check_access
 appserver_host = config.get('ckan.servicehub.appserver_host')
 fileserver_host = config.get('ckan.servicehub.fileserver_host')
 storage_path = config.get('ckan.storage_path')
@@ -71,6 +71,8 @@ def isidentifier(ident):
 def service_create(context, data_dict):
     session = context['session']
     model = context['model']
+    data_dict['organization']=slug.slug(data_dict['organization'])
+    _check_access('service_create', context, dict(org_name=data_dict['organization']))
     data_dict['owner'] = context['user']
     data_dict['slug_name'] = slug.slug(data_dict['app_name'])
     data_dict['image'] = data_dict['slug_name']
@@ -83,7 +85,7 @@ def service_create(context, data_dict):
     if app_name_exist:
         return dict(success=False, error="Service name exists")
     groups = filter(lambda x: x.state == 'active' and x.is_organization, context['userobj'].get_groups())
-    if data_dict['organization'] not in map(lambda x: x.title, groups):
+    if data_dict['organization'] not in map(lambda x: x.name, groups):
         return dict(success=False, error="User is not a member of the organization")
     if not all([isidentifier(cate) for cate in data_dict['var_name']]):
         return dict(success=False, error="Variable names are not accepted")
@@ -241,6 +243,10 @@ def call_create(context, data_dict):
         return dict(success=False, error="Miss app_id field.")
     if isinstance(app_id, list):
         return dict(success=False, error="Duplicate app_id.")
+    try:
+        _check_access('call_create',context,dict(app_id=app_id))
+    except Exception as ex:
+        return dict(success=False, error=ex.message)
     app = session.query(App).filter(App.app_id == app_id).first()
     if app == None:
         return dict(success=False, error="Application not found.")

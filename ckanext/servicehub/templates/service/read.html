@@ -16,22 +16,27 @@
     <div class="primary col-12">
         <article class="module">
             <header class="module-content page-header">
-                <div class="content_action md-ml-10 md-mb-10">
-                    <a class="btn btn-danger" href="/service/{{ ins.app_id }}/delete"><i class="fa fa-trash"></i> Delete</a>
-                </div>
-                <div class="content_action md-mb-10">
-                    <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i
-                            class="fa fa-wrench"></i> Setting</a>
-                </div>
-                <div class="content_action md-mr-10 md-mb-10">
-                    <a class="btn btn-default" href="/service/{{ ins.app_id }}/monitor"><i class="fa fa-eye"></i>
-                        Monitor</a>
-                </div>
-                <div class="content_action md-mr-10 md-mb-10">
-                    <a class="btn btn-default" data-toggle="modal" data-target="#UpdateModal"><i
-                            class="fa fa-upload"></i>
-                        Update code</a>
-                </div>
+                {% if h.check_access('delete_service',{'app_id':ins.app_id}) %}
+                    <div class="content_action md-ml-10 md-mb-10">
+                        <a class="btn btn-danger" href="/service/{{ ins.app_id }}/delete"><i class="fa fa-trash"></i>
+                            Delete</a>
+                    </div>
+                {% endif %}
+                {% if h.check_access('update_service',{'app_id':ins.app_id}) %}
+                    <div class="content_action md-mb-10">
+                        <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i
+                                class="fa fa-wrench"></i> Setting</a>
+                    </div>
+                    <div class="content_action md-mr-10 md-mb-10">
+                        <a class="btn btn-default" href="/service/{{ ins.app_id }}/monitor"><i class="fa fa-eye"></i>
+                            Monitor</a>
+                    </div>
+                    <div class="content_action md-mr-10 md-mb-10">
+                        <a class="btn btn-default" data-toggle="modal" data-target="#UpdateModal"><i
+                                class="fa fa-upload"></i>
+                            Update code</a>
+                    </div>
+                {% endif %}
             </header>
             <div class="module-content">
                 <div class=" md-ml-10">

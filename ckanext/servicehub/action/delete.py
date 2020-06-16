@@ -7,7 +7,7 @@ from werkzeug.datastructures import FileStorage
 import ckan.logic as logic
 
 from ckan.common import config
-
+import ckan.logic
 import os
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -19,13 +19,14 @@ http_session.mount('http://', adapter)
 
 log = logging.getLogger(__name__)
 _get_or_bust = logic.get_or_bust
-
+_check_access = ckan.logic.check_access
 appserver_host = config.get('ckan.servicehub.appserver_host')
 fileserver_host = config.get('ckan.servicehub.fileserver_host')
 
 
 def service_delete(context, data_dict):
     app_id = data_dict['id']
+    _check_access(u'delete_service',context,dict(app_id=app_id))
     session = context['session']
     session.query(App).filter(App.app_id == app_id).delete()
     session.commit()

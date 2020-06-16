@@ -38,7 +38,7 @@ def index():
     try:
         search_result = app_solr_action.query_app(
             text=query(),
-            organizations=request.params.getlist('organization'),
+            organization=request.params.get('organization'),
             categories=request.params.getlist('categories'),
             language=request.params.get('language'),
             sort=request.params.get('sort', 'score asc, created_at desc')
@@ -56,7 +56,7 @@ def index():
     c.remove_url_param = cuong_remove_url_param # override
     return base.render('service/search.html', {
         'query': request.params.get('q', ''),
-        'sort_by_selected': request.params.get('sort', 'score desc, metadata_modified desc'),
+        'sort_by_selected': request.params.get('sort'),
         'facet_titles': facet_titles(),
         'selected_filtered_fields': selected_filtered_fields(),
         'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
@@ -75,8 +75,7 @@ def query():
 
 
 # https://docs.datastax.com/en/dse/5.1/dse-dev/datastax_enterprise/search/siQuerySyntax.html#Escapingcharactersinasolr_query
-# _bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
-_bad_chars = {}
+_bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
 
 
 def clean_query(q):

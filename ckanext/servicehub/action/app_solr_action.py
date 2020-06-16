@@ -52,12 +52,12 @@ def app_index_delete(context, data_dict):
     # print(r.json())
 
 
-def query_app(text, categories, language, organizations, sort):
+def query_app(text, categories, language, organization, sort):
     """
     :param text: str: text in the search box
     :param categories: list[str]
     :param language: str
-    :param organizations: list[str]: OR
+    :param organization: str
     :return:
     """
     filters = []
@@ -69,9 +69,8 @@ def query_app(text, categories, language, organizations, sort):
     if language:
         filters.append('language_ci:"%s"' % language) # search case insensitive field
 
-    if organizations:
-        v = ' OR '.join('"%s"' % org for org in organizations)
-        filters.append('organization:(%s)' % v)
+    if organization:
+        filters.append('organization:"%s"' % organization)
 
     # if related_datasets:
     #     for dataset in related_datasets:

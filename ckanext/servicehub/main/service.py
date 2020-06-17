@@ -6,7 +6,7 @@ from ckanext.servicehub.main.config_and_common import client_req, ServiceLanguag
 def create_service_sample(service_name):
     #--------------CREATE_SAMPLE_HERE-------------------
     data_dict = {'app_name': service_name,
-                 'language': ServiceLanguage.PYTHON,
+                 'language': ServiceLanguage.PYTHON_36.appserver_value,
                  'image': slug.slug(service_name),
                  'slug_name': slug.slug(service_name),
                  'service_type': ServiceType.BATCH,

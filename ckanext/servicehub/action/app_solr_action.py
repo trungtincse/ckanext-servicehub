@@ -9,8 +9,8 @@ import requests
 from sqlalchemy import inspect
 from ckan.common import OrderedDict, c, g, config, request, _
 import ckan.logic as logic
-from ckan.lib.search.common import SearchIndexError
-from ckanext.servicehub.cuong import cprint, ccprint
+from ckan.lib.search.common import SearchIndexError, SearchError
+from ckanext.servicehub.main.config_and_common import ServiceLanguage
 from ckanext.servicehub.model.ServiceModel import App, AppCategory, AppRelatedDataset
 
 log = logging.getLogger('ckan.logic')
@@ -53,28 +53,14 @@ def app_index_delete(context, data_dict):
     # print(r.json())
 
 
-# @logic.side_effect_free
-# def app_search(context, data_dict):
-#
-#     return query_app(
-#         text=data_dict.get('text'),
-#         categories=data_dict.get('categories'),
-#         language=data_dict.get('language'),
-#         organizations=data_dict.get('organizations'),
-#         # related_datasets=data_dict.get('related_datasets'),
-#     )
-
-
-def query_app(text, categories, language, organizations, sort):
+def query_app(text, categories, language, organization, sort):
     """
     :param text: str: text in the search box
-    :param categories: list[str]: AND
+    :param categories: list[str]
     :param language: str
-    :param organizations: list[str]: OR
+    :param organization: str
     :return:
     """
-    text = text or "*:*"  # avoid None
-
     filters = []
 
     if categories:
@@ -84,9 +70,8 @@ def query_app(text, categories, language, organizations, sort):
     if language:
         filters.append('language_ci:"%s"' % language) # search case insensitive field
 
-    if organizations:
-        v = ' OR '.join('"%s"' % org for org in organizations)
-        filters.append('organization:(%s)' % v)
+    if organization:
+        filters.append('organization:"%s"' % organization)
 
     # if related_datasets:
     #     for dataset in related_datasets:
@@ -100,13 +85,10 @@ def query_app(text, categories, language, organizations, sort):
     }
 
     r = requests.get(solr_url + '/query', json=query).json()
-    # recover docs: deserialize 'data_dict' key
-    print r
-    recovered_docs = []
-    for ori_doc in r['response']['docs']:
-        new_doc = json.loads(ori_doc['data_dict'])
-        recovered_docs.append(new_doc)
-    r['response']['docs'] = recovered_docs
+    if r.get('error'):
+        raise SearchError(r['error']['msg'])
+
+    r['response']['docs'] = list(map(recover_app_data, r['response']['docs']))
     return r
 
 
@@ -129,18 +111,17 @@ def docs(search_result):
     return search_result['response']['docs']
 
 
+def recover_app_data(solr_doc):
+    return json.loads(solr_doc['data_dict'])
+
+
 def ckan_search_facets(solr_response):
     """create key 'search_facets' of solr response like in action package_search"""
     facets = solr_response['facets']
     if facets['count'] == 0:
         # solr will not return any keys => fake empty response
-        result = {}
-        for field in facet_fields:
-            result[field] = {
-                'title': field,
-                'items': []
-            }
-        return result
+        # result = e
+        return empty_search_facets()
     else:
         result = {}
         for field in facet_fields:
@@ -148,7 +129,7 @@ def ckan_search_facets(solr_response):
             for bucket in facets[field]['buckets']:
                 item = {
                     'name': bucket['val'],
-                    'display_name': bucket['val'].title() if field == 'language' else bucket['val'],
+                    'display_name': language_display_name(bucket['val']) if field == 'language' else bucket['val'],
                     'count': bucket['count'],
                     'active': bucket['val'] in request.params.getlist(field)
                 }
@@ -160,6 +141,17 @@ def ckan_search_facets(solr_response):
             }
         return result
 
+
+def empty_search_facets():
+    return {field: { 'title': field, 'items': [] } for field in facet_fields}
+
+
+def language_display_name(formal_language_val):
+    for language in ServiceLanguage:
+        if language.formal_text == formal_language_val:
+            return language.ui_text
+    else:
+        raise ValueError('Unknown language: ' + formal_language_val)
 
 
 public_functions = {

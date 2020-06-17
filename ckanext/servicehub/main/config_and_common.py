@@ -2,6 +2,7 @@ import requests
 from PIL import Image
 from io import BytesIO, StringIO
 
+from enum import Enum
 
 APIKEY = 'aee93875-75c7-481a-aa11-27c9bb72a2bf'  # get apikey on CKAN user profile page
 
@@ -22,9 +23,18 @@ def simple_img_file():
     return file.read()
 
 
-class ServiceLanguage:
-    PYTHON = 'Python'
-    JAVA = 'Java'
+class ServiceLanguage(Enum):
+    __order__ = 'PYTHON_36 JAVA_8'
+    PYTHON_36 = ('Python 3.6', 'python_36')
+    JAVA_8    = ('Java 8', 'java_8')
+
+    def __init__(self, ui_text, formal_text):
+        self.ui_text = ui_text
+        self.formal_text = formal_text
+
+    @property
+    def appserver_value(self):
+        return self.formal_text
 
 
 class ServiceType:
@@ -62,4 +72,4 @@ def create_input(type):
         return 'abc'
 
 # print client_req("resource_show",dict(id='2dcf1c4e-41fe-4cd2-b6fa-15e96ada986f'))
-print client_req("service_by_slug_show",dict(slug_name='service-a112'))
+# print client_req("service_by_slug_show",dict(slug_name='service-a112'))

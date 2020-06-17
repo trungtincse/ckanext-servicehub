@@ -26,14 +26,6 @@
           'titles': facet_titles,
           'remove_field': remove_field }
         %}
-        {% set sorting = [
-          (_('Relevance'), 'score desc, created_at desc'),
-          (_('Name Ascending'), 'app_name asc'),
-          (_('Name Descending'), 'app_name desc') ]
-        %}
-<!--      <p>facets.search {{facets.search}}</p>-->
-<!--      <p>facets.titles {{facets.titles}}</p>-->
-<!--      <p>facets.fields {{facets.fields}}</p>-->
       {% snippet 'snippets/search_form.html', form_id='app-search-form', placeholder=_('Search apps...'), type='app', facets=facets, query=query, sorting=sorting, sorting_selected=sort_by_selected, fields=selected_filtered_fields, count=page.item_count, show_empty=request.params, no_bottom_border=true if page.items %}
       {% endblock %}
       {% block app_search_results_list %}
@@ -75,8 +67,6 @@
 <div class="filters">
   <div>
     {% for facet in facet_titles %}
-<!--      <p>facet: {{facet}}</p>-->
-<!--      <p>items: {{search_facets[facet]['items']}}</p>-->
       {% set items=search_facets[facet]['items'] %}
       {{ h.snippet('service/snippets/facet_list.html', title=facet_titles[facet], name=facet, items=items) }}
     {% endfor %}

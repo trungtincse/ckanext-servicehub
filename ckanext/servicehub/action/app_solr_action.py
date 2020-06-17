@@ -10,6 +10,7 @@ from sqlalchemy import inspect
 from ckan.common import OrderedDict, c, g, config, request, _
 import ckan.logic as logic
 from ckan.lib.search.common import SearchIndexError, SearchError
+from ckanext.servicehub.main.config_and_common import ServiceLanguage
 from ckanext.servicehub.model.ServiceModel import App, AppCategory, AppRelatedDataset
 
 log = logging.getLogger('ckan.logic')
@@ -113,18 +114,14 @@ def docs(search_result):
 def recover_app_data(solr_doc):
     return json.loads(solr_doc['data_dict'])
 
+
 def ckan_search_facets(solr_response):
     """create key 'search_facets' of solr response like in action package_search"""
     facets = solr_response['facets']
     if facets['count'] == 0:
         # solr will not return any keys => fake empty response
-        result = {}
-        for field in facet_fields:
-            result[field] = {
-                'title': field,
-                'items': []
-            }
-        return result
+        # result = e
+        return empty_search_facets()
     else:
         result = {}
         for field in facet_fields:
@@ -132,7 +129,7 @@ def ckan_search_facets(solr_response):
             for bucket in facets[field]['buckets']:
                 item = {
                     'name': bucket['val'],
-                    'display_name': bucket['val'].title() if field == 'language' else bucket['val'],
+                    'display_name': language_display_name(bucket['val']) if field == 'language' else bucket['val'],
                     'count': bucket['count'],
                     'active': bucket['val'] in request.params.getlist(field)
                 }
@@ -144,6 +141,17 @@ def ckan_search_facets(solr_response):
             }
         return result
 
+
+def empty_search_facets():
+    return {field: { 'title': field, 'items': [] } for field in facet_fields}
+
+
+def language_display_name(formal_language_val):
+    for language in ServiceLanguage:
+        if language.formal_text == formal_language_val:
+            return language.ui_text
+    else:
+        raise ValueError('Unknown language: ' + formal_language_val)
 
 
 public_functions = {

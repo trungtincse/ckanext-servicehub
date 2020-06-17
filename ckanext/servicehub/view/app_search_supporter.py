@@ -23,18 +23,10 @@ tuplize_dict = logic.tuplize_dict
 clean_dict = logic.clean_dict
 parse_params = logic.parse_params
 
-# log = logging.getLogger(__name__)
-logger = logging.getLogger('logserver')
-
-# blueprint = Blueprint('appsearch', __name__, url_prefix='/app/search')
-
-
-# def register_rules():
-#     blueprint.add_url_rule('', view_func=index, strict_slashes=True)
+logger = logging.getLogger('ckan.appserver')
 
 
 def index():
-
     try:
         search_result = app_solr_action.query_app(
             text=query(),
@@ -44,7 +36,19 @@ def index():
             sort=request.params.get('sort', 'score asc, created_at desc')
         )
     except SearchError as e:
-        pass
+        c.query_error = True
+        return base.render('service/search.html', {
+            'query': request.params.get('q', ''),
+            'sorting': _sorting,
+            'sort_by_selected': request.params.get('sort', 'score desc, created_at desc'),
+            'facet_titles': facet_titles(),
+            'selected_filtered_fields': selected_filtered_fields(),
+            'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
+            'page': h.Page(collection=[]),
+            'search_facets': app_solr_action.empty_search_facets(),
+            'remove_field': remove_field
+        })
+
     page = h.Page(
         collection=app_solr_action.docs(search_result),
         page=h.get_page_number(request.params),
@@ -56,7 +60,8 @@ def index():
     c.remove_url_param = cuong_remove_url_param # override
     return base.render('service/search.html', {
         'query': request.params.get('q', ''),
-        'sort_by_selected': request.params.get('sort'),
+        'sorting': _sorting,
+        'sort_by_selected': request.params.get('sort', 'score desc, created_at desc'),
         'facet_titles': facet_titles(),
         'selected_filtered_fields': selected_filtered_fields(),
         'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
@@ -64,6 +69,13 @@ def index():
         'search_facets': app_solr_action.ckan_search_facets(search_result),
         'remove_field': remove_field
     })
+
+
+_sorting = [
+  ('Relevance', 'score desc, created_at desc'),
+  ('App Name Ascending', 'app_name asc'),
+  ('App Name Descending', 'app_name desc')
+]
 
 
 def query():
@@ -75,7 +87,8 @@ def query():
 
 
 # https://docs.datastax.com/en/dse/5.1/dse-dev/datastax_enterprise/search/siQuerySyntax.html#Escapingcharactersinasolr_query
-_bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
+# _bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
+_bad_chars = {}
 
 
 def clean_query(q):
@@ -222,7 +235,6 @@ def selected_filtered_fields_grouped():
     result = defaultdict(list)
     for (param, value) in search_filter_fields():
         result[param].append(value)
-    # cprint('selected_filtered_fields_grouped:', result)
     return result
 
 

@@ -26,9 +26,10 @@ from ckanext.servicehub.model.ServiceModel import *
 from ckan.model import types as _types
 from ckanext.servicehub.model.ServiceModel import App
 from ckanext.servicehub.view import app_search_supporter
-from ckanext.servicehub.auth.show import list_all_service_of_user
+from ckanext.servicehub.auth.show import list_all_services_of_user
 import ckan.authz as authz
 import ckan.logic
+
 storage_path = config.get('ckan.storage_path')
 NotFound = logic.NotFound
 NotAuthorized = logic.NotAuthorized
@@ -121,8 +122,9 @@ class CreateFromCodeServiceView(MethodView):
         extra_vars['groups'] = filter(lambda x: x.state == 'active' and x.is_organization, g.userobj.get_groups())
         has_create_app = authz.has_user_permission_for_some_org(context['user'], 'create_service')
         if not has_create_app:
-            base.abort(404, _(u'User %s can not create application')%context['user'])
-        extra_vars['languages'] = ({'text': language.ui_text, 'value': language.appserver_value} for language in ServiceLanguage)
+            base.abort(404, _(u'User %s can not create application') % context['user'])
+        extra_vars['languages'] = ({'text': language.ui_text, 'value': language.appserver_value} for language in
+                                   ServiceLanguage)
         form = base.render(
             'service/new_service_form.html', extra_vars)
         g.form = form
@@ -169,7 +171,7 @@ def monitor(id):
         u'user': g.user
     }
     try:
-        _check_access('update_service',context,dict(app_id=id))
+        _check_access('service_monitor', context, dict(app_id=id))
     except Exception as ex:
         base.abort(404, _(u'Page not found'))
     service_ins = get_action(u'service_show')(context, dict(id=id))
@@ -177,6 +179,68 @@ def monitor(id):
         base.abort(404, _(u'Service not found'))
 
     return base.render('service/monitor.html', dict(ins=service_ins))
+
+
+@service.route('/<string:id>/code', methods=['GET'])
+def code(id):
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    try:
+        _check_access('service_monitor', context, dict(app_id=id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
+    service_ins = get_action(u'service_show')(context, dict(id=id))
+    if service_ins.get('error', '') != '':
+        base.abort(404, _(u'Service not found'))
+
+    return base.render('service/code.html', dict(ins=service_ins))
+
+
+@service.route('/<string:id>/code/ajax', methods=['GET'])
+def code_ajax(id):
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    try:
+        _check_access('service_monitor', context, dict(app_id=id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
+    service_ins = get_action(u'service_show')(context, dict(id=id))
+    session = context['session']
+    if service_ins.get('error', '') != '':
+        base.abort(404, _(u'Service not found'))
+    code_ins_lst = session.query(AppCodeVersion).filter(AppCodeVersion.app_id == id).all()
+    code_lst=map(lambda code: [code.code_id, code.created_at, "YES" if code.code_id == service_ins['curr_code_id'] else "",'/service/%s/code/%s'%(id,code.code_id),],code_ins_lst)
+    return jsonify(code_lst)
+
+
+@service.route('/<string:id>/code/<string:code_id>', methods=['GET'])
+def get_code(id,code_id):
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    try:
+        _check_access('service_monitor', context, dict(app_id=id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
+    service_ins = get_action(u'service_show')(context, dict(id=id))
+    session = context['session']
+    if service_ins.get('error', '') != '':
+        base.abort(404, _(u'Service not found'))
+    code = session.query(AppCodeVersion).filter(AppCodeVersion.app_id == id and AppCodeVersion.code_id==code_id).first()
+    if code==None:
+        base.abort(404, _(u'Code not found'))
+    return send_file(code.code_path)
 
 
 @service.route('/<string:id>/setting', methods=['POST'])
@@ -188,7 +252,7 @@ def setting(id):
         u'user': g.user
     }
     try:
-        _check_access('update_service',context,dict(app_id=id))
+        _check_access('update_service', context, dict(app_id=id))
     except Exception as ex:
         base.abort(404, _(u'Page not found'))
     data_dict = clean_dict(
@@ -254,7 +318,7 @@ def update(id):
         u'user': g.user
     }
     try:
-        _check_access('update_service',context,dict(app_id=id))
+        _check_access('update_service', context, dict(app_id=id))
     except Exception as ex:
         base.abort(404, _(u'Page not found'))
     data_dict = clean_dict(

@@ -1,0 +1,94 @@
+{% extends "page.html" %}
+{% import 'macros/form.html' as form %}
+
+
+
+{% block breadcrumb_content %}
+    <li>{% link_for _('Applications'), named_route='service.index' %}</li>
+    <li>{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
+    <li class="active">{% link_for "Code Manager", named_route='service.code', id=ins.app_id %}</li>
+{% endblock %}
+
+
+{% block content_action %}{% endblock %}
+
+
+{% block primary %}
+    <div class="primary col-md-12" style="padding-left: 0px;padding-right: 0px">
+        <article class="module">
+            <header class="module-content page-header">
+                <div class="content_action md-mr-10 md-mb-10">
+                    <a class="btn btn-default" href="/service/{{ ins.app_id }}"><i class="fa fa-arrow-left"></i> Back to
+                        app</a>
+                </div>
+            </header>
+            <div class="module-content" style="padding-left: 15px;padding-right: 15px">
+                <div class="md-ml-12">
+                    <table id="myDataTable" class="table table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Code Id</th>
+                            <th>Created At</th>
+                            <th>Using Code</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </article>
+    </div>
+{% endblock %}
+
+
+
+{% block secondary %}{% endblock %}
+
+
+
+{% block scripts %}
+    {{ super() }}
+    <style>
+        label:after {
+            content: "";
+        }
+    </style>
+<script>
+
+        document.addEventListener("DOMContentLoaded", function (event) {
+            var oTable = $('#myDataTable').dataTable({
+                "ajax": {
+                    "url": "/service/{{ins.app_id}}/code/ajax",
+                    "type": "GET",
+                     "dataSrc": ""
+                },
+                // "sPaginationType": "full_numbers",
+                "aoColumns": [
+                    {
+                        "sWidth": "25%",
+                        "mData": 0
+                    }, {
+                        "sWidth": "25%",
+                        "mData": 1
+                    },
+                    {
+                        "sWidth": "25%",
+                        "mData": 2
+                    },
+                    {
+                        "mData": 3,
+                        "sWidth": "25%",
+                        "bSortable": false,
+                        "mRender": function (data, type, full) {
+                            return `
+          <a class="btn btn-success btn-sm" href="${data}">Download</a>
+          `;
+                        }
+                    }]
+            });
+
+        });
+    </script>
+{% endblock %}

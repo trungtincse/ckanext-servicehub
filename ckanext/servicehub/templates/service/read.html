@@ -28,15 +28,23 @@
                                 class="fa fa-wrench"></i> Setting</a>
                     </div>
                     <div class="content_action md-mr-10 md-mb-10">
+                        <a class="btn btn-default" data-toggle="modal" data-target="#UpdateModal"><i
+                                class="fa fa-upload"></i>
+                            Upload code</a>
+                    </div>
+                {% endif %}
+                {% if h.check_access('service_monitor',{'app_id':ins.app_id}) %}
+                    <div class="content_action md-mr-10 md-mb-10">
                         <a class="btn btn-default" href="/service/{{ ins.app_id }}/monitor"><i class="fa fa-eye"></i>
                             Monitor</a>
                     </div>
                     <div class="content_action md-mr-10 md-mb-10">
-                        <a class="btn btn-default" data-toggle="modal" data-target="#UpdateModal"><i
-                                class="fa fa-upload"></i>
-                            Update code</a>
+                        <a class="btn btn-default" href="/service/{{ ins.app_id }}/code"><i
+                                class="fa fa-code"></i>
+                            Code Management</a>
                     </div>
                 {% endif %}
+
             </header>
             <div class="module-content">
                 <div class=" md-ml-10">
@@ -110,23 +118,23 @@
                                                                                data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
                             </div>
                         </div>
-                        <div class="form-group control-full control-select">
-                            <label class="control-label" for="mode">Select mode for service:</label>
-                            <div class="controls ">
-
-                                <select id="mode" name="mode" class="form-control">
-
-                                    <option value="STOP">Stop</option>
-
-                                    <option value="DEBUG">Debug</option>
-
-                                    <option value="START">Start</option>
-
-                                </select>
-
-
-                            </div>
-                        </div>
+                        {#                        <div class="form-group control-full control-select">#}
+                        {#                            <label class="control-label" for="mode">Select mode for service:</label>#}
+                        {#                            <div class="controls ">#}
+                        {##}
+                        {#                                <select id="mode" name="mode" class="form-control">#}
+                        {##}
+                        {#                                    <option value="STOP">Stop</option>#}
+                        {##}
+                        {#                                    <option value="DEBUG">Debug</option>#}
+                        {##}
+                        {#                                    <option value="START">Start</option>#}
+                        {##}
+                        {#                                </select>#}
+                        {##}
+                        {##}
+                        {#                            </div>#}
+                        {#                        </div>#}
                         <div class="form-group control-full control-select">
                             <label class="control-label" for="mode">Select version:</label>
                             <div class="controls ">

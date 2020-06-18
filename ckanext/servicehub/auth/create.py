@@ -6,19 +6,21 @@ from ckan.common import _
 
 
 def service_create(context, data_dict=None):
+    """
+    nguoi co quyen create_service cua 1 to chuc hoac admin
+    """
     user = context['user']
-    # user = authz.get_user_id_for_username(user, allow_none=True)
-    if data_dict == None or 'org_name' not in data_dict:
-        return {'success': False,
-                'msg': _('Organization information not found')}
-    # try:
-    #     org_ins=logic_auth.get_group_object(context,dict(name=data_dict['org_name']))
-    # except logic.NotFound:
-    #     return {'success': False,
-    #             'msg': _('User %s is not a member of %s organization') % (user,data_dict['org_name'])}
 
-    if authz.has_user_permission_for_group_or_org(data_dict['org_name'], user, 'create_service'):
+
+    for_display = data_dict.get('for_display', False)
+    if for_display and authz.has_user_permission_for_some_org(user, 'create_service'):
         return {'success': True}
+    if not for_display :
+        if data_dict == None or 'org_name' not in data_dict:
+            return {'success': False,
+                    'msg': _('Organization information not found')}
+        if authz.has_user_permission_for_group_or_org(data_dict['org_name'], user, 'create_service'):
+            return {'success': True}
     return {'success': False,
             'msg': _('User %s not authorized to create application') % user}
 
@@ -57,21 +59,26 @@ def resource_create(context, data_dict):
 
 
 def call_create(context, data_dict):
+    """
+    khi app START: ai cung co the goi
+    khi app DEBUG: ai co quyen run_service_staging
+    khi app STOP: admin
+    """
     user = context['user']
     app_id = data_dict['app_id']
     session = context['session']
-    app = session.query(App).filter(app_id == app_id).first()
+    app = session.query(App).filter(App.app_id == app_id).first()
     if app == None:
         return {'success': False,
                 'msg': _('Application not found')}
-    if app.app_status=='START':
+    if app.app_status == 'START':
         return {'success': True}
-    if app.app_status=='DEBUG':
-        if authz.has_user_permission_for_group_or_org(app.organization,user,'run_service_staging'):
+    if app.app_status == 'DEBUG':
+        if authz.has_user_permission_for_group_or_org(app.organization, user, 'run_service_staging'):
             return {'success': True}
         else:
             return {'success': False,
-                    'msg': _('User %s not have permission to create request')%user}
+                    'msg': _('User %s not have permission to create request') % user}
     if app.app_status == 'STOP':
         return {'success': False,
                 'msg': _('Application %s is not available') % app.app_name}

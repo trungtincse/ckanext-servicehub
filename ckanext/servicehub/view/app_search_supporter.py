@@ -87,7 +87,7 @@ def query():
 
 
 # https://docs.datastax.com/en/dse/5.1/dse-dev/datastax_enterprise/search/siQuerySyntax.html#Escapingcharactersinasolr_query
-# _bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
+_bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
 _bad_chars = {}
 
 

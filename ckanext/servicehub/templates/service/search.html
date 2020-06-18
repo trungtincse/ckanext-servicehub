@@ -27,7 +27,12 @@
       {% snippet 'snippets/search_form.html', form_id='app-search-form', placeholder=_('Search apps...'), type='app', facets=facets, query=query, sorting=sorting, sorting_selected=sort_by_selected, fields=selected_filtered_fields, count=page.item_count, show_empty=request.params, no_bottom_border=true if page.items %}
       {% endblock %}
       {% block app_search_results_list %}
-      {{ h.snippet('service/snippets/app_list.html', services=page.items) }}
+        {% if page.items or request.params %}
+          {% if page.items %}
+            {% snippet 'service/snippets/app_list.html', services=page.items %}
+          {% endif %}
+        {% endif %}
+      {# {{ h.snippet('service/snippets/app_list.html', services=page.items) }} #}
       {% endblock %}
     </div>
 

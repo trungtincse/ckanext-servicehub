@@ -14,28 +14,33 @@
 
 {% block primary %}
     <article class="module">
-    <div class="module-content">
+        <header class="module-content page-header">
+            <ul class="nav nav-tabs">
+                <li ><a href={{ h.url_for('appadmin.index') }}><i class="fa fa-sitemap"></i> App
+                    Management</a></li>
+                <li class="active"><a href={{ h.url_for('prjadmin.index') }}><i class="fa fa-clock-o"></i> Propject Management</a></li>
+            </ul>
+        </header>
+        <div class="module-content">
 
-    <table id="myDataTable" class="table table-striped table-bordered">
-        <thead>
-        <tr>
-            <th>App Id</th>
-            <th>App Name</th>
-            <th>Owner</th>
-            <th>Organization</th>
-            <th>App Status</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-    </div>
+            <table id="myDataTable" class="table table-striped table-bordered">
+                <thead>
+                <tr>
+                    <th>Project Id</th>
+                    <th>Project name</th>
+                    <th>Writor</th>
+                    <th>Email</th>
+                    <th>Organization</th>
+                    <th>Active</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </article>
 {% endblock %}
-
-
-
 {% block secondary %}{% endblock %}
 
 
@@ -53,14 +58,14 @@
         document.addEventListener("DOMContentLoaded", function (event) {
             var oTable = $('#myDataTable').dataTable({
                 "ajax": {
-                    "url": "/appadmin/ajax",
+                    "url": "/prjadmin/ajax",
                     "type": "GET",
-                     "dataSrc": ""
+                    "dataSrc": ""
                 },
                 // "sPaginationType": "full_numbers",
                 "aoColumns": [
                     {
-                        "sWidth": "30%",
+                        "sWidth": "15%",
                         "mData": 0
                     }, {
                         "sWidth": "15%",
@@ -73,9 +78,14 @@
                     {
                         "sWidth": "10%",
                         "mData": 3
-                    }, {
+                    },
+                    {
                         "sWidth": "10%",
                         "mData": 4
+                    },
+                    {
+                        "sWidth": "10%",
+                        "mData": 5
                     },
                     {
                         "mData": 0,
@@ -83,10 +93,10 @@
                         "bSortable": false,
                         "mRender": function (data, type, full) {
                             return `
-          <a class="btn btn-danger btn-sm" href=/appadmin/action/stop?app_id=${data}>Stop</a>
-          <a class="btn btn-primary btn-sm" href=/appadmin/action/debug?app_id=${data}>Debug</a>
-          <a class="btn btn-success btn-sm" href=/appadmin/action/start?app_id=${data}>Start</a>
-          <a class="btn btn-info btn-sm" href=/service/${data}>Detail</a>
+          <a class="btn btn-danger btn-sm" href={{ h.url_for('prjadmin.action',action_name='delete') }}?prj_id=${data}>Delete</a>
+          <a class="btn btn-danger btn-sm" href={{ h.url_for('prjadmin.action',action_name='reject') }}?prj_id=${data}>Reject</a>
+          <a class="btn btn-success btn-sm" href={{ h.url_for('prjadmin.action',action_name='approve') }}?prj_id=${data}>Approve</a>
+          <a class="btn btn-info btn-sm" href=/project/read/${data}>Detail</a>
           `;
                         }
                     }]

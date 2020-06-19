@@ -123,8 +123,11 @@ class ProjectCreateView(MethodView):
             model = context['model']
 
             ins = Project()
-            data_dict['o_avatar_image'] = store_file(data_dict['o_avatar_image'], "o_avatar_image", ins.id)
-            data_dict['header_image'] = store_file(data_dict['header_image'], "header_image", ins.id)
+            try:
+                data_dict['o_avatar_image'] = store_file(data_dict['o_avatar_image'], "o_avatar_image", ins.id)
+                data_dict['header_image'] = store_file(data_dict['header_image'], "header_image", ins.id)
+            except:
+                return jsonify(dict(success=False, error="Incorrect image format"))
             ins.setOption(**data_dict)
             session.add(ins)
             session.flush()

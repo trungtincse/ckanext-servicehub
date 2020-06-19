@@ -7,15 +7,9 @@
 {% endblock %}
 
 {% block page_header %}{% endblock %}
-{% block page_primary_action %}
-  {#  {% if h.check_access('service_create') %}#}
-  {#    {% link_for _('Add Service From Image'), named_route='service.new', class_='btn btn-primary', icon='plus-square' %}#}
-  {% if not instance.active %}
-    <button class="btn btn-primary" onclick="approve()">Approve project</button>
-  {% endif %}
-  <button class="btn btn-danger" onclick="delete_project()">Remove project</button>
-  {#  {% endif %}#}
-{% endblock %}
+{#{% block page_primary_action %}#}
+{##}
+{#{% endblock %}#}
 
 {% block primary_content_inner %}
   <div class="blog-container">

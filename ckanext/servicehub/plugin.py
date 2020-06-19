@@ -31,7 +31,8 @@ class ServicehubPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
 
     def get_blueprint(self):
         return [ServiceController.service,
-                AdminController.admin_blueprint,
+                AdminController.app_admin_blueprint,
+                AdminController.prj_admin_blueprint,
                 CallController.call_blueprint,
                 PackageController.package_blueprint,
                 ProjectController.project_blueprint,

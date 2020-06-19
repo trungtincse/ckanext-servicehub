@@ -23,7 +23,7 @@ tuplize_dict = logic.tuplize_dict
 clean_dict = logic.clean_dict
 parse_params = logic.parse_params
 
-logger = logging.getLogger('ckan.appserver')
+# logger = logging.getLogger('ckan.appserver')
 
 
 def index():

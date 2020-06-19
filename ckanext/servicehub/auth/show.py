@@ -3,6 +3,7 @@ import ckan.authz as authz
 import ckan.logic.auth as logic_auth
 from ckan.common import _
 from ckanext.servicehub.model.ServiceModel import App
+from ckanext.servicehub.model.ProjectModel import Project
 
 
 def list_all_services_of_user(context, data_dict=None):
@@ -16,7 +17,14 @@ def list_all_services_of_user(context, data_dict=None):
                                                                                      'run_service_staging')
                                           and app.app_status == 'DEBUG'), app_list)
     return list(map(lambda app: app.app_id, filter_iterator))
-
+def list_all_prọects_of_user(context, data_dict=None):
+    session = context['session']
+    user = context['user']
+    prj_list = session.query(Project).all()
+    if authz.is_sysadmin(user):
+        return list(map(lambda prj: prj.id, prj_list))
+    filter_iterator = filter(lambda prj: prj.active, prj_list)
+    return list(map(lambda prj: prj.id, filter_iterator))
 
 def service_show(context, data_dict=None):
     """

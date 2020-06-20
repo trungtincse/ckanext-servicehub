@@ -15,6 +15,7 @@ from ckan import model, logic
 from ckan.common import g, c, request, config, _
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
+import urllib
 
 _check_access = logic.check_access
 get_action = logic.get_action
@@ -106,6 +107,7 @@ def create_output_view(call_id, filename, url):
         u'user': u'seanh',
         u'userobj': User.get(u'seanh')
     }
+    print call_id, filename, url
     try:
         package = get_action(u'package_show')(context, dict(name_or_id=u'%s-output' % call_id))
     except:
@@ -122,22 +124,22 @@ def create_output_view(call_id, filename, url):
             # u'return_id_only':True
         }
         package = get_action(u'package_create')(context1, data)
-        if any(map(lambda resource: resource['name'] == filename, package['resources'])):
-            pass
-        else:
-            data = {
-                u'package_id': u'%s-output' % call_id,
-                u'url': url,
-                u'name': filename
-            }
-            context2 = {
-                u'model': model,
-                u'session': model.Session,
-                u'user': u'seanh',
-                u'userobj': User.get(u'seanh')
-                # u'return_id_only':True
-            }
-            get_action(u'resource_create')(context2, data)
+    if any(map(lambda resource: resource['name'] == filename, package['resources'])):
+        pass
+    else:
+        data = {
+            u'package_id': u'%s-output' % call_id,
+            u'url': config.get('ckan.site_url', '').rstrip('/')+url,
+            u'name': filename
+        }
+        context2 = {
+            u'model': model,
+            u'session': model.Session,
+            u'user': u'seanh',
+            u'userobj': User.get(u'seanh')
+            # u'return_id_only':True
+        }
+        get_action(u'resource_create')(context2, data)
     # return context
 
 
@@ -149,6 +151,7 @@ def make_view(package_id, filename):
         u'userobj': User.get(u'seanh')
     }
     resource_name = filename
+    c.resource = None
     try:
         c.package = model.Package.get(package_id).as_dict()
     except (NotFound, NotAuthorized):
@@ -201,6 +204,7 @@ def make_view(package_id, filename):
 
 @call_blueprint.route('/output_read/<call_id>/<filename>', methods=["GET"])
 def output_read(call_id, filename):
+    filename = urllib.unquote(filename).decode('utf8')
     data_dict = clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.params))))
     url = data_dict['url']
@@ -233,6 +237,7 @@ def read(id):
 def serve_file(type, call_id, file_name):
     path = os.path.join(storage_path, '%s-files' % type, call_id, "files", file_name)
     return send_file(path)
+
 
 class EnhancePackageController(PackageController):
     def resource_view(self, id, resource_id, view_id=None):

@@ -52,14 +52,14 @@
                         </form>
                     </div>
                 </div>
-                {% if ins.get('logs')!=None %}
+                {% if ins.get('logs')!=None and service_ins.app_status=='DEBUG'%}
                     <div class="md-ml-12">
                         <div class="request-zone"
                              style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
                             <h3>Logs</h3>
                             <form id="input-form" class="dataset-form md-mb-15 form-horizontal"
                                   data-module="basic-form" novalidate="">
-                                <p readonly>{{ ins.logs }}</p>
+                                <p readonly>{{ ins.get('logs') }}</p>
                             </form>
                         </div>
                     </div>
@@ -130,8 +130,8 @@
     <script>
         function output_view(call_id, filename) {
             setting = {
-                url: `/call/output_read/${call_id}/${filename}`,
-                data: {url: `/call/file/output/${call_id}/${filename}`},
+                    url: `/call/output_read/${call_id}/${encodeURI(filename)}`,
+                data: {url: `/call/file/output/${call_id}/${encodeURI(filename)}`},
                 method: 'GET',
                 beforeSend: function () {
                     $('#myModal .modal-body').html('<p>Loading</p>');

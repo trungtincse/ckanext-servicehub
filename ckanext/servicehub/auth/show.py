@@ -17,7 +17,7 @@ def list_all_services_of_user(context, data_dict=None):
                                                                                      'run_service_staging')
                                           and app.app_status == 'DEBUG'), app_list)
     return list(map(lambda app: app.app_id, filter_iterator))
-def list_all_prọects_of_user(context, data_dict=None):
+def list_all_projects_of_user(context, data_dict=None):
     session = context['session']
     user = context['user']
     prj_list = session.query(Project).all()

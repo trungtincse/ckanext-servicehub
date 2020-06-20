@@ -42,7 +42,8 @@ _check_access = ckan.logic.check_access
 appserver_host = config.get('ckan.servicehub.appserver_host')
 fileserver_host = config.get('ckan.servicehub.fileserver_host')
 storage_path = config.get('ckan.storage_path')
-logger = logging.getLogger('logserver')
+central_logger = logging.getLogger('logserver')
+local_logger = logging.getLogger('local')
 
 
 def isidentifier(ident):
@@ -71,7 +72,7 @@ def isidentifier(ident):
 def service_create(context, data_dict):
     session = context['session']
     model = context['model']
-    data_dict['organization']=slug.slug(data_dict['organization'])
+    data_dict['organization'] = slug.slug(data_dict['organization'])
     _check_access('service_create', context, dict(org_name=data_dict['organization']))
     data_dict['owner'] = context['user']
     data_dict['slug_name'] = slug.slug(data_dict['app_name'])
@@ -83,17 +84,25 @@ def service_create(context, data_dict):
     ############ validate
     app_name_exist = session.query(App).filter(App.slug_name == data_dict['slug_name']).first() != None
     if app_name_exist:
+        central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_create", "Service name: %s exists"%data_dict['app_name']))
         return dict(success=False, error="Service name exists")
     groups = filter(lambda x: x.state == 'active' and x.is_organization, context['userobj'].get_groups())
     if data_dict['organization'] not in map(lambda x: x.name, groups):
+        central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_create", "User is not a member of the organization"))
         return dict(success=False, error="User is not a member of the organization")
     if not all([isidentifier(cate) for cate in data_dict['var_name']]):
+        central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_create", "Variable names are not accepted"))
         return dict(success=False, error="Variable names are not accepted")
     for dataset in data_dict['datasets']:
         try:
             logic.get_action('package_show')(context, dict(id=dataset))
         except:
-            return dict(success=False, error="Dataset not found")
+            central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
+            local_logger.info("%s %s %s" % (context['user'], "service_create", "Dataset %s not found"%dataset))
+            return dict(success=False, error="Dataset %s not found"%dataset)
     app_id = _types.make_uuid()
     type = mimetypes.guess_type(data_dict['avatar'].filename)
     if type[0] != None and type[0].find('image') >= 0:
@@ -103,9 +112,12 @@ def service_create(context, data_dict):
                 os.makedirs(os.path.dirname(avatar_path))
             except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
+                    central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
                     raise
         data_dict['avatar'].save(avatar_path)
     else:
+        central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_create", "Avatar is not image format"))
         return dict(success=False, error="Avatar is not image format")
 
     app_dict = dict(app_id=app_id,
@@ -132,11 +144,11 @@ def service_create(context, data_dict):
         # logger.info('app_id=%s&message=Application %s creating success.' % (app_id, app_dict['app_name']))
         code_id = build_code(session, data_dict['codeFile'], app)
     except Exception as ex:
-        logger.error(ex.message)
         session.delete(app)
         session.commit()
+        central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_create", 'Creating application is not success: ' + str(ex.message)))
         return dict(success=False, error='Creating application is not success: ' + str(ex.message))
-
 
     # success
     for param in params:
@@ -168,11 +180,15 @@ def service_create(context, data_dict):
         session.delete_all(categories)
         session.delete_all(datasets)
         session.commit()
-        logger.error("Failed to index solr %s" % e.message)
+        # logger.error("Failed to index solr %s" % e.message)
+        central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_create",  'Failed to index app to Solr %s' % e.message))
         return {'success': False, 'error': 'Failed to index app to Solr %s' % e.message}
 
     session.commit()
-    logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
+    # logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
+    central_logger.info("user=%s&action=service_create&error_code=0" % context['user'])
+    local_logger.info("%s %s %s" % (context['user'], "service_create", "App %s create success")%app_id)
     return dict(success=True, code_id=code_id, app_id=app_id)
 
 
@@ -240,16 +256,24 @@ def call_create(context, data_dict):
     user = context['user']
     app_id = data_dict.get('app_id', None)
     if app_id == None:
+        central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "call_create", "Miss app_id field."))
         return dict(success=False, error="Miss app_id field.")
     if isinstance(app_id, list):
+        central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "call_create", "Miss app_id field."))
         return dict(success=False, error="Duplicate app_id.")
     try:
-        _check_access('call_create',context,dict(app_id=app_id))
+        _check_access('call_create', context, dict(app_id=app_id))
     except Exception as ex:
+        central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "call_create", ex.message))
         return dict(success=False, error=ex.message)
     app = session.query(App).filter(App.app_id == app_id).first()
     if app == None:
-        return dict(success=False, error="Application not found.")
+        central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "call_create", "Application %s not found." % app_id))
+        return dict(success=False, error="Application %s not found." % app_id)
     curr_code_id = app.curr_code_id
     assert curr_code_id != None
     del data_dict['app_id']
@@ -259,9 +283,14 @@ def call_create(context, data_dict):
     for ins in param_inses:
         param_value = data_dict.get(ins.name, None)
         if param_value == None:
-            return dict(success=False, error="Parameter not found.")
+            central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+            local_logger.info("%s %s %s" % (context['user'], "call_create", "Parameter %s not found." % ins.name))
+            return dict(success=False, error="Parameter %s not found." % ins.name)
         if ins.type.find("FILE") >= 0:
             if not isinstance(param_value, FileStorage):
+                central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+                local_logger.info("%s %s %s" % (
+                    context['user'], "call_create", "Parameter %s is not a %s type." % (ins.name, ins.type)))
                 return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
         elif ins.type.find("LIST") >= 0:
             if not isinstance(param_value, list):
@@ -269,13 +298,22 @@ def call_create(context, data_dict):
                 param_value = [param_value]
             for e in param_value:
                 if not (isinstance(e, unicode) or isinstance(e, str)):
+                    central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+                    local_logger.info("%s %s %s" % (
+                        context['user'], "call_create", "Parameter %s is not a %s type." % (ins.name, ins.type)))
                     return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
         elif ins.type.find("BOOLEAN") >= 0:
             if not (isinstance(param_value, unicode) or isinstance(param_value, str) and param_value.lower() in [
                 'false', 'true']):
+                central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+                local_logger.info("%s %s %s" % (
+                    context['user'], "call_create", "Parameter %s is not a %s type." % (ins.name, ins.type)))
                 return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
         else:
             if not (isinstance(param_value, unicode) or isinstance(param_value, str)):
+                central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
+                local_logger.info("%s %s %s" % (
+                    context['user'], "call_create", "Parameter %s is not a %s type." % (ins.name, ins.type)))
                 return dict(success=False, error="Parameter %s is not a %s type." % (ins.name, ins.type))
     ####
     for k, v in data_dict.items():
@@ -290,6 +328,9 @@ def call_create(context, data_dict):
         response = requests.post(path, files=files, params={'userId': user})
     else:
         response = requests.post(path + '/empty', params={'userId': user})
+    central_logger.info("user=%s&action=call_create&error_code=0" % context['user'])
+    local_logger.info(
+        "%s %s %s" % (context['user'], "call_create", str(response.text)))
     return response.json()
 
 
@@ -314,6 +355,5 @@ def storeOutput(file, call_id):
 
 
 public_functions = dict(service_create=service_create,
-                        call_create=call_create,
-                        # push_request_call=push_request_call
+                        call_create=call_create
                         )

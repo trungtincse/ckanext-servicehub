@@ -44,6 +44,7 @@ _check_access = ckan.logic.check_access
 logger = logging.getLogger('logserver')
 
 appserver_host = config.get('ckan.servicehub.appserver_host')
+logserver_host = config.get('ckan.servicehub.logserver_host')
 
 import ast
 
@@ -103,6 +104,14 @@ class CreateFromCodeServiceView(MethodView):
             ))
             data_dict['app_category'] = data_dict['app_category'].split(',')
             message = get_action(u'service_create')(context, data_dict)
+            url_create_dashboard = os.path.join(logserver_host, "kibana", "createDashboardSearch",
+                                                slug.slug(data_dict['app_name']))
+            setting=dict(index="ckan",fields=["@timestamp","message"],
+                         condition="user:%s and app_name:%s"%(context['user'],slug.slug(data_dict['app_name'])))
+            try:
+                request.post(url_create_dashboard,json=setting)
+            except:
+                pass
             # logger.info("app_id=%s&message=Application %s start to create")
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
             base.abort(404, _(u'Not found'))
@@ -217,12 +226,14 @@ def code_ajax(id):
     if service_ins.get('error', '') != '':
         base.abort(404, _(u'Service not found'))
     code_ins_lst = session.query(AppCodeVersion).filter(AppCodeVersion.app_id == id).all()
-    code_lst=map(lambda code: [code.code_id, code.created_at, "YES" if code.code_id == service_ins['curr_code_id'] else "",'/service/%s/code/%s'%(id,code.code_id),],code_ins_lst)
+    code_lst = map(
+        lambda code: [code.code_id, code.created_at, "YES" if code.code_id == service_ins['curr_code_id'] else "",
+                      '/service/%s/code/%s' % (id, code.code_id), ], code_ins_lst)
     return jsonify(code_lst)
 
 
 @service.route('/<string:id>/code/<string:code_id>', methods=['GET'])
-def get_code(id,code_id):
+def get_code(id, code_id):
     extra_vars = {}
     context = {
         u'model': model,
@@ -237,8 +248,9 @@ def get_code(id,code_id):
     session = context['session']
     if service_ins.get('error', '') != '':
         base.abort(404, _(u'Service not found'))
-    code = session.query(AppCodeVersion).filter(AppCodeVersion.app_id == id and AppCodeVersion.code_id==code_id).first()
-    if code==None:
+    code = session.query(AppCodeVersion).filter(
+        AppCodeVersion.app_id == id and AppCodeVersion.code_id == code_id).first()
+    if code == None:
         base.abort(404, _(u'Code not found'))
     return send_file(code.code_path)
 

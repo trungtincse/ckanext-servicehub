@@ -123,7 +123,10 @@ def action(action_name):
             service_ins.app_status = 'START'
             session.add(service_ins)
         elif action_name == 'delete':
-            session.delete(service_ins)
+            try:
+                get_action(u'service_delete')(context, dict(id=app_id))
+            except Exception as ex:
+                print ex.message
         session.commit()
     except:
         session.rollback()

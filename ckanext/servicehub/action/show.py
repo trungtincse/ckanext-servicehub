@@ -19,6 +19,8 @@ _check_access = ckan.logic.check_access
 # http_session.mount('http://', adapter)
 appserver_host = config.get('ckan.servicehub.appserver_host')
 fileserver_host = config.get('ckan.servicehub.fileserver_host')
+central_logger = logging.getLogger('logserver')
+local_logger = logging.getLogger('local')
 
 object2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
 
@@ -30,13 +32,13 @@ def _asdict(obj):
             for c in inspect(obj).mapper.column_attrs}
 
 
-@logic.side_effect_free
-def service_list(context, data_dict):
-    session = context['session']
-    model = context['model']
-    service_list = session.query(App).all()
-    # map(lambda x:x.strftime(),service_list)
-    return [i.as_dict() for i in service_list]
+# @logic.side_effect_free
+# def service_list(context, data_dict):
+#     session = context['session']
+#     model = context['model']
+#     service_list = session.query(App).all()
+#     # map(lambda x:x.strftime(),service_list)
+#     return [i.as_dict() for i in service_list]
 
 
 @logic.side_effect_free
@@ -46,6 +48,8 @@ def service_show(context, data_dict):
     try:
         _check_access('service_show', context, dict(app_id=data_dict['id']))
     except Exception as ex:
+        central_logger.info("user=%s&action=service_show&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_delete", ex.message))
         return dict(success=False,error=ex.message)
 
     path = os.path.join(appserver_host, 'app', data_dict['id'])
@@ -60,8 +64,12 @@ def service_show(context, data_dict):
         service['params'] = params
         service['code'] = _asdict(code)
         service['all_codes'] = [i.as_dict() for i in all_codes]
+        central_logger.info("user=%s&action=service_show&error_code=0" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_show", "Success"))
         return service
     else:
+        central_logger.info("user=%s&action=service_show&error_code=0" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_show", "Success"))
         return _asdict(service)
 
 
@@ -70,7 +78,13 @@ def service_by_slug_show(context, data_dict):
     session = context['session']
     slug_name = _get_or_bust(data_dict, 'slug_name')
     service = session.query(App).filter(App.slug_name == slug_name).first()
-    return _asdict(service)
+    if service==None:
+        central_logger.info("user=%s&action=service_by_slug_show&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_by_slug_show", "Application %s not found")%slug_name)
+    else:
+        central_logger.info("user=%s&action=service_by_slug_show&error_code=0" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "service_by_slug_show", "Success"))
+        return _asdict(service)
 
 
 @logic.side_effect_free
@@ -82,11 +96,15 @@ def call_show(context, data_dict):
     outputs = session.query(CallOutput).filter(CallOutput.call_id == id).all()
     call = session.query(Call).filter(Call.call_id == id).first()
     if call == None:
+        central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "call_show", "Call %s not found"%id))
         return dict(success=False, error="Not found")
     else:
         call = call.as_dict()
         call['inputs'] = [i.as_dict() for i in inputs]
         call['outputs'] = [o.as_dict() for o in outputs]
+        central_logger.info("user=%s&action=call_show&error_code=0" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "call_show", str(call)))
         return call
 
 
@@ -101,13 +119,16 @@ def call_list(context, data_dict):
         dict_a = _asdict(a)
         dict_a.update(dict_c)
         result.append(dict_a)
+    central_logger.info("user=%s&action=call_list&error_code=0" % context['user'])
+    local_logger.info("%s %s %s" % (context['user'], "call_list", "Success"))
     return result
 
 
 # def resource_io_view_show(context,data_dict):
 
 
-public_functions = dict(service_list=service_list,
+public_functions = dict(
+    # service_list=service_list,
                         call_list=call_list,
                         service_show=service_show,
                         call_show=call_show,

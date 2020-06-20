@@ -4,8 +4,7 @@ import requests
 
 from ckan.common import config
 
-logger = logging.getLogger('ckan.ckanapp')
-
+logger = logging.getLogger('local')
 
 def check_appserver_opening():
     appserver_host = config.get('ckan.servicehub.appserver_host')

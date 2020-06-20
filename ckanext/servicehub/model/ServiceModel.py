@@ -143,7 +143,7 @@ class CallInput(Base):
     def as_dict(self):
         _dict = dict(call_id=self.call_id, name=self.name, type=self.type,value=self.value)
         if self.type == 'FILE':
-            _dict['value'] = os.path.join(site_url, 'call', 'file', 'input', self.call_id, self.name)
+            _dict['value'] = os.path.join('/call', 'file', 'input', self.call_id, self.name)
         return _dict
 
 
@@ -158,7 +158,7 @@ class CallOutput(Base):
     def as_dict(self):
         _dict = dict(call_id=self.call_id, name=self.name, type=self.type,value=self.value)
         if self.type == 'FILE':
-            _dict['value'] = os.path.join(site_url, 'call', 'file', 'output', self.call_id, self.name)
+            _dict['value'] = os.path.join('/call', 'file', 'output', self.call_id, self.name)
         return _dict
 
 

@@ -11,9 +11,10 @@ from flask import Blueprint, Response, jsonify, send_from_directory
 import json
 import ckan.lib.base as base
 from ckan import model, logic
-from ckan.common import g, request, config, _
+from ckan.common import c, g, request, config, _
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
+from ckanext.servicehub.action import project_solr
 from ckanext.servicehub.error.exception import CKANException
 from ckanext.servicehub.model.ProjectModel import Project, ProjectCategory, ProjectTag, ProjectDatasetUsed, \
     ProjectAppUsed
@@ -56,25 +57,40 @@ def delete_file(type, project_id):
         os.remove(filepath)
 
 
-def make_tag(session, tags, type, project_id):
-    if tags == None or tags == '': return;
-    tag_list = tags.split(',')
-    data = [dict(project_id=project_id, tag_name=i) for i in tag_list]
-    if type == 'project_category':
-        instances = [ProjectCategory() for x in data]
-    elif type == 'project_tags':
-        instances = [ProjectTag() for x in data]
-    map(lambda x: x[1].setOption(**data[x[0]]), enumerate(instances))
-    map(lambda x: session.add(x), instances)
+def make_categories(session, tags, project_id):
+    if not tags:
+        return
+
+    cate_names = []
+    for tag in tags.split(','):
+        cate = ProjectCategory(project_id=project_id, tag_name=tag)
+        session.add(cate)
+        cate_names.append(tag)
+
+    return cate_names
 
 
-def  map_dataset(context, project_id, name_or_id):
+def make_tags(session, tags, project_id):
+    if not tags:
+        return
+
+    tag_names = []
+    for tag in tags.split(','):
+        cate = ProjectTag(project_id=project_id, tag_name=tag)
+        session.add(cate)
+        tag_names.append(tag)
+
+    return tag_names
+
+
+def map_dataset(context, project_id, name_or_id):
     session = context['session']
-    model = context['model']
     if isinstance(name_or_id, list):
         pass
     else:
         name_or_id = [name_or_id]
+
+    datasets_ids = []
     for i in name_or_id:
         try:
             result = get_action(u'package_show')(context, dict(id=i))
@@ -82,22 +98,25 @@ def  map_dataset(context, project_id, name_or_id):
             raise CKANException(err_message='dataset: %s not found' % i)
         if result['private'] or result['state'] != 'active':
             raise CKANException(err_message='dataset: %s is private' % i)
-        instance = ProjectDatasetUsed()
-        instance.setOption(project_id=project_id, dataset_id=result[u'id'], link='%s/dataset/%s' % (site_url, i))
+        instance = ProjectDatasetUsed(project_id=project_id, dataset_id=result[u'id'], link='%s/dataset/%s' % (site_url, i))
+        # instance.setOption()
         session.add(instance)
+        datasets_ids.append(result['id'])
+    return datasets_ids
 
 
 def map_app(context, project_id, id):
     session = context['session']
-    if id.find('http')>=0 or id.find('https')>=0:
+    if id.startswith('http') or id.startswith('https'):
         instance = ProjectAppUsed(project_id=project_id, app_id=id, link=id)
-        session.add(instance)
-        return
-    result = get_action(u'service_show')(context, dict(id=id))
-    if 'app_detail' not in result:
-        raise CKANException(err_message='application: %s not found' % id)
-    instance = ProjectAppUsed(project_id=project_id, app_id=id, link='%s/service/%s' % (site_url, id))
+    else:
+        result = get_action(u'service_show')(context, dict(id=id))
+        if 'app_detail' not in result:
+            raise CKANException(err_message='application: %s not found' % id)
+        instance = ProjectAppUsed(project_id=project_id, app_id=id, link='%s/service/%s' % (site_url, id))
+
     session.add(instance)
+    return instance
 
 
 def _prepare():
@@ -118,10 +137,9 @@ class ProjectCreateView(MethodView):
 
         data_dict.update(clean_dict(
             dict_fns.unflatten(tuplize_dict(parse_params(request.files)))))
-        try:
-            session = context['session']
-            model = context['model']
 
+        session = context['session']
+        try:
             ins = Project()
             try:
                 data_dict['o_avatar_image'] = store_file(data_dict['o_avatar_image'], "o_avatar_image", ins.id)
@@ -131,13 +149,26 @@ class ProjectCreateView(MethodView):
             ins.setOption(**data_dict)
             session.add(ins)
             session.flush()
-            make_tag(session, data_dict.get('project_category', None), 'project_category', ins.id)
-
-            make_tag(session, data_dict.get('project_tags', None), 'project_tags', ins.id)
-            map_dataset(context, ins.id, data_dict.get('dataset-id', []))
-            # assert False
-
+            categories_names = make_categories(session, data_dict.get('project_category'), ins.id)
+            tags_names = make_tags(session, data_dict.get('project_tags'), ins.id)
+            datasets_ids = map_dataset(context, ins.id, data_dict.get('dataset-id', []))
             map_app(context, ins.id, data_dict['link_or_id'])
+
+            project_solr.index_project({
+                'id': ins.id,
+                'project_name': ins.project_name,
+                'name': ins.name,
+                'organization_name': ins.organization_name,
+                'o_description': ins.o_description,
+                'prj_summary': ins.prj_summary,
+                'prj_goal': ins.prj_goal,
+                'draft': ins.draft,
+                'active': ins.active,
+                'category': categories_names,
+                'tags': tags_names,
+                'datasets': datasets_ids
+            })
+
             session.commit()
         except Exception as ex:
             session.rollback()
@@ -155,23 +186,6 @@ class ProjectCreateView(MethodView):
         extra_vars['project_category'] = project_category
         extra_vars['project_tags'] = project_tags
         return base.render('project/new.html', extra_vars)
-
-
-@project_blueprint.route('/', methods=['GET'])
-def index():
-    context = _prepare()
-    session = context['session']
-    instances = session.query(Project).all()
-    additions = []
-    extra_vars = {}
-    for ins in instances:
-        id = ins.id
-        adds = {}
-        adds['category'] = session.query(ProjectCategory).filter(ProjectCategory.project_id == id).all()
-        adds['tags'] = session.query(ProjectTag).filter(ProjectTag.project_id == id).all()
-        additions.append(adds)
-    extra_vars['projects'] = zip(instances, additions)
-    return base.render('project/index.html', extra_vars=extra_vars)
 
 
 class ProjectReadView(MethodView):
@@ -247,6 +261,94 @@ project_blueprint.add_url_rule(
     view_func=ProjectReadView.as_view(str(u'read')))
 
 
+@project_blueprint.route('', methods=['GET'])
+def index():
+    context = _prepare()
+    session = context['session']
+    instances = session.query(Project).all()
+    additions = []
+    extra_vars = {}
+    for ins in instances:
+        id = ins.id
+        adds = {}
+        adds['category'] = session.query(ProjectCategory).filter(ProjectCategory.project_id == id).all()
+        adds['tags'] = session.query(ProjectTag).filter(ProjectTag.project_id == id).all()
+        additions.append(adds)
+    extra_vars['projects'] = zip(instances, additions)
+    return base.render('project/index.html', extra_vars=extra_vars)
+
+
 @project_blueprint.route('/search', methods=['GET'])
 def search():
-    pass
+    try:
+        search_result = project_solr.query_app(
+            text=query(),
+            organization=request.params.get('organization'),
+            categories=request.params.getlist('categories'),
+            language=request.params.get('language'),
+            sort=request.params.get('sort', 'score asc, created_at desc')
+        )
+    except SearchError as e:
+        c.query_error = True
+        return base.render('service/search.html', {
+            'query': request.params.get('q', ''),
+            'sorting': _sorting,
+            'sort_by_selected': request.params.get('sort', 'score desc, created_at desc'),
+            'facet_titles': facet_titles(),
+            'selected_filtered_fields': selected_filtered_fields(),
+            'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
+            'page': h.Page(collection=[]),
+            'search_facets': app_solr_action.empty_search_facets(),
+            'remove_field': remove_field
+        })
+
+    page = h.Page(
+        collection=app_solr_action.docs(search_result),
+        page=h.get_page_number(request.params),
+        item_count=len(app_solr_action.docs(search_result))
+    )
+
+    c.search_facets = app_solr_action.ckan_search_facets(search_result)
+    c.search_facets_limits = False
+    c.remove_url_param = cuong_remove_url_param # override
+    return base.render('project/search.html', {
+        'query': request.params.get('q', ''),
+        'sorting': _sorting,
+        'sort_by_selected': request.params.get('sort', 'score desc, created_at desc'),
+        'facet_titles': facet_titles(),
+        'selected_filtered_fields': selected_filtered_fields(),
+        'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
+        'page': page,
+        'search_facets': app_solr_action.ckan_search_facets(search_result),
+        'remove_field': remove_field
+    })
+
+
+_sorting = [
+  ('Relevance', 'score desc, created_at desc'),
+  ('App Name Ascending', 'app_name asc'),
+  ('App Name Descending', 'app_name desc')
+]
+
+
+def query():
+    q = request.params.get('q')
+    if q:
+        return 'text:(%s)' % clean_query(q)
+    else:
+        return '*:*'
+
+
+# https://docs.datastax.com/en/dse/5.1/dse-dev/datastax_enterprise/search/siQuerySyntax.html#Escapingcharactersinasolr_query
+_bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
+_bad_chars = {}
+
+
+def clean_query(q):
+    for char in _bad_chars:
+        q = q.replace(char, '')
+    return q
+
+
+def remove_char(s, char):
+    return s.replace(char, '')

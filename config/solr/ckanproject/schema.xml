@@ -24,7 +24,7 @@
 <!-- We update the version when there is a backward-incompatible change to this
 schema. In this case the version should be set to the next CKAN version number.
 (x.y but not x.y.z since it needs to be a float) -->
-<schema name="project" version="0.0">
+<schema name="ckanproject" version="0.0">
 
 <types>
     <!-- 
@@ -71,21 +71,23 @@ schema. In this case the version should be set to the next CKAN version number.
 <fields>
     <!-- always stored=true => easier to debug -->
     <field name="id"                type="string"  indexed="true"   stored="true"  required="true"  multiValued="false" />
+    <field name="project_name"      type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="name"              type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="email"             type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="organization_name" type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="o_description"     type="text"    indexed="true"   stored="true"                   multiValued="false" />
     <field name="o_avatar_image"    type="string"  indexed="false"  stored="true"                   multiValued="false" />
-    <field name="project_name"      type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
-    <field name="header_image"      type="text"    indexed="false"  stored="true"                   multiValued="false" />
+    <field name="header_image"      type="string"  indexed="false"  stored="true"                   multiValued="false" />
     <field name="prj_summary"       type="text"    indexed="true"   stored="true"                   multiValued="false" />
     <field name="prj_goal"          type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="draft"             type="boolean" indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="active"            type="boolean" indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
 
-    <field name="_version_"       type="string" indexed="true"  stored="true"                   multiValued="false" />
+    <field name="category"          type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="true" />
+    <field name="tags"              type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="true" />
 
-    <field name="data_dict"       type="string" indexed="false" stored="true"                   multiValued="false" /> <!-- store more detailed data (owner_id, group_id, ...) -->
+
+    <field name="_version_"       type="string" indexed="true"  stored="true"                   multiValued="false" />
     
     <!-- catchall field, containing all other searchable text fields (implemented
          via copyField further on in this schema  -->
@@ -97,10 +99,8 @@ schema. In this case the version should be set to the next CKAN version number.
 <solrQueryParser q.op="AND"/>
 
 <!-- <copyField source="app_id" dest="text"  /> -->
-<copyField source="name" dest="text"  />
-<copyField source="organization_name" dest="text"  />
-<copyField source="o_description" dest="text"  />
 <copyField source="project_name" dest="text"  />
+<copyField source="o_description" dest="text"  />
 <copyField source="prj_summary" dest="text"  />
 <copyField source="prj_goal" dest="text"  />
 

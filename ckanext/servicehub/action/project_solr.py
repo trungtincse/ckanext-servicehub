@@ -53,6 +53,14 @@ def query_project(text, organization_name, categories, tags, sort):
     return r
 
 
+def delete_project(project_id):
+    requests.post(solr_url + '/update?commit=true', json={
+        'delete': {
+            'id': project_id
+        }
+    })
+
+
 facet_fields = ['organization_name', 'category', 'tags']
 
 

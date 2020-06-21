@@ -237,6 +237,7 @@ class ProjectReadView(MethodView):
         try:
             session.delete(ins)
             session.commit()
+            project_solr.delete_project(id)
         except Exception as  ex:
             session.rollback()
             return jsonify(dict(success=False, error='Opps! Something is wrong'))
@@ -314,4 +315,4 @@ _sorting = [
 
 
 def remove_field(key, value=None, replace=None):
-    return h.remove_url_param(key, value=value, replace=replace, controller='project', action='index')
+    return h.remove_url_param(key, value=value, replace=replace, controller='project', action='indexw')

@@ -53,12 +53,26 @@ def query_project(text, organization_name, categories, tags, sort):
     return r
 
 
+def activate_project(project_id):
+    r = requests.post(solr_url + '/update?commit=true', json=[
+        {
+            'id': project_id,
+            'active': {'set': True}
+        }
+    ]).json()
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
+
+
 def delete_project(project_id):
-    requests.post(solr_url + '/update?commit=true', json={
+    r = requests.post(solr_url + '/update?commit=true', json={
         'delete': {
             'id': project_id
         }
-    })
+    }).json()
+
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
 
 
 facet_fields = ['organization_name', 'category', 'tags']

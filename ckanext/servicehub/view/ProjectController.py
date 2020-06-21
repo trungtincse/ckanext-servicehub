@@ -224,8 +224,9 @@ class ProjectReadView(MethodView):
                 ins.active = True
                 session.add(ins)
                 try:
+                    project_solr.activate_project(id)
                     session.commit()
-                except Exception as  ex:
+                except Exception as ex:
                     session.rollback()
                     return jsonify(dict(success=False, error='Opps! Something is wrong'))
             return jsonify(success=True, error='')

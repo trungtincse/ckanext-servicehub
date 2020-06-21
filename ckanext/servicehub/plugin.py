@@ -46,6 +46,7 @@ class ServicehubPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
                 'delete_service': delete_auth.delete_service,
                 'service_show':show_auth.service_show,
                 'report_show':show_auth.report_show,
+                'call_show':show_auth.call_show,
                 'service_monitor':show_auth.service_monitor,
                 'is_admin':admin_auth.is_admin,
                 }

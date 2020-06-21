@@ -83,7 +83,6 @@ def create(app_id):
     except ResourceNotFoundException:
         return jsonify(dict(error="Resource not found!"))
     data_dict["app_id"] = app_id
-
     result_ins = get_action(u'call_create')(context, data_dict)
     if result_ins.get('success',True):
         try:
@@ -209,6 +208,15 @@ def make_view(package_id, filename):
 
 @call_blueprint.route('/output_read/<call_id>/<filename>', methods=["GET"])
 def output_read(call_id, filename):
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    try:
+        _check_access('call_show',context,dict(call_id=call_id))
+    except:
+        return base.abort(404, _(u'Call not found'))
     filename = urllib.unquote(filename).decode('utf8')
     data_dict = clean_dict(
         dict_fns.unflatten(tuplize_dict(parse_params(request.params))))
@@ -224,6 +232,10 @@ def read(id):
         u'session': model.Session,
         u'user': g.user
     }
+    try:
+        _check_access('call_show',context,dict(call_id=id))
+    except:
+        return base.abort(404, _(u'Call not found'))
     instance = get_action(u'call_show')(context, dict(id=id))
     if instance.get('error', '') != '':
         return base.abort(404, _(u'Call not found'))

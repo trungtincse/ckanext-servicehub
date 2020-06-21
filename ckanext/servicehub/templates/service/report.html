@@ -71,7 +71,7 @@
                     "type": "GET",
                     "dataSrc": ""
                 },
-                // "sPaginationType": "full_numbers",
+                "aaSorting": [ [2,'desc'] ],
                 "aoColumns": [
                     {
                         "sWidth": "20%",
@@ -82,16 +82,17 @@
                     },
                     {
                         "sWidth": "20%",
-                        "mData": 2
+                        "mData": 2,
+                        "bSortable": true
                     },
                     {
                         "sWidth": "20%",
-                        "mData": 3
+                        "mData": 3,
+
                     },
                     {
                         "mData": 0,
                         "sWidth": "20%",
-                        "bSortable": false,
                         "mRender": function (data, type, full) {
                             return `
           <a class="btn ${full[4] ? "btn-primary" : "btn-default"} btn-sm" onclick="return note(${full[4]},'{{ ins.app_id }}','${data}')">Note</a>

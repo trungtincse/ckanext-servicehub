@@ -258,7 +258,7 @@ def makeReqFormJSON(**kwargs):
 def call_create(context, data_dict):
     session = context['session']
     user = context['user']
-    app_id = data_dict.get('app_id', None)
+    app_id = data_dict.get('app_id')
     if app_id == None:
         central_logger.info("user=%s&action=call_create&error_code=1" % context['user'])
         local_logger.info("%s %s %s" % (context['user'], "call_create", "Miss app_id field."))

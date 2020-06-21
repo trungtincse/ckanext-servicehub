@@ -2,7 +2,7 @@ import ckan.logic as logic
 import ckan.authz as authz
 import ckan.logic.auth as logic_auth
 from ckan.common import _
-from ckanext.servicehub.model.ServiceModel import App
+from ckanext.servicehub.model.ServiceModel import App,Call,AppTestReport
 from ckanext.servicehub.model.ProjectModel import Project
 
 
@@ -65,15 +65,36 @@ def report_show(context, data_dict):
     session = context['session']
     user = context['user']
     service = session.query(App).filter(App.app_id == data_dict['app_id']).first()
-    print service
     if service == None:
         return {'success': False,
                 'msg': _('Application not found')}
     else:
         has_permission=authz.has_user_permission_for_group_or_org(service.organization,user,'show_report')
-        print has_permission
         if has_permission:
             return {'success': True}
         else:
             return {'success': False,
                     'msg': _('User %s not have permission to read this page') % user}
+
+def call_show(context, data_dict):
+    model = context['model']
+    session = context['session']
+    user = context['user']
+    call_id=data_dict.get('call_id')
+    if call_id==None:
+        return {'success': False,
+                'msg': _('call_id not found')}
+    call_ins=session.query(Call).filter(Call.call_id==call_id).first()
+    if call_ins==None:
+        return {'success': False,
+                'msg': _('Call not found')}
+    if call_ins.user_id==user:
+        return {'success': True}
+    else:
+        service_ins=session.query(App).filter(App.app_id==call_ins.app_id).first()
+        has_permission=authz.has_user_permission_for_group_or_org(service_ins.organization,user,'show_report')
+        is_debug_call=len(session.query(AppTestReport).filter(AppTestReport.app_id==call_ins.app_id and AppTestReport.call_id==call_id).all())>0
+        if has_permission and is_debug_call:
+            return {'success': True}
+        return {'success': False,
+                'msg': _('User %s not have permission to read this page') % user}

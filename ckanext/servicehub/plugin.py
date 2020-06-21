@@ -41,9 +41,11 @@ class ServicehubPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
     def get_auth_functions(self):
         return {'service_create': create_auth.service_create,
                 'call_create': create_auth.call_create,
+                'report_create': create_auth.report_create,
                 'update_service': update_auth.update_service,
                 'delete_service': delete_auth.delete_service,
                 'service_show':show_auth.service_show,
+                'report_show':show_auth.report_show,
                 'service_monitor':show_auth.service_monitor,
                 'is_admin':admin_auth.is_admin,
                 }

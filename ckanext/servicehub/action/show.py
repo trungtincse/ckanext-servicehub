@@ -2,6 +2,7 @@ import os
 import logging
 import ckan.logic
 import requests
+from ckan import authz
 from ckanext.servicehub.model.ServiceModel import App, Call, AppParam, AppCodeVersion, CallInput, CallOutput
 from requests.adapters import HTTPAdapter
 from sqlalchemy import inspect
@@ -49,8 +50,8 @@ def service_show(context, data_dict):
         _check_access('service_show', context, dict(app_id=data_dict['id']))
     except Exception as ex:
         central_logger.info("user=%s&action=service_show&error_code=1" % context['user'])
-        local_logger.info("%s %s %s" % (context['user'], "service_delete", ex.message))
-        return dict(success=False,error=ex.message)
+        local_logger.info("%s %s %s" % (context['user'], "service_show", ex.message))
+        return dict(success=False, error=ex.message)
 
     path = os.path.join(appserver_host, 'app', data_dict['id'])
     service = session.query(App).filter(App.app_id == data_dict['id']).first()
@@ -78,9 +79,10 @@ def service_by_slug_show(context, data_dict):
     session = context['session']
     slug_name = _get_or_bust(data_dict, 'slug_name')
     service = session.query(App).filter(App.slug_name == slug_name).first()
-    if service==None:
+    if service == None:
         central_logger.info("user=%s&action=service_by_slug_show&error_code=1" % context['user'])
-        local_logger.info("%s %s %s" % (context['user'], "service_by_slug_show", "Application %s not found")%slug_name)
+        local_logger.info(
+            "%s %s %s" % (context['user'], "service_by_slug_show", "Application %s not found") % slug_name)
     else:
         central_logger.info("user=%s&action=service_by_slug_show&error_code=0" % context['user'])
         local_logger.info("%s %s %s" % (context['user'], "service_by_slug_show", "Success"))
@@ -97,7 +99,7 @@ def call_show(context, data_dict):
     call = session.query(Call).filter(Call.call_id == id).first()
     if call == None:
         central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
-        local_logger.info("%s %s %s" % (context['user'], "call_show", "Call %s not found"%id))
+        local_logger.info("%s %s %s" % (context['user'], "call_show", "Call %s not found" % id))
         return dict(success=False, error="Not found")
     else:
         call = call.as_dict()
@@ -124,16 +126,15 @@ def call_list(context, data_dict):
     return result
 
 
-# def resource_io_view_show(context,data_dict):
 
 
 public_functions = dict(
     # service_list=service_list,
-                        call_list=call_list,
-                        service_show=service_show,
-                        call_show=call_show,
-                        # reqform_show=reqform_show,
-                        # input_show=input_show,
-                        # output_show=output_show,
-                        service_by_slug_show=service_by_slug_show
-                        )
+    call_list=call_list,
+    service_show=service_show,
+    call_show=call_show,
+    # reqform_show=reqform_show,
+    # input_show=input_show,
+    # output_show=output_show,
+    service_by_slug_show=service_by_slug_show
+)

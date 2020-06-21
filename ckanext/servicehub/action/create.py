@@ -14,7 +14,8 @@ import logging
 import slug
 import ckan.logic
 from ckanext.servicehub.error.exception import CKANException
-from ckanext.servicehub.model.ServiceModel import App, Call, AppCategory, AppRelatedDataset, AppCodeVersion, AppParam
+from ckanext.servicehub.model.ServiceModel import App, Call, AppCategory, AppRelatedDataset, AppCodeVersion, AppParam, \
+    AppTestReport
 from flask import jsonify
 from werkzeug.datastructures import FileStorage
 
@@ -85,7 +86,8 @@ def service_create(context, data_dict):
     app_name_exist = session.query(App).filter(App.slug_name == data_dict['slug_name']).first() != None
     if app_name_exist:
         central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
-        local_logger.info("%s %s %s" % (context['user'], "service_create", "Service name: %s exists"%data_dict['app_name']))
+        local_logger.info(
+            "%s %s %s" % (context['user'], "service_create", "Service name: %s exists" % data_dict['app_name']))
         return dict(success=False, error="Service name exists")
     groups = filter(lambda x: x.state == 'active' and x.is_organization, context['userobj'].get_groups())
     if data_dict['organization'] not in map(lambda x: x.name, groups):
@@ -101,8 +103,8 @@ def service_create(context, data_dict):
             logic.get_action('package_show')(context, dict(id=dataset))
         except:
             central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
-            local_logger.info("%s %s %s" % (context['user'], "service_create", "Dataset %s not found"%dataset))
-            return dict(success=False, error="Dataset %s not found"%dataset)
+            local_logger.info("%s %s %s" % (context['user'], "service_create", "Dataset %s not found" % dataset))
+            return dict(success=False, error="Dataset %s not found" % dataset)
     app_id = _types.make_uuid()
     type = mimetypes.guess_type(data_dict['avatar'].filename)
     if type[0] != None and type[0].find('image') >= 0:
@@ -147,7 +149,8 @@ def service_create(context, data_dict):
         session.delete(app)
         session.commit()
         central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
-        local_logger.info("%s %s %s" % (context['user'], "service_create", 'Creating application is not success: ' + str(ex.message)))
+        local_logger.info(
+            "%s %s %s" % (context['user'], "service_create", 'Creating application is not success: ' + str(ex.message)))
         return dict(success=False, error='Creating application is not success: ' + str(ex.message))
 
     # success
@@ -182,13 +185,14 @@ def service_create(context, data_dict):
         session.commit()
         # logger.error("Failed to index solr %s" % e.message)
         central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])
-        local_logger.info("%s %s %s" % (context['user'], "service_create",  'Failed to index app to Solr %s' % e.message))
+        local_logger.info(
+            "%s %s %s" % (context['user'], "service_create", 'Failed to index app to Solr %s' % e.message))
         return {'success': False, 'error': 'Failed to index app to Solr %s' % e.message}
 
     session.commit()
     # logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
     central_logger.info("user=%s&action=service_create&error_code=0" % context['user'])
-    local_logger.info("%s %s %s" % (context['user'], "service_create", "App %s create success")%app_id)
+    local_logger.info("%s %s %s" % (context['user'], "service_create", "App %s create success") % app_id)
     return dict(success=True, code_id=code_id, app_id=app_id)
 
 
@@ -352,6 +356,25 @@ def storeOutput(file, call_id):
                   files=dict(file=output_file.read())
                   )
     return path
+
+
+def report_create(context, data_dict):
+    session = context['session']
+    user = context['user']
+    app_id = data_dict['app_id']
+    call_id = data_dict['call_id']
+    ins = AppTestReport(app_id, call_id)
+    try:
+        session.add(ins)
+        session.commit()
+    except:
+        session.rollback()
+        central_logger.info("user=%s&action=create_report&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "create_report", "False"))
+        return dict(success=False, error="False")
+    central_logger.info("user=%s&action=create_report&error_code=0" % context['user'])
+    local_logger.info("%s %s %s" % (context['user'], "create_report", "Success"))
+    return dict(success=True)
 
 
 public_functions = dict(service_create=service_create,

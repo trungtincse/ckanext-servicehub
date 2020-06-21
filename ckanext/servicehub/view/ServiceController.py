@@ -18,7 +18,7 @@ import ckan.logic as logic
 import ckan.model as model
 from ckanext.servicehub.action.create import build_code
 from ckan.common import OrderedDict, c, g, config, request, _
-from flask import Blueprint, jsonify, send_file
+from flask import Blueprint, jsonify, redirect
 from flask.views import MethodView
 
 from ckanext.servicehub.main.config_and_common import ServiceLanguage
@@ -207,8 +207,55 @@ def code(id):
         base.abort(404, _(u'Service not found'))
 
     return base.render('service/code.html', dict(ins=service_ins))
+@service.route('/<string:id>/report', methods=['GET'])
+def report(id):
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    try:
+        _check_access('report_show', context, dict(app_id=id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
+    service_ins = get_action(u'service_show')(context, dict(id=id))
+    if service_ins.get('error', '') != '':
+        base.abort(404, _(u'Service not found'))
 
+    return base.render('service/report.html', dict(ins=service_ins))
+@service.route('/<app_id>/report/action/<action_name>/<call_id>', methods=['POST'])
+def report_action(app_id,action_name,call_id):
 
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    data_dict = clean_dict(
+        dict_fns.unflatten(tuplize_dict(parse_params(request.form))))
+    try:
+        _check_access('report_show', context, dict(app_id=app_id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
+    service_ins = get_action(u'service_show')(context, dict(id=app_id))
+    if service_ins.get('error', '') != '':
+        base.abort(404, _(u'Service not found'))
+
+    session=context[u'session']
+    report= session.query(AppTestReport).filter(AppTestReport.app_id==app_id and AppTestReport.call_id==call_id).first()
+    if report == None:
+        return h.redirect_to(h.url_for('service.report',id=app_id))
+    else:
+        try:
+            report.note=data_dict['note'] or report.note
+            session.add(report)
+            session.commit()
+            return h.redirect_to(h.url_for('service.report',id=app_id))
+        except:
+            session.rollback()
+            return h.redirect_to(h.url_for('service.report',id=app_id))
 @service.route('/<string:id>/code/ajax', methods=['GET'])
 def code_ajax(id):
     extra_vars = {}
@@ -231,6 +278,29 @@ def code_ajax(id):
                       '/service/%s/code/%s' % (id, code.code_id), ], code_ins_lst)
     return jsonify(code_lst)
 
+@service.route('/<string:id>/report/ajax', methods=['GET'])
+def report_ajax(id):
+    extra_vars = {}
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    user=context['user']
+    try:
+        _check_access('report_show', context, dict(app_id=id))
+    except Exception as ex:
+        base.abort(404, _(u'Page not found'))
+    service_ins = get_action(u'service_show')(context, dict(id=id))
+    session = context['session']
+    if service_ins.get('error', '') != '':
+        base.abort(404, _(u'Service not found'))
+    report_ins_lst = session.query(App,Call,AppTestReport).join(Call).join(AppTestReport,AppTestReport.call_id==Call.call_id).filter(App.app_id==id).all()
+    report_lst = map(
+        lambda report: [report[1].call_id,report[1].user_id,report[1].created_at,report[2].note
+                        ,user==report[1].user_id or authz.is_sysadmin(user)
+                        ], report_ins_lst)
+    return jsonify(report_lst)
 
 @service.route('/<string:id>/code/<string:code_id>', methods=['GET'])
 def get_code(id, code_id):

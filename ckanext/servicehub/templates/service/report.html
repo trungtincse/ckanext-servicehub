@@ -1,0 +1,137 @@
+{% extends "page.html" %}
+{% import 'macros/form.html' as form %}
+
+
+
+{% block breadcrumb_content %}
+    <li>{% link_for _('Applications'), named_route='service.index' %}</li>
+    <li>{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
+    <li class="active">{% link_for "Test Report", named_route='service.report', id=ins.app_id %}</li>
+{% endblock %}
+
+
+{% block content_action %}{% endblock %}
+
+
+{% block primary %}
+    <div class="primary col-md-12" style="padding-left: 0px;padding-right: 0px">
+        <article class="module">
+            <header class="module-content page-header">
+                <div class="content_action md-mr-10 md-mb-10">
+                    <a class="btn btn-default" href="/service/{{ ins.app_id }}"><i class="fa fa-arrow-left"></i> Back to
+                        app</a>
+                </div>
+            </header>
+            <div class="module-content" style="padding-left: 15px;padding-right: 15px">
+                <div class="md-ml-12">
+                    <table id="myDataTable" class="table table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Call Id</th>
+                            <th>Call User</th>
+                            <th>Created At</th>
+                            <th>Note</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </article>
+    </div>
+    <div class="modal fade" id="note-modal" tabindex="-1" role="dialog" aria-labelledby="note-modal-label"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block secondary %}{% endblock %}
+
+
+
+{% block scripts %}
+    {{ super() }}
+    <style>
+        label:after {
+            content: "";
+        }
+    </style>
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function (event) {
+            var oTable = $('#myDataTable').dataTable({
+                "ajax": {
+                    "url": "/service/{{ins.app_id}}/report/ajax",
+                    "type": "GET",
+                    "dataSrc": ""
+                },
+                // "sPaginationType": "full_numbers",
+                "aoColumns": [
+                    {
+                        "sWidth": "20%",
+                        "mData": 0
+                    }, {
+                        "sWidth": "20%",
+                        "mData": 1
+                    },
+                    {
+                        "sWidth": "20%",
+                        "mData": 2
+                    },
+                    {
+                        "sWidth": "20%",
+                        "mData": 3
+                    },
+                    {
+                        "mData": 0,
+                        "sWidth": "20%",
+                        "bSortable": false,
+                        "mRender": function (data, type, full) {
+                            return `
+          <a class="btn ${full[4] ? "btn-primary" : "btn-default"} btn-sm" onclick="return note(${full[4]},'{{ ins.app_id }}','${data}')">Note</a>
+          <a class="btn btn-info btn-sm" href="/call/read/${data}">Detail</a>
+          `;
+                        }
+                    }]
+            });
+
+        });
+
+        function note(hasPermisstion, app_id, call_id) {
+            if(!hasPermisstion) return;
+            $("#note-modal .modal-dialog").html(`
+            <div class="modal-content">
+                <div class="modal-body">
+                    <form id="note-form" class="dataset-form" method="post" data-module="basic-form"
+                          enctype="multipart/form-data" action="/service/${app_id}/report/action/note/${call_id}">
+                        <div class="form-group control-full">
+                            <label class="control-label" for="field-description">Note</label>
+                            <div class="controls editor">
+                <textarea id="field-description" name="note" cols="20" rows="5"
+                          placeholder="A little information about my service..."
+                          class="form-control"></textarea>
+                                <span class="editor-info-block">You can use <a href="#markdown" title=""
+                                                                               data-target="popover"
+                                                                               data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='text-muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>"
+                                                                               data-html="true"
+                                                                               data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" form="note-form">Save changes</button>
+                </div>
+            </div>
+            `);
+            return $("#note-modal").modal('toggle');
+        }
+    </script>
+{% endblock %}

@@ -82,3 +82,20 @@ def call_create(context, data_dict):
     if app.app_status == 'STOP':
         return {'success': False,
                 'msg': _('Application %s is not available') % app.app_name}
+def report_create(context, data_dict):
+    session = context['session']
+    user = context['user']
+    app_id=data_dict['app_id']
+    # call_id=data_dict['call_id']
+    app_ins = session.query(App).filter(App.app_status == 'DEBUG' and App.app_id == app_id).first()
+    print app_ins
+    if app_ins==None:
+        return {'success': False,
+                'msg': _('Can not create report')}
+    has_permission = authz.has_user_permission_for_group_or_org(app_ins.organization, user, 'run_service_staging')
+    print has_permission
+    if has_permission:
+        return {'success': True}
+    else:
+        return {'success': False,
+                'msg': _('User %s not have permission to create report') % user}

@@ -3,7 +3,7 @@ import os
 
 import requests
 from werkzeug.datastructures import FileStorage
-
+import ckan.authz as authz
 from ckan.controllers.package import PackageController
 from ckan.lib import helpers
 from flask import Blueprint, Response, jsonify, send_file
@@ -16,7 +16,7 @@ from ckan.common import g, c, request, config, _
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
 import urllib
-
+from ckanext.servicehub.action.create import report_create
 _check_access = logic.check_access
 get_action = logic.get_action
 NotFound = logic.NotFound
@@ -85,7 +85,12 @@ def create(app_id):
     data_dict["app_id"] = app_id
 
     result_ins = get_action(u'call_create')(context, data_dict)
-    # get_action(u'push_request_call')(context, dict(call_id=result_ins['id']))
+    if result_ins.get('success',True):
+        try:
+            _check_access('report_create',context,dict(app_id=app_id))
+            report_create(context,dict(app_id=app_id,call_id=result_ins['call_id']))
+        except:
+            pass
     return jsonify(result_ins)
 
 

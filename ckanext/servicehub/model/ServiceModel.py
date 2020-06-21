@@ -214,3 +214,13 @@ class AppRelatedDataset(Base):
             'package_id': self.package_id,
             'package_name': model.Package.get(self.package_id).name
         }
+
+class AppTestReport(Base):
+    __tablename__ = 'app_test_report'
+    app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id', onupdate="CASCADE", ondelete="CASCADE"),primary_key=True)
+    call_id = Column(types.UnicodeText, ForeignKey('app_call.call_id', onupdate="CASCADE", ondelete="CASCADE"),primary_key=True)
+    note = Column(types.UnicodeText,default=u'')
+
+    def __init__(self, app_id, call_id):
+        self.app_id = app_id
+        self.call_id = call_id

@@ -6,7 +6,7 @@
 {% block breadcrumb_content %}
     <li>{% link_for _('Applications'), named_route='service.index' %}</li>
     <li>{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
-    <li class="active">{% link_for "Code Manager", named_route='service.code', id=ins.app_id %}</li>
+    <li class="active">{% link_for "Code Management", named_route='service.code', id=ins.app_id %}</li>
 {% endblock %}
 
 

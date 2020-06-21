@@ -60,3 +60,20 @@ def service_monitor(context, data_dict=None):
     else :
         return {'success': False,
                 'msg': _('User %s not has permission to update application')%user}
+def report_show(context, data_dict):
+    model = context['model']
+    session = context['session']
+    user = context['user']
+    service = session.query(App).filter(App.app_id == data_dict['app_id']).first()
+    print service
+    if service == None:
+        return {'success': False,
+                'msg': _('Application not found')}
+    else:
+        has_permission=authz.has_user_permission_for_group_or_org(service.organization,user,'show_report')
+        print has_permission
+        if has_permission:
+            return {'success': True}
+        else:
+            return {'success': False,
+                    'msg': _('User %s not have permission to read this page') % user}

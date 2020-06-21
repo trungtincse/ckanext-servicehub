@@ -4,14 +4,13 @@ from pprint import pprint
 
 import requests
 
-from ckan.common import request
+from ckan.common import request, config
 from ckan.lib.search.common import SearchIndexError, SearchError
 
 log = logging.getLogger('ckan.logic')
 
-# solr_url = config.get('ckan.servicehub.app_solr_url')
-solr_url = 'http://localhost:8984/solr/ckanproject'
-
+solr_url = config.get('ckan.servicehub.prj_solr_url')
+# solr_url = 'http://localhost:8984/solr/ckanproject'
 
 def index_project(project):
     url = solr_url + '/update/json/docs?commit=true'

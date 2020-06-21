@@ -1,6 +1,8 @@
 import random
 import requests
 import logging
+
+from ckanext.servicehub.action import app_solr
 from ckanext.servicehub.model.ServiceModel import App, Call
 from werkzeug.datastructures import FileStorage
 
@@ -31,6 +33,7 @@ def service_delete(context, data_dict):
     session = context['session']
     try:
         session.query(App).filter(App.app_id == app_id).delete()
+        app_solr.delete_app(app_id)
         session.commit()
     except:
         central_logger.info("user=%s&action=service_delete&error_code=1" % context['user'])

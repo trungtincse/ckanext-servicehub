@@ -1,6 +1,6 @@
 import logging
 
-from ckanext.servicehub.action import app_solr_action
+from ckanext.servicehub.action import app_solr
 from ckanext.servicehub.view import ServiceController, CallController, \
     PackageController, ProjectController,AdminController
 import ckan.plugins as plugins
@@ -53,7 +53,7 @@ class ServicehubPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
         all_function.update(show.public_functions)
         all_function.update(create.public_functions)
         all_function.update(delete.public_functions)
-        all_function.update(app_solr_action.public_functions)
+        all_function.update(app_solr.public_functions)
         return all_function
 
     def create_package_schema(self):

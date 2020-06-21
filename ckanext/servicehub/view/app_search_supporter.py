@@ -7,7 +7,7 @@ import ckan.lib.helpers as h
 import ckan.logic as logic
 from ckan.common import c, request, _
 from ckan.lib.search import SearchError
-from ckanext.servicehub.action import app_solr_action
+from ckanext.servicehub.action import app_solr
 from ckanext.servicehub.model.ServiceModel import *
 from ckanext.servicehub.view import solr_common
 
@@ -26,7 +26,7 @@ parse_params = logic.parse_params
 
 def index():
     try:
-        search_result = app_solr_action.query_app(
+        search_result = app_solr.query_app(
             text=solr_common.query(),
             organization=request.params.get('organization'),
             categories=request.params.getlist('category'),
@@ -43,17 +43,17 @@ def index():
             'selected_filtered_fields': solr_common.selected_filtered_fields(),
             'selected_filtered_fields_grouped': solr_common.selected_filtered_fields_grouped(),
             'page': h.Page(collection=[]),
-            'search_facets': app_solr_action.empty_search_facets(),
+            'search_facets': app_solr.empty_search_facets(),
             'remove_field': remove_field
         })
 
     page = h.Page(
-        collection=app_solr_action.docs(search_result),
+        collection=app_solr.docs(search_result),
         page=h.get_page_number(request.params),
-        item_count=len(app_solr_action.docs(search_result))
+        item_count=len(app_solr.docs(search_result))
     )
 
-    c.search_facets = app_solr_action.ckan_search_facets(search_result)
+    c.search_facets = app_solr.ckan_search_facets(search_result)
     c.search_facets_limits = False
     c.remove_url_param = solr_common.cuong_remove_url_param # override
     return base.render('service/search.html', {
@@ -64,7 +64,7 @@ def index():
         'selected_filtered_fields': solr_common.selected_filtered_fields(),
         'selected_filtered_fields_grouped': solr_common.selected_filtered_fields_grouped(),
         'page': page,
-        'search_facets': app_solr_action.ckan_search_facets(search_result),
+        'search_facets': app_solr.ckan_search_facets(search_result),
         'remove_field': remove_field
     })
 

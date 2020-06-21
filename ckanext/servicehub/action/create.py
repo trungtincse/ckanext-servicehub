@@ -29,7 +29,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from ckanext.servicehub.action.show import service_by_slug_show
 
-from ckanext.servicehub.action import get_item_as_list, app_solr_action
+from ckanext.servicehub.action import get_item_as_list, app_solr
 
 # http_session = requests.Session()
 # retry = Retry(connect=3, backoff_factor=0.5)
@@ -177,7 +177,7 @@ def service_create(context, data_dict):
         session.add(ins)
 
     try:
-        app_solr_action.index_app({}, app, categories, datasets)
+        app_solr.index_app(app, categories, datasets)
     except Exception as e:
         session.delete(app)  # do app đã commit từ trước
         session.delete_all(categories)

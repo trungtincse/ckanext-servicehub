@@ -1,0 +1,63 @@
+{#
+Displays a list of datasets.
+
+packages       - A list of packages to display.
+list_class     - The class name for the list item.
+item_class     - The class name to use on each item.
+hide_resources - If true hides the resources (default: false).
+banner         - If true displays a popular banner (default: false).
+truncate       - The length to trucate the description to (default: 180)
+truncate_title - The length to truncate the title to (default: 80).
+
+Example:
+
+  {% snippet 'snippets/app_list.html', services=c.apps %}
+
+#}
+{% block project_list %}
+  <ul class="media-grid" data-module="media-grid">
+    {% for project in projects %}
+      <li class="media-item">
+        <a href="/project/read/{{ project.id }}">
+          <div class="card">
+            <img src="{{ project.header_image }}" alt="Avatar" style="width:100%">
+            <div class="card-block row">
+              <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+                <h3><b>Project: {{ project.project_name }}</b></h3>
+                <h5><b>Organization: {{ project.organization_name }}</b></h5>
+                <p>Written by: {{ project.name }} </p>
+                <p>Contact: {{ project.email }} </p>
+              </div>
+            </div>
+            <hr style="margin-bottom: 0px;margin-top:0px ">
+            <div class="card-block row">
+              <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+                <h4><b>Project category: </b></h4>
+                {% for category in project.category %}
+                  <label class="label label-primary">{{ category }}</label>
+                {% endfor %}
+              </div>
+            </div>
+            <hr style="margin-bottom: 0px;margin-top:0px ">
+            <div class="card-block row">
+              <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
+                <h4><b>Project Tags: </b></h4>
+                {% for tag in project.tags %}
+                  <label class="label label-primary">{{ tag }}</label>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+<style>
+  label:after {
+    content: "";
+  }
+</style>
+
+{% endblock %}

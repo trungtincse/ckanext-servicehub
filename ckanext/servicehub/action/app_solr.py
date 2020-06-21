@@ -1,24 +1,19 @@
 import json
-import os
 import logging
-from pprint import pprint
 
-import pysolr
-import pytz
 import requests
-from sqlalchemy import inspect
-from ckan.common import OrderedDict, c, g, config, request, _
-import ckan.logic as logic
+
+from ckan.common import config, request
 from ckan.lib.search.common import SearchIndexError, SearchError
 from ckanext.servicehub.main.config_and_common import ServiceLanguage
-from ckanext.servicehub.model.ServiceModel import App, AppCategory, AppRelatedDataset
+from ckanext.servicehub.model.ServiceModel import AppCategory, AppRelatedDataset
 
 log = logging.getLogger('ckan.logic')
 
 solr_url = config.get('ckan.servicehub.app_solr_url')
 
 
-def index_app(context, app, categories, datasets):
+def index_app(app, categories, datasets):
     """
     :param app: App model
     :return:
@@ -44,13 +39,15 @@ def index_app(context, app, categories, datasets):
         raise SearchIndexError(e)
 
 
-def app_index_delete(context, data_dict):
+def delete_app(data_dict):
     r = requests.post(solr_url + '/update?commit=true', json={
         'delete': {
             'id': data_dict['app_id']
         }
-    })
-    # print(r.json())
+    }).json()
+
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
 
 
 def query_app(text, categories, language, organization, sort):
@@ -59,23 +56,20 @@ def query_app(text, categories, language, organization, sort):
     :param categories: list[str]
     :param language: str
     :param organization: str
+    :param sort: find values in ServiceController
     :return:
     """
     filters = []
 
     if categories:
         for cate in categories:
-            filters.append('categories:"%s"' % cate)  # AND
+            filters.append('category:"%s"' % cate)  # AND
 
     if language:
         filters.append('language_ci:"%s"' % language) # search case insensitive field
 
     if organization:
         filters.append('organization:"%s"' % organization)
-
-    # if related_datasets:
-    #     for dataset in related_datasets:
-    #         filters.append('related_datasets:"%s"' % dataset)
 
     query = {
         'query': text,
@@ -156,6 +150,6 @@ def language_display_name(formal_language_val):
 
 public_functions = {
     # 'app_index': app_index,
-    'app_index_delete': app_index_delete,
+    'app_index_delete': delete_app,
     # 'app_search': app_search,
 }

@@ -1,133 +1,91 @@
 import json
-import os
 import logging
+from pprint import pprint
 
-import pysolr
-import pytz
 import requests
-from sqlalchemy import inspect
-from ckan.common import OrderedDict, c, g, config, request, _
-import ckan.logic as logic
-from ckan.lib.search.common import SearchIndexError
-from ckanext.servicehub.model.ServiceModel import App
+
+from ckan.common import request
+from ckan.lib.search.common import SearchIndexError, SearchError
 
 log = logging.getLogger('ckan.logic')
 
-solr_url = config.get('ckan.servicehub.app_solr_url')
+# solr_url = config.get('ckan.servicehub.app_solr_url')
+solr_url = 'http://localhost:8984/solr/ckanproject'
 
 
-def index_project(context, app):
-    """
-    :param app: App model
-    :return:
-    """
-    app = app.as_dict()
-
-    app['created_at'] = datetime_to_utc_string(app['created_at'])
-    app['data_dict'] = json.dumps(app, ensure_ascii=False) # serialize first
-
-    # change now
-    app['category'] = [cate['tag_name'] for cate in app['category']]
-    app['dataset_related'] = [dataset['package_id'] for dataset in app['dataset_related']]
+def index_project(project):
     url = solr_url + '/update/json/docs?commit=true'
     try:
-        r = requests.post(url, json=app).json()
-        if r['responseHeader']['status'] != 0:
-            print('Index error: ' + json.dumps(r['error']))
+        r = requests.post(url, json=project).json()
     except Exception as e:
         print('Failed to do request to Solr server')
         raise SearchIndexError(e)
 
-
-def datetime_to_utc_string(dt):
-    # timezone = pytz.timezone('Asia/Ho_Chi_Minh')
-    # return timezone.normalize(timezone.localize(dt, is_dst=True)).isoformat()
-    return dt.isoformat()
+    if r['responseHeader']['status'] != 0:
+        raise SearchIndexError(r['error'])
 
 
-def app_index_delete(context, data_dict):
-    r = requests.post(solr_url + '/update?commit=true', json={
-        'delete': {
-            'id': data_dict['app_id']
-        }
-    })
-    # print(r.json())
-
-
-# @logic.side_effect_free
-# def app_search(context, data_dict):
-#
-#     return query_app(
-#         text=data_dict.get('text'),
-#         categories=data_dict.get('categories'),
-#         language=data_dict.get('language'),
-#         organizations=data_dict.get('organizations'),
-#         # related_datasets=data_dict.get('related_datasets'),
-#     )
-
-
-def query_project(text):
-    """
-    :param text: str: text in the search box
-    :param categories: list[str]: AND
-    :param language: str
-    :param organizations: list[str]: OR
-    :param related_datasets: list[str]: AND
-    :return:
-    """
-    text = text or "*:*"  # avoid None
-
+def query_project(text, organization_name, categories, tags, sort, just_show_active):
     filters = []
+
+    if organization_name:
+        filters.append('organization_name:"%s"' % organization_name)
 
     if categories:
         for cate in categories:
-            filters.append('categories:"%s"' % cate)  # AND
+            filters.append('category:"%s"' % cate)  # AND
 
-    if language:
-        filters.append('language_ci:"%s"' % language) # search case insensitive field
+    if tags:
+        for tag in tags:
+            filters.append('tags:"%s"' % tag)
 
-    if organizations:
-        v = ' OR '.join('"%s"' % org for org in organizations)
-        filters.append('organization:(%s)' % v)
-
-    if related_datasets:
-        for dataset in related_datasets:
-            filters.append('related_datasets:"%s"' % dataset)
+    if just_show_active:
+        filters.append('active:"true"')
 
     query = {
         'query': text,
         'filter': filters,
-        'facet': query_facets()
+        'facet': query_facets,
+        'sort': sort
     }
 
-
     r = requests.get(solr_url + '/query', json=query).json()
-    # recover docs: deserialize 'data_dict' key
-    recovered_docs = []
-    for ori_doc in r['response']['docs']:
-        new_doc = json.loads(ori_doc['data_dict'])
-        recovered_docs.append(new_doc)
-    r['response']['docs'] = recovered_docs
+    if r.get('error'):
+        raise SearchError(r['error']['msg'])
+
     return r
 
 
-facet_fields = ['organization', 'language', 'category']
-
-
-def query_facets():
-    facets = {}
-    for field in facet_fields:
-        facets[field] = {
-            'type': 'terms',
-            'field': field,
-            'limit': 5,
-            'mincount': 1
+def activate_project(project_id):
+    r = requests.post(solr_url + '/update?commit=true', json=[
+        {
+            'id': project_id,
+            'active': {'set': True}
         }
-    return facets
+    ]).json()
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
 
 
-def docs(search_result):
-    return search_result['response']['docs']
+def delete_project(project_id):
+    r = requests.post(solr_url + '/update?commit=true', json={
+        'delete': {
+            'id': project_id
+        }
+    }).json()
+
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
+
+
+facet_fields = ['organization_name', 'category', 'tags']
+
+
+query_facets = {field: {
+    'type': 'terms',
+    'field': field,
+    'limit': 5,
+    'mincount': 1} for field in facet_fields}
 
 
 def ckan_search_facets(solr_response):
@@ -135,13 +93,7 @@ def ckan_search_facets(solr_response):
     facets = solr_response['facets']
     if facets['count'] == 0:
         # solr will not return any keys => fake empty response
-        result = {}
-        for field in facet_fields:
-            result[field] = {
-                'title': field,
-                'items': []
-            }
-        return result
+        return empty_search_facets
     else:
         result = {}
         for field in facet_fields:
@@ -149,7 +101,7 @@ def ckan_search_facets(solr_response):
             for bucket in facets[field]['buckets']:
                 item = {
                     'name': bucket['val'],
-                    'display_name': bucket['val'].title() if field == 'language' else bucket['val'],
+                    'display_name': bucket['val'],
                     'count': bucket['count'],
                     'active': bucket['val'] in request.params.getlist(field)
                 }
@@ -162,9 +114,4 @@ def ckan_search_facets(solr_response):
         return result
 
 
-
-public_functions = {
-    # 'app_index': app_index,
-    'app_index_delete': app_index_delete,
-    # 'app_search': app_search,
-}
+empty_search_facets = {field: {'title': field, 'items': []} for field in facet_fields}

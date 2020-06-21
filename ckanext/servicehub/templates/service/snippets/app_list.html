@@ -24,7 +24,7 @@ Example:
           <div class="card-block row">
             <div class="col-12 md-ml-5 md-mr-5 md-mb-20">
               <h3><b>{{ service.app_name }}</b></h3>
-            <h5><b>Organization: {{ service.organization }}</b></h5>
+              <h5><b>Organization: {{ service.organization }}</b></h5>
               {% if service.description %}
                 <p>{{ service.description|truncate(100) }}</p>
               {% else %}
@@ -51,7 +51,6 @@ Example:
             </div>
           </div>
         </div>
-
       </a>
     </li>
   {% endfor %}

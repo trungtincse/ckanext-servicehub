@@ -4,20 +4,24 @@
 {% block subtitle %}{{ _("Apps") }}{% endblock %}
 
 {% block breadcrumb_content %}
-<li class="active">{{ h.nav_link(_('Apps'), named_route='appsearch.index', highlight_actions = 'new index') }}</li>
+<li class="active">{{ h.nav_link(_('Projects'), named_route='project.index', highlight_actions = 'new index') }}</li>
 {% endblock %}
 
 {% block primary_content %}
   <section class="module">
     <div class="module-content">
       {% block page_primary_action %}
-        {% if h.check_access('package_create') %}
+        {# {% if h.check_access('project.create') %}
           <div class="page_primary_action">
-            {% if h.check_access('service_create') %}
+            {% if h.check_access('project.create') %}
               {% link_for _('Submit your data project'), named_route='project.new', class_='btn btn-primary', icon='plus-square' %}
             {% endif %}
           </div>
-        {% endif %}
+        {% endif %} #}
+
+      <div class="page_primary_action">
+        {% link_for _('Submit your data project'), named_route='project.new', class_='btn btn-primary', icon='plus-square' %}
+      </div>
       {% endblock %}
       {% block form %}
         {% set facets = {
@@ -26,18 +30,10 @@
           'titles': facet_titles,
           'remove_field': remove_field }
         %}
-        {% set sorting = [
-          (_('Relevance'), 'score desc, created_at desc'),
-          (_('Name Ascending'), 'app_name asc'),
-          (_('Name Descending'), 'app_name desc') ]
-        %}
-<!--      <p>facets.search {{facets.search}}</p>-->
-<!--      <p>facets.titles {{facets.titles}}</p>-->
-<!--      <p>facets.fields {{facets.fields}}</p>-->
-      {% snippet 'snippets/search_form.html', form_id='app-search-form', placeholder=_('Search apps...'), type='app', facets=facets, query=query, sorting=sorting, sorting_selected=sort_by_selected, fields=selected_filtered_fields, count=page.item_count, show_empty=request.params, no_bottom_border=true if page.items %}
+      {% snippet 'snippets/search_form.html', form_id='project-search-form', placeholder=_('Search apps...'), type='project', facets=facets, query=query, sorting=sorting, sorting_selected=sort_by_selected, fields=selected_filtered_fields, count=page.item_count, show_empty=request.params, no_bottom_border=true if page.items %}
       {% endblock %}
       {% block app_search_results_list %}
-      {{ h.snippet('service/snippets/app_list.html', services=page.items) }}
+      {{ h.snippet('project/snippets/project_list.html', projects=page.items) }}
       {% endblock %}
     </div>
 
@@ -75,8 +71,6 @@
 <div class="filters">
   <div>
     {% for facet in facet_titles %}
-<!--      <p>facet: {{facet}}</p>-->
-<!--      <p>items: {{search_facets[facet]['items']}}</p>-->
       {% set items=search_facets[facet]['items'] %}
       {{ h.snippet('service/snippets/facet_list.html', title=facet_titles[facet], name=facet, items=items) }}
     {% endfor %}

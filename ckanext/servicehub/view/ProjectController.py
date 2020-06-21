@@ -13,11 +13,14 @@ import ckan.lib.base as base
 from ckan import model, logic
 from ckan.common import c, g, request, config, _
 import ckan.lib.navl.dictization_functions as dict_fns
+from ckan.lib.search import SearchError
+import ckan.lib.helpers as h
 from ckan.logic import clean_dict, tuplize_dict, parse_params
 from ckanext.servicehub.action import project_solr
 from ckanext.servicehub.error.exception import CKANException
 from ckanext.servicehub.model.ProjectModel import Project, ProjectCategory, ProjectTag, ProjectDatasetUsed, \
     ProjectAppUsed
+from ckanext.servicehub.view import solr_common
 
 get_action = logic.get_action
 NotFound = logic.NotFound
@@ -158,8 +161,11 @@ class ProjectCreateView(MethodView):
                 'id': ins.id,
                 'project_name': ins.project_name,
                 'name': ins.name,
+                'email': ins.email,
                 'organization_name': ins.organization_name,
                 'o_description': ins.o_description,
+                'o_avatar_image': ins.o_avatar_image,
+                'header_image': ins.header_image,
                 'prj_summary': ins.prj_summary,
                 'prj_goal': ins.prj_goal,
                 'draft': ins.draft,
@@ -263,92 +269,49 @@ project_blueprint.add_url_rule(
 
 @project_blueprint.route('', methods=['GET'])
 def index():
-    context = _prepare()
-    session = context['session']
-    instances = session.query(Project).all()
-    additions = []
-    extra_vars = {}
-    for ins in instances:
-        id = ins.id
-        adds = {}
-        adds['category'] = session.query(ProjectCategory).filter(ProjectCategory.project_id == id).all()
-        adds['tags'] = session.query(ProjectTag).filter(ProjectTag.project_id == id).all()
-        additions.append(adds)
-    extra_vars['projects'] = zip(instances, additions)
-    return base.render('project/index.html', extra_vars=extra_vars)
-
-
-@project_blueprint.route('/search', methods=['GET'])
-def search():
-    try:
-        search_result = project_solr.query_app(
-            text=query(),
-            organization=request.params.get('organization'),
-            categories=request.params.getlist('categories'),
-            language=request.params.get('language'),
-            sort=request.params.get('sort', 'score asc, created_at desc')
-        )
-    except SearchError as e:
-        c.query_error = True
-        return base.render('service/search.html', {
-            'query': request.params.get('q', ''),
-            'sorting': _sorting,
-            'sort_by_selected': request.params.get('sort', 'score desc, created_at desc'),
-            'facet_titles': facet_titles(),
-            'selected_filtered_fields': selected_filtered_fields(),
-            'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
-            'page': h.Page(collection=[]),
-            'search_facets': app_solr_action.empty_search_facets(),
-            'remove_field': remove_field
-        })
-
-    page = h.Page(
-        collection=app_solr_action.docs(search_result),
-        page=h.get_page_number(request.params),
-        item_count=len(app_solr_action.docs(search_result))
+    search_result = project_solr.query_project(
+        text=solr_common.query(),
+        organization_name=request.params.get('organization_name'),
+        categories=request.params.getlist('category'),
+        tags=request.params.getlist('tags'),
+        sort=request.params.get('sort', 'score asc, project_name asc')
     )
 
-    c.search_facets = app_solr_action.ckan_search_facets(search_result)
+    page = h.Page(
+        collection=search_result['response']['docs'],
+        page=h.get_page_number(request.params),
+        item_count=len(search_result['response']['docs'])
+    )
+
+    c.search_facets = project_solr.ckan_search_facets(search_result)
     c.search_facets_limits = False
-    c.remove_url_param = cuong_remove_url_param # override
+    c.remove_url_param = solr_common.cuong_remove_url_param # override
     return base.render('project/search.html', {
         'query': request.params.get('q', ''),
         'sorting': _sorting,
-        'sort_by_selected': request.params.get('sort', 'score desc, created_at desc'),
-        'facet_titles': facet_titles(),
-        'selected_filtered_fields': selected_filtered_fields(),
-        'selected_filtered_fields_grouped': selected_filtered_fields_grouped(),
+        'sort_by_selected': request.params.get('sort', 'score desc, project_name asc'),
+        'facet_titles': _facet_titles,
+        'selected_filtered_fields': solr_common.selected_filtered_fields(),
+        'selected_filtered_fields_grouped': solr_common.selected_filtered_fields_grouped(),
         'page': page,
-        'search_facets': app_solr_action.ckan_search_facets(search_result),
+        'search_facets': project_solr.ckan_search_facets(search_result),
         'remove_field': remove_field
     })
 
 
+_facet_titles = {
+    'organization_name': 'Organizations',
+    'category': 'Categories',
+    'tags': 'Tags'
+}
+
+
 _sorting = [
-  ('Relevance', 'score desc, created_at desc'),
-  ('App Name Ascending', 'app_name asc'),
-  ('App Name Descending', 'app_name desc')
+  ('Relevance', 'score desc, project_name asc'),
+  ('Project Name Ascending', 'project_name asc'),
+  ('Project Name Descending', 'project_name desc')
 ]
 
 
-def query():
-    q = request.params.get('q')
-    if q:
-        return 'text:(%s)' % clean_query(q)
-    else:
-        return '*:*'
-
-
-# https://docs.datastax.com/en/dse/5.1/dse-dev/datastax_enterprise/search/siQuerySyntax.html#Escapingcharactersinasolr_query
-_bad_chars = {'+', '-', '&&', '||', '!', '(', ')', '"', '~', '*', '?', ':', '^',  '{', '}', '\\', '/'}
-_bad_chars = {}
-
-
-def clean_query(q):
-    for char in _bad_chars:
-        q = q.replace(char, '')
-    return q
-
-
-def remove_char(s, char):
-    return s.replace(char, '')
+def remove_field(key, value=None, replace=None):
+    return h.remove_url_param(key, value=value, replace=replace, controller='project', action='index')

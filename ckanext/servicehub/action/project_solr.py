@@ -1,10 +1,11 @@
+import json
 import logging
+from pprint import pprint
 
 import requests
 
 from ckan.common import request
-from ckan.lib.search.common import SearchIndexError
-
+from ckan.lib.search.common import SearchIndexError, SearchError
 
 log = logging.getLogger('ckan.logic')
 
@@ -24,24 +25,42 @@ def index_project(project):
         raise SearchIndexError(r['error'])
 
 
+def query_project(text, organization_name, categories, tags, sort):
+    filters = []
 
-facet_fields = ['organization', 'language', 'category']
+    if organization_name:
+        filters.append('organization_name:"%s"' % organization_name)
+
+    if categories:
+        for cate in categories:
+            filters.append('category:"%s"' % cate)  # AND
+
+    if tags:
+        for tag in tags:
+            filters.append('tags:"%s"' % tag)
+
+    query = {
+        'query': text,
+        'filter': filters,
+        'facet': query_facets,
+        'sort': sort
+    }
+
+    r = requests.get(solr_url + '/query', json=query).json()
+    if r.get('error'):
+        raise SearchError(r['error']['msg'])
+
+    return r
 
 
-def query_facets():
-    facets = {}
-    for field in facet_fields:
-        facets[field] = {
-            'type': 'terms',
-            'field': field,
-            'limit': 5,
-            'mincount': 1
-        }
-    return facets
+facet_fields = ['organization_name', 'category', 'tags']
 
 
-def docs(search_result):
-    return search_result['response']['docs']
+query_facets = {field: {
+    'type': 'terms',
+    'field': field,
+    'limit': 5,
+    'mincount': 1} for field in facet_fields}
 
 
 def ckan_search_facets(solr_response):
@@ -49,13 +68,7 @@ def ckan_search_facets(solr_response):
     facets = solr_response['facets']
     if facets['count'] == 0:
         # solr will not return any keys => fake empty response
-        result = {}
-        for field in facet_fields:
-            result[field] = {
-                'title': field,
-                'items': []
-            }
-        return result
+        return empty_search_facets
     else:
         result = {}
         for field in facet_fields:
@@ -63,7 +76,7 @@ def ckan_search_facets(solr_response):
             for bucket in facets[field]['buckets']:
                 item = {
                     'name': bucket['val'],
-                    'display_name': bucket['val'].title() if field == 'language' else bucket['val'],
+                    'display_name': bucket['val'],
                     'count': bucket['count'],
                     'active': bucket['val'] in request.params.getlist(field)
                 }
@@ -74,3 +87,6 @@ def ckan_search_facets(solr_response):
                 'items': items
             }
         return result
+
+
+empty_search_facets = {field: {'title': field, 'items': []} for field in facet_fields}

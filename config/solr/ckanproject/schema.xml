@@ -74,7 +74,7 @@ schema. In this case the version should be set to the next CKAN version number.
     <field name="project_name"      type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="name"              type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="email"             type="string"  indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
-    <field name="organization_name" type="text"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
+    <field name="organization_name" type="string"    indexed="true"   stored="true"  omitNorms="true" multiValued="false" />
     <field name="o_description"     type="text"    indexed="true"   stored="true"                   multiValued="false" />
     <field name="o_avatar_image"    type="string"  indexed="false"  stored="true"                   multiValued="false" />
     <field name="header_image"      type="string"  indexed="false"  stored="true"                   multiValued="false" />

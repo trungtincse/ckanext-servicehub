@@ -65,7 +65,7 @@ def query_app(text, categories, language, organization, sort):
 
     if categories:
         for cate in categories:
-            filters.append('categories:"%s"' % cate)  # AND
+            filters.append('category:"%s"' % cate)  # AND
 
     if language:
         filters.append('language_ci:"%s"' % language) # search case insensitive field

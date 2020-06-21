@@ -25,7 +25,7 @@ def index_project(project):
         raise SearchIndexError(r['error'])
 
 
-def query_project(text, organization_name, categories, tags, sort):
+def query_project(text, organization_name, categories, tags, sort, just_show_active):
     filters = []
 
     if organization_name:
@@ -38,6 +38,9 @@ def query_project(text, organization_name, categories, tags, sort):
     if tags:
         for tag in tags:
             filters.append('tags:"%s"' % tag)
+
+    if just_show_active:
+        filters.append('active:"true"')
 
     query = {
         'query': text,

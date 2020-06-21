@@ -276,7 +276,8 @@ def index():
         organization_name=request.params.get('organization_name'),
         categories=request.params.getlist('category'),
         tags=request.params.getlist('tags'),
-        sort=request.params.get('sort', 'score asc, project_name asc')
+        sort=request.params.get('sort', 'score asc, project_name asc'),
+        just_show_active=True
     )
 
     page = h.Page(
@@ -316,4 +317,4 @@ _sorting = [
 
 
 def remove_field(key, value=None, replace=None):
-    return h.remove_url_param(key, value=value, replace=replace, controller='project', action='indexw')
+    return h.remove_url_param(key, value=value, replace=replace, controller='project', action='index')

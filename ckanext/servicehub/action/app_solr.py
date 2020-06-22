@@ -1,9 +1,10 @@
 import json
 import logging
+from pprint import pprint
 
 import requests
-
-from ckan.common import config, request
+from ckan.common import g, config, request
+from ckan import model, logic
 from ckan.lib.search.common import SearchIndexError, SearchError
 from ckanext.servicehub.main.config_and_common import ServiceLanguage
 from ckanext.servicehub.model.ServiceModel import AppCategory, AppRelatedDataset
@@ -30,6 +31,8 @@ def index_app(app, categories, datasets):
     # change now
     app_json['category'] = [cate['tag_name'] for cate in categories_json]
     app_json['dataset_related'] = [dataset['package_id'] for dataset in datasets_json]
+    # group_id = model.Group.get(app.organization).id
+    # app_json['permission_labels'] = index_permission_label(group_id)
     try:
         url = solr_url + '/update/json/docs?commit=true'
         r = requests.post(url, json=app_json).json()
@@ -71,6 +74,10 @@ def query_app(text, categories, language, organization, sort):
     if organization:
         filters.append('organization:"%s"' % organization)
 
+    # permission
+    # filters.append('app_status:START OR (permission_labels:(%s))' % ' OR '.join(search_permission_labels(g.user)))
+    filters.append('app_status:START OR (organization:(%s))' % ' OR '.join(user_groups_names(g.user)))
+
     query = {
         'query': text,
         'filter': filters,
@@ -84,6 +91,25 @@ def query_app(text, categories, language, organization, sort):
 
     r['response']['docs'] = list(map(recover_app_data, r['response']['docs']))
     return r
+
+#########################
+# private functions
+
+def index_permission_label(group_id):
+    return ['public']
+
+
+def search_permission_labels(user_id):
+    labels = ['public']
+    orgs = logic.get_action('organization_list_for_user')({'user': user_id}, {'permission': 'read'})
+    for org in orgs:
+        labels.append('member-' + org['id'])
+    return labels
+
+def user_groups_names(user_id):
+    orgs = logic.get_action('organization_list_for_user')({'user': user_id}, {'permission': 'read'})
+    for org in orgs:
+        yield org['name']
 
 
 facet_fields = ['organization', 'language', 'category']

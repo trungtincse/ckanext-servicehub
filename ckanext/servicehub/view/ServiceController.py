@@ -46,8 +46,6 @@ logger = logging.getLogger('logserver')
 appserver_host = config.get('ckan.servicehub.appserver_host')
 logserver_host = config.get('ckan.servicehub.logserver_host')
 
-import ast
-
 
 def index():
     context = {

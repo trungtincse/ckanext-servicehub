@@ -7,6 +7,7 @@ import random
 import string
 from pprint import pprint
 
+from ckan.lib.search import SearchIndexError
 from ckan.model import types as _types
 import pika_pool
 import requests
@@ -178,10 +179,9 @@ def service_create(context, data_dict):
 
     try:
         app_solr.index_app(app, categories, datasets)
-    except Exception as e:
+    except SearchIndexError as e:
+        session.rollback()  # rollback datasets & categories
         session.delete(app)  # do app đã commit từ trước
-        session.delete_all(categories)
-        session.delete_all(datasets)
         session.commit()
         # logger.error("Failed to index solr %s" % e.message)
         central_logger.info("user=%s&action=service_create&error_code=1" % context['user'])

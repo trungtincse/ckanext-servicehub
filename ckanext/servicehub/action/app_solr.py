@@ -1,10 +1,10 @@
 import json
 import logging
-from pprint import pprint
 
 import requests
+
+from ckan import logic
 from ckan.common import g, config, request
-from ckan import model, logic
 from ckan.lib.search.common import SearchIndexError, SearchError
 from ckanext.servicehub.main.config_and_common import ServiceLanguage
 from ckanext.servicehub.model.ServiceModel import AppCategory, AppRelatedDataset

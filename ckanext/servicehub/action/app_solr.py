@@ -1,9 +1,10 @@
 import json
 import logging
+from pprint import pprint
 
 import requests
 
-from ckan import logic
+from ckan import logic, authz
 from ckan.common import g, config, request
 from ckan.lib.search.common import SearchIndexError, SearchError
 from ckanext.servicehub.main.config_and_common import ServiceLanguage
@@ -75,8 +76,17 @@ def query_app(text, categories, language, organization, sort):
         filters.append('organization:"%s"' % organization)
 
     # permission
-    # filters.append('app_status:START OR (permission_labels:(%s))' % ' OR '.join(search_permission_labels(g.user)))
-    filters.append('app_status:START OR (organization:(%s))' % ' OR '.join(user_groups_names(g.user)))
+    if authz.is_sysadmin(g.user):
+        # pprint('is admin: show all')
+        pass
+    elif g.user:
+        # a user logged in
+        filters.append('app_status:START OR (organization:(%s))' % ' OR '.join(user_groups_names(g.user))) # 0 groups is ok
+        # pprint('groups: %s' % list(user_groups_names(g.user)))
+    else:
+        # anonymous user/not login
+        filters.append('app_status:START')
+        # pprint('Anonymous user')
 
     query = {
         'query': text,

@@ -277,7 +277,6 @@ def index():
         categories=request.params.getlist('category'),
         tags=request.params.getlist('tags'),
         sort=request.params.get('sort', 'score asc, project_name asc'),
-        just_show_active=True
     )
 
     page = h.Page(

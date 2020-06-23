@@ -4,7 +4,8 @@ from pprint import pprint
 
 import requests
 
-from ckan.common import request, config
+from ckan import authz
+from ckan.common import request, config, g
 from ckan.lib.search.common import SearchIndexError, SearchError
 
 log = logging.getLogger('ckan.logic')
@@ -24,7 +25,7 @@ def index_project(project):
         raise SearchIndexError(r['error'])
 
 
-def query_project(text, organization_name, categories, tags, sort, just_show_active):
+def query_project(text, organization_name, categories, tags, sort):
     filters = []
 
     if organization_name:
@@ -38,8 +39,12 @@ def query_project(text, organization_name, categories, tags, sort, just_show_act
         for tag in tags:
             filters.append('tags:"%s"' % tag)
 
-    if just_show_active:
+    if authz.is_sysadmin(g.user):
+        pass
+        # pprint('is admin: show all projects')
+    else:
         filters.append('active:"true"')
+        # pprint('Not admin: just show active projects')
 
     query = {
         'query': text,

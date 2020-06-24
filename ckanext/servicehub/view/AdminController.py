@@ -2,6 +2,7 @@ import ast
 import os
 
 import requests
+from ckanext.servicehub.action import project_solr
 from werkzeug.datastructures import FileStorage
 
 from ckan.lib import helpers
@@ -153,11 +154,14 @@ def action(action_name):
     try:
         if action_name == 'approve':
             project_ins.active = True
+            project_solr.activate_project(prj_id)
             session.add(project_ins)
         elif action_name == 'reject':
             project_ins.active = False
+            project_solr.deactivate_project(prj_id)
             session.add(project_ins)
         if action_name == 'delete':
+            project_solr.delete_project(prj_id)
             session.delete(project_ins)
         session.commit()
     except:

@@ -43,13 +43,15 @@ def index_app(app, categories, datasets):
         raise SearchIndexError(e)
 
 
-def delete_app(data_dict):
-    r = requests.post(solr_url + '/update?commit=true', json={
+def delete_app(context,data_dict):
+    print data_dict
+    setting={
         'delete': {
             'id': data_dict['app_id']
         }
-    }).json()
-
+    }
+    print setting
+    r = requests.post(solr_url + '/update?commit=true', json=setting).json()
     if 'error' in r:
         raise SearchError(r['error']['msg'])
 

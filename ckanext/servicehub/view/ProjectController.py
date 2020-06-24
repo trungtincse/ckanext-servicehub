@@ -212,41 +212,6 @@ class ProjectReadView(MethodView):
             print extra_vars
             return base.render('project/read.html', extra_vars=extra_vars)
 
-    def post(self, id):
-        extra_vars = {}
-        context = _prepare()
-        session = context['session']
-        ins = session.query(Project).filter(Project.id == id).first()
-        if request.params['action'] == 'approve':
-            if ins == None:
-                return jsonify(success=False, error='Not Exists')
-            else:
-                ins.active = True
-                session.add(ins)
-                try:
-                    project_solr.activate_project(id)
-                    session.commit()
-                except Exception as ex:
-                    session.rollback()
-                    return jsonify(dict(success=False, error='Opps! Something is wrong'))
-            return jsonify(success=True, error='')
-
-    def delete(self, id):
-        context = _prepare()
-        session = context['session']
-        ins = session.query(Project).filter(Project.id == id).first()
-        try:
-            session.delete(ins)
-            session.commit()
-            project_solr.delete_project(id)
-        except Exception as  ex:
-            session.rollback()
-            return jsonify(dict(success=False, error='Opps! Something is wrong'))
-        dir_path = os.path.join(storage_path, 'project',
-                                id)
-        shutil.rmtree(dir_path)
-        return jsonify(success=True)
-
 
 @project_blueprint.route('/file/<id>/<type>', methods=['GET', 'DELETE'])
 def file(id, type):

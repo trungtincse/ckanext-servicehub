@@ -19,6 +19,7 @@ retry = Retry(connect=3, backoff_factor=0.5)
 adapter = HTTPAdapter(max_retries=retry)
 http_session.mount('http://', adapter)
 
+get_action = logic.get_action
 log = logging.getLogger(__name__)
 _get_or_bust = logic.get_or_bust
 _check_access = ckan.logic.check_access
@@ -34,15 +35,13 @@ def service_delete(context, data_dict):
     session = context['session']
     try:
         session.query(App).filter(App.app_id == app_id).delete()
-        app_solr.delete_app(app_id)
+        app_solr.delete_app(dict(app_id=app_id))
         session.commit()
     except Exception as ex:
-        print ex.message
         central_logger.info("user=%s&action=service_delete&error_code=1" % context['user'])
         local_logger.info("%s %s %s" % (context['user'], "service_delete", "Can not delete application %s" % app_id))
         session.rollback()
         return dict(success=False, error="Can not delete application %s" % app_id)
-    logic.get_action('app_index_delete')(context, {'app_id': app_id})
     central_logger.info("user=%s&action=service_delete&error_code=0" % context['user'])
     local_logger.info("%s %s %s" % (context['user'], "service_delete", "Delete app %s success" % app_id))
     return dict(success=True)

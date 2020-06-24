@@ -69,7 +69,15 @@ def activate_project(project_id):
     ]).json()
     if 'error' in r:
         raise SearchError(r['error']['msg'])
-
+def deactivate_project(project_id):
+    r = requests.post(solr_url + '/update?commit=true', json=[
+        {
+            'id': project_id,
+            'active': {'set': False}
+        }
+    ]).json()
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
 
 def delete_project(project_id):
     r = requests.post(solr_url + '/update?commit=true', json={

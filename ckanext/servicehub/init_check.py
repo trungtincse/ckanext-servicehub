@@ -15,3 +15,15 @@ def check_appserver_opening():
         log = 'Failed to connect to ckan app server at %s' % appserver_host
         logger.error(log)
         raise Exception(log)
+
+
+def check_solr_instances_running():
+    check_solr_opening(config.get('ckan.servicehub.app_solr_url'))
+    check_solr_opening(config.get('ckan.servicehub.prj_solr_url'))
+
+
+def check_solr_opening(url):
+    try:
+        requests.get(url + '/admin/ping')
+    except:
+        raise Exception('Solr is not running: instance url: ' + url)

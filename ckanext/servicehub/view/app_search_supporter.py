@@ -1,11 +1,12 @@
 # encoding: utf-8
+from pprint import pprint
 
 import six
 
 import ckan.lib.base as base
 import ckan.lib.helpers as h
 import ckan.logic as logic
-from ckan.common import c, request, _
+from ckan.common import c, g, request, _
 from ckan.lib.search import SearchError
 from ckanext.servicehub.action import app_solr
 from ckanext.servicehub.model.ServiceModel import *
@@ -33,6 +34,7 @@ def index():
             language=request.params.get('language'),
             sort=request.params.get('sort', 'score asc, created_at desc')
         )
+
     except SearchError as e:
         c.query_error = True
         return base.render('service/search.html', {

@@ -3,14 +3,10 @@
 <form id="service-new" class="dataset-form" method="post" data-stage="1" enctype="multipart/form-data" novalidate>
   <ol class="stages">
     <li class="first active li-1" data-status="active">
-
       <span class="highlight">Application Information</span>
-
     </li>
     <li class="second uncomplete li-2" data-status="uncomplete">
-
       <span class="highlight">Input form</span>
-
     </li>
     <li class="last uncomplete li-3" data-status="uncomplete">
 
@@ -37,18 +33,14 @@
         </div>
       </div>
       <div class="form-group control-full control-select">
-        <label class="control-label" for="organization"><span title="This field is required"
-                                                              class="control-required">*</span> Select
-          organization</label>
+        <label class="control-label" for="organization">
+          <span title="This field is required" class="control-required">*</span> Select organization</label>
         <div class="controls ">
-
           <select id="organization" name="organization" class="form-control">
             {% for org in groups %}
-              <option value="{{ org.title }}">{{ org.title }}</option>
+              <option value="{{ org.name }}">{{ org.title }}</option> {# org.name is slugged #}
             {% endfor %}
           </select>
-
-
         </div>
       </div>
       {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('A little information about my group...')) }}

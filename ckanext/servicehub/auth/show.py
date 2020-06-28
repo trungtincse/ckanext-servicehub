@@ -31,19 +31,21 @@ def list_all_projects_of_user(context, data_dict=None):
 
 def service_show(context, data_dict=None):
     """
-    mode START: ai cung thay
-    mode DEBUG: nhung nguoi co quyen run_service_staging cua 1 to chuc hoac admin
-    mode STOP: admin
+    la member
     """
     session = context['session']
     user = context['user']
     app_id = data_dict['app_id']
-    if app_id in list_all_services_of_user(context):
-        return {'success': True}
+    app_ins = session.query(App).filter(App.app_id == app_id).first()
+    if app_ins:
+        if authz.users_role_for_group_or_org(app_ins.organization, user):
+            return {'success': True}
+        else:
+            return {'success': False,
+                    'msg': _('User %s not have permission to read page') % user}
     else:
         return {'success': False,
-                'msg': _('User %s not have permission to read page') % user}
-
+                'msg': _('Application not found')}
 
 def service_monitor(context, data_dict=None):
     """

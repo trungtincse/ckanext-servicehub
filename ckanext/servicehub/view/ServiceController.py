@@ -411,6 +411,6 @@ def update(id):
         build_code(session, data_dict['codeFile'], app)
     except Exception as ex:
         session.rollback()
-        error = getattr(ex, "err_message", 'Opps! Something is wrong')
+        error = getattr(ex, "message", 'Opps! Something is wrong')
         return jsonify(dict(success=False, error=error))
     return jsonify(dict(success=True))

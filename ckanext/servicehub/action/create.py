@@ -197,7 +197,7 @@ def service_create(context, data_dict):
     try:
         resp = requests.post(url_create_dashboard, json=setting)
     except:
-        print resp
+        pass
     ############
     # #########
     url_create_stat_dashboard = os.path.join(logserver_host, "kibana", "createDashboardStat",
@@ -207,7 +207,7 @@ def service_create(context, data_dict):
     try:
         resp = requests.post(url_create_stat_dashboard, json=setting)
     except:
-        print resp
+        pass
     ############
     session.commit()
     central_logger.info("user=%s&action=service_create&error_code=0" % context['user'])
@@ -225,6 +225,7 @@ def build_code(session, code_file, app):
     app_id = app.app_id
     slug_name = app.slug_name
     type = mimetypes.guess_type(code_file.filename)
+
     if type[0] != None and type[0].find('zip') >= 0:
         code_path = os.path.join(storage_path, 'codes', code_id)
         if not os.path.exists(os.path.dirname(code_path)):
@@ -237,6 +238,7 @@ def build_code(session, code_file, app):
         code_file.save(code_path)
     else:
         return dict(success=False, error="Code file is not zip format")
+
     code_dict = dict(
         code_id=code_id,
         app_id=app_id,

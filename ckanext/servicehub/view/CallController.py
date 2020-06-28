@@ -111,7 +111,6 @@ def create_output_view(call_id, filename, url):
         u'user': u'seanh',
         u'userobj': User.get(u'seanh')
     }
-    print call_id, filename, url
     try:
         package = get_action(u'package_show')(context, dict(name_or_id=u'%s-output' % call_id))
     except:

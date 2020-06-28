@@ -252,7 +252,7 @@ def read(id):
 
 @call_blueprint.route('/file/<type>/<call_id>/<file_name>')
 def serve_file(type, call_id, file_name):
-    path = os.path.join(storage_path, '%s-files' % type, call_id, "files", file_name)
+    path = os.path.join(storage_path, '%s-files' % type, call_id, file_name)
     return send_file(path)
 
 

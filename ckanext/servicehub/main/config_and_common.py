@@ -24,9 +24,11 @@ def simple_img_file():
 
 
 class ServiceLanguage(Enum):
-    __order__ = 'PYTHON_36 JAVA_8'
+    __order__ = 'PYTHON_36 JAVA_8 JAVA_8_GRADLE'
     PYTHON_36 = ('Python 3.6', 'python_36')
     JAVA_8    = ('Java 8', 'java_8')
+    JAVA_8_GRADLE = ('Java 8 Gradle', 'java_8_gradle')
+    NODEJS_14 = ('NodeJS 14', 'nodejs_14')
 
     def __init__(self, ui_text, formal_text):
         self.ui_text = ui_text

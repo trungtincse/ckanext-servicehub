@@ -43,11 +43,12 @@ _get_or_bust = logic.get_or_bust
 _check_access = ckan.logic.check_access
 appserver_host = config.get('ckan.servicehub.appserver_host')
 fileserver_host = config.get('ckan.servicehub.fileserver_host')
+logserver_host = config.get('ckan.servicehub.logserver_host')
 storage_path = config.get('ckan.storage_path')
 central_logger = logging.getLogger('logserver')
 local_logger = logging.getLogger('local')
-
-
+ckanapp_logger = logging.getLogger('ckanapp')
+ckancall_logger = logging.getLogger('ckancall')
 def isidentifier(ident):
     """Determines if string is valid Python identifier."""
 
@@ -188,11 +189,30 @@ def service_create(context, data_dict):
         local_logger.info(
             "%s %s %s" % (context['user'], "service_create", 'Failed to index app to Solr %s' % e.message))
         return {'success': False, 'error': 'Failed to index app to Solr %s' % e.message}
-
+    # #########
+    url_create_dashboard = os.path.join(logserver_host, "kibana", "createDashboardSearch",
+                                        slug.slug(data_dict['app_name']))
+    setting = dict(index="app", fields=["@timestamp", "information"],
+                   condition="app_id=%s" %app_id)
+    try:
+        resp = requests.post(url_create_dashboard, json=setting)
+    except:
+        print resp
+    ############
+    # #########
+    url_create_stat_dashboard = os.path.join(logserver_host, "kibana", "createDashboardStat",
+                                        slug.slug(data_dict['app_name'])+"-stat")
+    setting = dict(index="call",
+                   condition="app_id=%s" %app_id)
+    try:
+        resp = requests.post(url_create_stat_dashboard, json=setting)
+    except:
+        print resp
+    ############
     session.commit()
-    # logger.info('Build app success, app_id=%s, code_id=%s' % (app_id, code_id))
     central_logger.info("user=%s&action=service_create&error_code=0" % context['user'])
     local_logger.info("%s %s %s" % (context['user'], "service_create", "App %s create success") % app_id)
+    ckanapp_logger.info("app_id=%s&information=%s" % (app_id, "Application %s is created" % app_dict['app_name']))
     return dict(success=True, code_id=code_id, app_id=app_id)
 
 
@@ -231,7 +251,7 @@ def build_code(session, code_file, app):
         build_url = os.path.join(appserver_host, 'app', app_id, code_id, 'build')
         # WILL DO
         session.commit()  # make appserver see code version
-        r = requests.post(build_url).json()
+        r = requests.post(build_url, timeout=30).json()
         if r['error']:
             session.delete(code)
             raise BuildAppFailed(r['error'])
@@ -240,7 +260,7 @@ def build_code(session, code_file, app):
         app.curr_code_id = code_id
         session.add(app)
         session.commit()
-
+        ckanapp_logger.info("app_id=%s&information=%s" % (app_id, "Uploading code %s is successful" % code_id))
         return code_id
     except Exception as ex:
         session.delete(code)
@@ -335,6 +355,7 @@ def call_create(context, data_dict):
     central_logger.info("user=%s&action=call_create&error_code=0" % context['user'])
     local_logger.info(
         "%s %s %s" % (context['user'], "call_create", str(response.text)))
+    ckancall_logger.info("app_id=%s&user=%s" % (app_id,context['user']))
     return response.json()
 
 

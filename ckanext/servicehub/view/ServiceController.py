@@ -42,6 +42,7 @@ parse_params = logic.parse_params
 _check_access = ckan.logic.check_access
 # log = logging.getLogger(__name__)
 logger = logging.getLogger('logserver')
+ckanapp_logger = logging.getLogger('ckanapp')
 
 appserver_host = config.get('ckan.servicehub.appserver_host')
 logserver_host = config.get('ckan.servicehub.logserver_host')
@@ -102,14 +103,7 @@ class CreateFromCodeServiceView(MethodView):
             ))
             data_dict['app_category'] = data_dict['app_category'].split(',')
             message = get_action(u'service_create')(context, data_dict)
-            url_create_dashboard = os.path.join(logserver_host, "kibana", "createDashboardSearch",
-                                                slug.slug(data_dict['app_name']))
-            setting=dict(index="ckan",fields=["@timestamp","message"],
-                         condition="user:%s and app_name:%s"%(context['user'],slug.slug(data_dict['app_name'])))
-            try:
-                request.post(url_create_dashboard,json=setting)
-            except:
-                pass
+
             # logger.info("app_id=%s&message=Application %s start to create")
         except (NotFound, NotAuthorized, ValidationError, dict_fns.DataError) as e:
             base.abort(404, _(u'Not found'))
@@ -354,11 +348,11 @@ def setting(id):
         session.add(ins)
         session.commit()
         if log_app_status != ins.app_status:
-            logger.info('app_id=%s&message=Mode is updated.' % app_id)
+            ckanapp_logger.info('app_id=%s&information=Mode is updated.' % app_id)
         if log_description != ins.description:
-            logger.info('app_id=%s&message=Description is updated.' % app_id)
+            ckanapp_logger.info('app_id=%s&information=Description is updated.' % app_id)
         if log_curr_code_id != ins.curr_code_id:
-            logger.info('app_id=%s&message=Version of source code is updated.' % app_id)
+            ckanapp_logger.info('app_id=%s&information=Version of source code is updated.' % app_id)
     except Exception as ex:
         session.rollback()
         error = getattr(ex, "err_message", 'Opps! Something is wrong')

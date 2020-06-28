@@ -44,13 +44,13 @@
                             Code Management</a>
                     </div>
                 {% endif %}
-            {% if h.check_access('report_show',{'app_id':ins.app_id}) %}
+                {% if h.check_access('report_show',{'app_id':ins.app_id}) %}
                     <div class="content_action md-mr-10 md-mb-10">
                         <a class="btn btn-default" href="/service/{{ ins.app_id }}/report"><i
                                 class="fa fa-code"></i>
                             Test Report</a>
                     </div>
-{% endif %}
+                {% endif %}
             </header>
             <div class="module-content">
                 <div class=" md-ml-10">

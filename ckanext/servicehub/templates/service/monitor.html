@@ -4,9 +4,9 @@
 
 
 {% block breadcrumb_content %}
-  <li>{% link_for _('Applications'), named_route='service.index' %}</li>
-  <li>{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
-  <li class="active">{% link_for "Monitor", named_route='service.monitor', id=ins.app_id %}</li>
+    <li>{% link_for _('Applications'), named_route='service.index' %}</li>
+    <li>{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
+    <li class="active">{% link_for "Monitor", named_route='service.monitor', id=ins.app_id %}</li>
 {% endblock %}
 
 
@@ -14,20 +14,28 @@
 
 
 {% block primary %}
-  <div class="primary col-md-12" style="padding-left: 0px;padding-right: 0px">
-    <article class="module">
-      <header class="module-content page-header">
-        <div class="content_action md-mr-10 md-mb-10">
-          <a class="btn btn-default" href="/service/{{ ins.app_id }}"><i class="fa fa-arrow-left"></i> Back to app</a>
-        </div>
-      </header>
-      <div class="module-content" style="padding-left: 15px;padding-right: 15px">
-        <div class="md-ml-12">
-            <iframe src="http://kibana.ckan/app/kibana#/dashboard/{{ ins.slug_name }}?embed=true&_g=()&_a=(description:'',filters:!(),fullScreenMode:!t,options:(hidePanelTitles:!t,useMargins:!t),panels:!((embeddableConfig:(),gridData:(h:28,i:'0a007e09-b359-4efe-874d-503695b96955',w:48,x:0,y:0),id:{{ ins.slug_name }}-search,panelIndex:'0a007e09-b359-4efe-874d-503695b96955',type:search,version:'7.5.2')),query:(language:kuery,query:''),timeRestore:!f,title:{{ ins.slug_name }},viewMode:view)" height="600" width="100%"></iframe>
-        </div>
-      </div>
-    </article>
-  </div>
+    <div class="primary col-md-12" style="padding-left: 0px;padding-right: 0px">
+        <article class="module">
+            <header class="module-content page-header">
+                <div class="content_action md-mr-10 md-mb-10">
+                    <a class="btn btn-default" href="/service/{{ ins.app_id }}"><i class="fa fa-arrow-left"></i> Back to
+                        app</a>
+                </div>
+            </header>
+            <div class="module-content" style="padding-left: 15px;padding-right: 15px">
+                <label>User call stats</label>
+                <div class="md-ml-12">
+                    <iframe src="http://kibana.ckan:5601/app/kibana#/dashboard/{{ ins.slug_name }}-stat?embed=true&_g=()&_a=(description:'',filters:!(),fullScreenMode:!t,options:(hidePanelTitles:!t,useMargins:!t),panels:!((embeddableConfig:(),gridData:(h:28,i:'0a007e09-b359-4efe-874d-503695b96955',w:48,x:0,y:0),id:{{ ins.slug_name }}-stat-visualization,panelIndex:'0a007e09-b359-4efe-874d-503695b96955',type:visualization,version:'7.5.2')),query:(language:kuery,query:''),timeRestore:!f,title:{{ ins.slug_name }}-stat,viewMode:view)"
+                            height="600" width="100%"></iframe>
+                </div>
+                <label>App logs</label>
+                <div class="md-ml-12">
+                    <iframe src="http://kibana.ckan:5601/app/kibana#/dashboard/{{ ins.slug_name }}?embed=true&_g=()&_a=(description:'',filters:!(),fullScreenMode:!t,options:(hidePanelTitles:!t,useMargins:!t),panels:!((embeddableConfig:(),gridData:(h:28,i:'0a007e09-b359-4efe-874d-503695b96955',w:48,x:0,y:0),id:{{ ins.slug_name }}-search,panelIndex:'0a007e09-b359-4efe-874d-503695b96955',type:search,version:'7.5.2')),query:(language:kuery,query:''),timeRestore:!f,title:{{ ins.slug_name }},viewMode:view)"
+                            height="600" width="100%"></iframe>
+                </div>
+            </div>
+        </article>
+    </div>
 {% endblock %}
 
 
@@ -37,20 +45,20 @@
 
 
 {% block scripts %}
-  {{ super() }}
-  <style>
-    label:after {
-      content: "";
-    }
+    {{ super() }}
+    <style>
+        label:after {
+            content: "";
+        }
 
-    input[type='checkbox'] {
-      width: 20px;
-      height: 20px;
-      background: white;
-      border-radius: 5px;
-      border: 2px solid #555;
-    }
+        input[type='checkbox'] {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 5px;
+            border: 2px solid #555;
+        }
 
-  </style>
+    </style>
 
 {% endblock %}

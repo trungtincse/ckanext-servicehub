@@ -38,6 +38,8 @@ def service_delete(context, data_dict):
         app_solr.delete_app(dict(app_id=app_id))
         session.commit()
     except Exception as ex:
+        print ex
+        print ex.message
         central_logger.info("user=%s&action=service_delete&error_code=1" % context['user'])
         local_logger.info("%s %s %s" % (context['user'], "service_delete", "Can not delete application %s" % app_id))
         session.rollback()

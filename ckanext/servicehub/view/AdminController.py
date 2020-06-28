@@ -16,7 +16,7 @@ from ckan import model, logic, authz
 from ckan.common import g, c, request, config, _
 import ckan.lib.navl.dictization_functions as dict_fns
 from ckan.logic import clean_dict, tuplize_dict, parse_params
-
+import logging
 _check_access = logic.check_access
 get_action = logic.get_action
 NotFound = logic.NotFound
@@ -30,6 +30,7 @@ appserver_host = config.get('ckan.servicehub.appserver_host')
 storage_path = config.get('ckan.storage_path')
 app_admin_blueprint = Blueprint(u'appadmin', __name__, url_prefix=u'/appadmin')
 prj_admin_blueprint = Blueprint(u'prjadmin', __name__, url_prefix=u'/prjadmin')
+ckanapp_logger = logging.getLogger('ckanapp')
 
 
 @app_admin_blueprint.route('', methods=["GET"])
@@ -117,12 +118,15 @@ def action(action_name):
         if action_name == 'stop':
             service_ins.app_status = 'STOP'
             session.add(service_ins)
+            ckanapp_logger.info("app_id=%s&information=%s" % (app_id, "Change mode to STOP"))
         elif action_name == 'debug':
             service_ins.app_status = 'DEBUG'
             session.add(service_ins)
+            ckanapp_logger.info("app_id=%s&information=%s" % (app_id, "Change mode to DEBUG"))
         elif action_name == 'start':
             service_ins.app_status = 'START'
             session.add(service_ins)
+            ckanapp_logger.info("app_id=%s&information=%s" % (app_id, "Change mode to START"))
         elif action_name == 'delete':
             try:
                 get_action(u'service_delete')(context, dict(id=app_id))

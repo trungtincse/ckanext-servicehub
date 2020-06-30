@@ -170,7 +170,7 @@
                 <label class="control-label" for="field-name">Project Category</label>
                 <div class="controls ">
                     {% for i in project_category %}
-                        <div class="form-row">
+                        <div class="row">
                             <div class="col-md-2">
                                 <input id="project_category-{{ loop.index }}" type="checkbox"
                                        name="project_category-{{ loop.index }}"
@@ -181,15 +181,13 @@
                             </div>
                         </div>
                     {% endfor %}
-
-
                 </div>
             </div>
 
             <div class="form-group control-full">
                 <p>Others:</p>
                 <div class="controls ">
-                    <div class="form-row">
+                    <div class="row">
                         <input id="others-project_category" type="text" name="others-project_category"
                                class="form-control" data-role="tagsinput">
                     </div>
@@ -199,7 +197,7 @@
                 <label class="control-label" for="field-name">Project Tags</label>
                 <div class="controls ">
                     {% for i in project_tags %}
-                        <div class="form-row">
+                        <div class="row">
                             <div class="col-md-2">
                                 <input id="project_tags-{{ loop.index }}" type="checkbox"
                                        name="project_tags-{{ loop.index }}"
@@ -218,7 +216,7 @@
             <div class="form-group control-full">
                 <p>Others:</p>
                 <div class="controls ">
-                    <div class="form-row">
+                    <div class="row">
                         <input id="others-project_tags" type="text" name="others-project_tags"
                                class="form-control" data-role="tagsinput">
                     </div>
@@ -301,7 +299,7 @@
         function addParam() {
             let params_div = $('div.params');
             params_div.append(`
-    <div class="form-row param">
+    <div class="row param">
     <div class="col-md-2 md-mb-10 md-mt-10">
                 <label class="control-label" for="field-name"><span title="This field is required"
                                                             class="control-required">*</span>

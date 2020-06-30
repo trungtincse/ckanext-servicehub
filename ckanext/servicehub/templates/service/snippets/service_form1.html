@@ -61,7 +61,7 @@
                                                           class="control-required">*</span>
         Define parameters</label>
       <div class="params">
-        <div class="form-row param">
+        <div class="row param">
           <div class="col-md-4 md-mb-10 md-mt-10">
             <label class="control-label" for="parameters"><span title="This field is required"
                                                                 class="control-required">*</span>
@@ -99,7 +99,7 @@
       <label class="control-label" for="field-name">Project Category</label>
       <div class="controls ">
         {% for i in app_category %}
-          <div class="form-row">
+          <div class="row">
             <div class="col-md-2">
               <input id="app_category-{{ loop.index }}" type="checkbox" name="app_category-{{ loop.index }}"
                      onclick="$(this).val(this.checked?'{{ i.name }}':'')">
@@ -116,7 +116,7 @@
     <div class="form-group control-full">
       <p>Others:</p>
       <div class="controls ">
-        <div class="form-row">
+        <div class="row">
           <input id="others-app_category" type="text" name="others-app_category"
                  class="form-control" data-role="tagsinput">
         </div>
@@ -147,7 +147,7 @@
   function addParam() {
     let params_div = $('div.params');
     params_div.append(`
-    <div class="form-row param">
+    <div class="row param">
       <div class="col-md-4 md-mb-10 md-mt-10">
         <input class="form-control" type="text" name="label" required>
       </div>
@@ -174,7 +174,7 @@
   function addDataset() {
     let params_div = $('div.datasets');
     params_div.append(`
-    <div class="form-row param">
+    <div class="row param">
     <div class="col-md-2 md-mb-10 md-mt-10">
                 <label class="control-label" for="field-name"><span title="This field is required"
                                                             class="control-required">*</span>

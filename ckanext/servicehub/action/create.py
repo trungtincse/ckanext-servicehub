@@ -49,6 +49,8 @@ central_logger = logging.getLogger('logserver')
 local_logger = logging.getLogger('local')
 ckanapp_logger = logging.getLogger('ckanapp')
 ckancall_logger = logging.getLogger('ckancall')
+
+
 def isidentifier(ident):
     """Determines if string is valid Python identifier."""
 
@@ -193,7 +195,7 @@ def service_create(context, data_dict):
     url_create_dashboard = os.path.join(logserver_host, "kibana", "createDashboardSearch",
                                         slug.slug(data_dict['app_name']))
     setting = dict(index="app", fields=["@timestamp", "information"],
-                   condition="app_id=%s" %app_id)
+                   condition="app_id=%s" % app_id)
     try:
         resp = requests.post(url_create_dashboard, json=setting)
     except:
@@ -201,9 +203,9 @@ def service_create(context, data_dict):
     ############
     # #########
     url_create_stat_dashboard = os.path.join(logserver_host, "kibana", "createDashboardStat",
-                                        slug.slug(data_dict['app_name'])+"-stat")
+                                             slug.slug(data_dict['app_name']) + "-stat")
     setting = dict(index="call",
-                   condition="app_id=%s" %app_id)
+                   condition="app_id=%s" % app_id)
     try:
         resp = requests.post(url_create_stat_dashboard, json=setting)
     except:
@@ -357,7 +359,7 @@ def call_create(context, data_dict):
     central_logger.info("user=%s&action=call_create&error_code=0" % context['user'])
     local_logger.info(
         "%s %s %s" % (context['user'], "call_create", str(response.text)))
-    ckancall_logger.info("app_id=%s&user=%s" % (app_id,context['user']))
+    ckancall_logger.info("app_id=%s&user=%s" % (app_id, context['user']))
     return response.json()
 
 
@@ -386,7 +388,8 @@ def report_create(context, data_dict):
     user = context['user']
     app_id = data_dict['app_id']
     call_id = data_dict['call_id']
-    ins = AppTestReport(app_id, call_id)
+    app_ins = session.query(App).filter(App.app_id == app_id).first()
+    ins = AppTestReport(app_id, call_id,app_ins.curr_code_id)
     try:
         session.add(ins)
         session.commit()

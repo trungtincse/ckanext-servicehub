@@ -233,6 +233,16 @@
         }
 
         document.addEventListener("DOMContentLoaded", function (event) {
+            ///cookie
+            if ($.cookie("code-update") != undefined) {
+                swal("Updating code is successful");
+                $.removeCookie("code-update");
+            }
+            if ($.cookie("service-setting") != undefined) {
+                swal("Service setting is successful");
+                $.removeCookie("service-setting");
+            }
+            /////
             $("#request-form").ajaxForm(function (response) {
                 console.log(response)
                 if (response.error != '') {
@@ -243,18 +253,18 @@
                 }
             });
             $("#service-setting-form").ajaxForm(function (response) {
-                console.log(response)
                 if (!response.success) {
                     swal(response.error);
                 } else {
+                    $.cookie("service-setting", 1);
                     location.href = "{% url_for 'service.read',id=ins.app_id %}"
                 }
             });
             $("#code-update-form").ajaxForm(function (response) {
-                console.log(response)
                 if (!response.success) {
                     swal(response.error);
                 } else {
+                    $.cookie("code-update", 1);
                     location.href = "{% url_for 'service.read',id=ins.app_id %}"
                 }
             });

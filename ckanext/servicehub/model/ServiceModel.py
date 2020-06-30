@@ -42,12 +42,14 @@ class Call(Base):
     def setOption(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+
     def as_dict(self):
         _dict = {c.key: getattr(self, c.key)
                  for c in inspect(self).mapper.column_attrs}
         _dict['created_at'] = self.created_at.strftime("%d-%m-%Y %H:%M:%S")
 
         return _dict
+
 
 class App(Base):
     __tablename__ = 'app_info'
@@ -85,7 +87,7 @@ class App(Base):
 
     def as_dict_raw(self):
         result = {c.key: getattr(self, c.key)
-                 for c in inspect(self).mapper.column_attrs}
+                  for c in inspect(self).mapper.column_attrs}
         result['created_at'] = self.created_at.isoformat()
         return result
 
@@ -141,7 +143,7 @@ class CallInput(Base):
     value = Column(types.UnicodeText)
 
     def as_dict(self):
-        _dict = dict(call_id=self.call_id, name=self.name, type=self.type,value=self.value)
+        _dict = dict(call_id=self.call_id, name=self.name, type=self.type, value=self.value)
         if self.type == 'FILE':
             _dict['value'] = os.path.join('/call', 'file', 'input', self.call_id, self.name)
         return _dict
@@ -156,8 +158,11 @@ class CallOutput(Base):
     value = Column(types.UnicodeText)
 
     def as_dict(self):
-        _dict = dict(call_id=self.call_id, name=self.name, type=self.type,value=self.value)
-        if self.type == 'FILE':
+        _dict = dict(call_id=self.call_id, name=self.name, type=self.type, value=self.value)
+        if self.type not in ['TEXT', 'LIST', 'BOOLEAN', 'INTEGER', 'DOUBLE']:
+            if self.type != 'FILE':
+                self.name = self.name + "." + self.type.lower()
+                _dict['name']=self.name
             _dict['value'] = os.path.join('/call', 'file', 'output', self.call_id, self.name)
         return _dict
 
@@ -215,12 +220,17 @@ class AppRelatedDataset(Base):
             'package_name': model.Package.get(self.package_id).name
         }
 
+
 class AppTestReport(Base):
     __tablename__ = 'app_test_report'
-    app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id', onupdate="CASCADE", ondelete="CASCADE"),primary_key=True)
-    call_id = Column(types.UnicodeText, ForeignKey('app_call.call_id', onupdate="CASCADE", ondelete="CASCADE"),primary_key=True)
-    note = Column(types.UnicodeText,default=u'')
+    app_id = Column(types.UnicodeText, ForeignKey('app_info.app_id', onupdate="CASCADE", ondelete="CASCADE"),
+                    primary_key=True)
+    call_id = Column(types.UnicodeText, ForeignKey('app_call.call_id', onupdate="CASCADE", ondelete="CASCADE"),
+                     primary_key=True)
+    code_using = Column(types.UnicodeText, default=u'')
+    note = Column(types.UnicodeText, default=u'')
 
-    def __init__(self, app_id, call_id):
+    def __init__(self, app_id, call_id, code_using):
         self.app_id = app_id
         self.call_id = call_id
+        self.code_using = code_using

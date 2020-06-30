@@ -1,160 +1,165 @@
 {% import 'macros/form.html' as form %}
 {{ app }}
 <form id="service-new" class="dataset-form" method="post" data-stage="1" enctype="multipart/form-data" novalidate>
-  <ol class="stages">
-    <li class="first active li-1" data-status="active">
-      <span class="highlight">Application Information</span>
-    </li>
-    <li class="second uncomplete li-2" data-status="uncomplete">
-      <span class="highlight">Input form</span>
-    </li>
-    <li class="last uncomplete li-3" data-status="uncomplete">
+    <ol class="stages">
+        <li class="first active li-1" data-status="active">
+            <span class="highlight">Application Information</span>
+        </li>
+        <li class="second uncomplete li-2" data-status="uncomplete">
+            <span class="highlight">Input form</span>
+        </li>
+        <li class="last uncomplete li-3" data-status="uncomplete">
 
-      <span class="highlight">Datasets and Tags</span>
+            <span class="highlight">Datasets and Tags</span>
 
-    </li>
-  </ol>
-  <fieldset id="stage-1">
-    {% block basic_fields %}
-      <div class="form-group control-full">
-        <label class="control-label" for="app_name"><span title="This field is required"
-                                                          class="control-required">*</span>
-          Application Name</label>
-        <div class="controls ">
-          <input id="app_name" type="text" name="app_name" class="form-control" required placeholder="Great CKAN App">
-        </div>
-      </div>
-
-      <div class="form-group control-full">
-        <label class="control-label" for="avatar"><span title="This field is required" class="control-required">*</span>
-          Select avatar</label>
-        <div class="controls ">
-          <input id="avatar" type="file" name="avatar" class="form-control" required>
-        </div>
-      </div>
-      <div class="form-group control-full control-select">
-        <label class="control-label" for="organization">
-          <span title="This field is required" class="control-required">*</span> Select organization</label>
-        <div class="controls ">
-          <select id="organization" name="organization" class="form-control">
-            {% for org in groups %}
-              <option value="{{ org.name }}">{{ org.title }}</option> {# org.name is slugged #}
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-      {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('A little information about my group...')) }}
-
-    {% endblock %}
-
-    {% block code_fields %}
-      {{ form.select('language', label='Select program language', id='programmingLanguage', options=languages, classes=['control-full'],is_required=True) }}
-      <div class="form-group control-full">
-        <label class="control-label" for="codeFile"><span title="This field is required"
-                                                          class="control-required">*</span> Upload code</label>
-        <div class="controls ">
-
-          <input id="codeFile" type="file" name="codeFile" value="" class="form-control" required>
-
-
-        </div>
-      </div>
-    {% endblock %}
-
-
-  </fieldset>
-  <fieldset id="stage-2" hidden>
-    <div class="form-group control-full">
-      <label class="control-label" for="parameters">
-        Define parameters</label>
-      <div class="params">
-        <div class="form-row param">
-          <div class="col-md-4 md-mb-10 md-mt-10">
-            <label class="control-label" for="parameters"><span title="This field is required"
-                                                                class="control-required">*</span>
-              Label</label>
-          </div>
-          <div class="col-md-4 md-mb-10 md-mt-10">
-            <label class="control-label" for="parameters"><span title="This field is required"
-                                                                class="control-required">*</span>
-              Variable name</label>
-          </div>
-          <div class="col-md-3 md-mb-10 md-mt-10">
-            <label class="control-label" for="parameters"><span title="This field is required"
-                                                                class="control-required">*</span>
-              Type</label>
-          </div>
-          <div class="col-md-1 md-mb-10 md-mt-10">
-            <label class="control-label" for="parameters">Delete</label>
-          </div>
-        </div>
-      </div>
-      <a class="btn btn-success" onclick="addParam()">Add parameter</a>
-
-    </div>
-
-
-  </fieldset>
-  <fieldset id="stage-3" hidden>
-    <div class="form-group control-full">
-      <label class="control-label" for="field-name">Datasets</label>
-      <div class="controls datasets">
-      </div>
-      <a class="btn btn-success" onclick="addDataset()">Add dataset</a>
-    </div>
-    <div class="form-group control-full">
-      <label class="control-label" for="field-name">Project Category</label>
-      <div class="controls ">
-        {% for i in app_category %}
-          <div class="form-row">
-            <div class="col-md-2">
-              <input id="app_category-{{ loop.index }}" type="checkbox" name="app_category-{{ loop.index }}"
-                     onclick="$(this).val(this.checked?'{{ i.name }}':'')">
+        </li>
+    </ol>
+    <fieldset id="stage-1">
+        {% block basic_fields %}
+            <div class="form-group control-full">
+                <label class="control-label" for="app_name"><span title="This field is required"
+                                                                  class="control-required">*</span>
+                    Application Name</label>
+                <div class="controls ">
+                    <input id="app_name" type="text" name="app_name" class="form-control" required
+                           placeholder="Great CKAN App">
+                </div>
             </div>
-            <div class="col-md-10">
-              <p>{{ i.name }}</p>
+
+            <div class="form-group control-full">
+                <label class="control-label" for="avatar"><span title="This field is required" class="control-required">*</span>
+                    Select avatar</label>
+                <div class="controls ">
+                    <input id="avatar" type="file" name="avatar" class="form-control" required>
+                </div>
             </div>
-          </div>
-        {% endfor %}
+            <div class="form-group control-full control-select">
+                <label class="control-label" for="organization">
+                    <span title="This field is required" class="control-required">*</span> Select organization</label>
+                <div class="controls ">
+                    <select id="organization" name="organization" class="form-control">
+                        {% for org in groups %}
+                            <option value="{{ org.name }}">{{ org.title }}</option> {# org.name is slugged #}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('A little information about my group...')) }}
+
+        {% endblock %}
+
+        {% block code_fields %}
+            {{ form.select('language', label='Select program language', id='programmingLanguage', options=languages, classes=['control-full'],is_required=True) }}
+            <div class="form-group control-full">
+                <label class="control-label" for="codeFile"><span title="This field is required"
+                                                                  class="control-required">*</span> Upload code</label>
+                <div class="controls ">
+
+                    <input id="codeFile" type="file" name="codeFile" value="" class="form-control" required>
 
 
-      </div>
-    </div>
-    <div class="form-group control-full">
-      <p>Others:</p>
-      <div class="controls ">
-        <div class="form-row">
-          <input id="others-app_category" type="text" name="others-app_category"
-                 class="form-control" data-role="tagsinput">
+                </div>
+            </div>
+        {% endblock %}
+
+
+    </fieldset>
+    <fieldset id="stage-2" hidden>
+        <div class="form-group control-full">
+            <label class="control-label" for="parameters">
+                Define parameters</label>
+            <div class="params">
+                <div class="row param">
+                    <div class="col-md-4 md-mb-10 md-mt-10">
+                        <label class="control-label" for="parameters"><span title="This field is required"
+                                                                            class="control-required">*</span>
+                            Label</label>
+                    </div>
+                    <div class="col-md-4 md-mb-10 md-mt-10">
+                        <label class="control-label" for="parameters"><span title="This field is required"
+                                                                            class="control-required">*</span>
+                            Variable name</label>
+                    </div>
+                    <div class="col-md-3 md-mb-10 md-mt-10">
+                        <label class="control-label" for="parameters"><span title="This field is required"
+                                                                            class="control-required">*</span>
+                            Type</label>
+                    </div>
+                    <div class="col-md-1 md-mb-10 md-mt-10">
+                        <label class="control-label" for="parameters">Delete</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                <a class="btn btn-success" onclick="addParam()">Add parameter</a>
+                </div>
+            </div>
         </div>
-      </div>
+
+
+    </fieldset>
+    <fieldset id="stage-3" hidden>
+        <div class="form-group control-full">
+            <label class="control-label" for="field-name">Datasets</label>
+            <div class="controls datasets">
+            </div>
+            <a class="btn btn-success" onclick="addDataset()">Add dataset</a>
+        </div>
+        <div class="form-group control-full">
+            <label class="control-label" for="field-name">Project Category</label>
+            <div class="controls ">
+                {% for i in app_category %}
+                    <div class="row">
+                        <div class="col-md-2">
+                            <input id="app_category-{{ loop.index }}" type="checkbox"
+                                   name="app_category-{{ loop.index }}"
+                                   onclick="$(this).val(this.checked?'{{ i.name }}':'')">
+                        </div>
+                        <div class="col-md-10">
+                            <p>{{ i.name }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+
+
+            </div>
+        </div>
+        <div class="form-group control-full">
+            <p>Others:</p>
+            <div class="controls ">
+                <div class="row">
+                    <input id="others-app_category" type="text" name="others-app_category"
+                           class="form-control" data-role="tagsinput">
+                </div>
+            </div>
+        </div>
+
+    </fieldset>
+    <div class="form-actions">
+        <button class="btn btn-primary" type="button" onclick="checkStage(-1)" id="pre-btn" hidden>
+            Previous
+        </button>
+        <button class="btn btn-primary" type="button" id="next-btn" onclick="checkStage(1)">
+            Next
+        </button>
+        <button class="btn btn-primary" type="submit" id="finish-btn" hidden>
+            Finish
+        </button>
+
+
+        <p class="control-required-message">
+            <span class="control-required">*</span> Required field
+        </p>
+
     </div>
-
-  </fieldset>
-  <div class="form-actions">
-    <button class="btn btn-primary" type="button" onclick="checkStage(-1)" id="pre-btn" hidden>
-      Previous
-    </button>
-    <button class="btn btn-primary" type="button" id="next-btn" onclick="checkStage(1)">
-      Next
-    </button>
-    <button class="btn btn-primary" type="submit" id="finish-btn" hidden>
-      Finish
-    </button>
-
-
-    <p class="control-required-message">
-      <span class="control-required">*</span> Required field
-    </p>
-
-  </div>
 </form>
 
 <script>
-  function addParam() {
-    let params_div = $('div.params');
-    params_div.append(`
-    <div class="form-row param">
+    function addParam() {
+        let params_div = $('div.params');
+        params_div.append(`
+    <div class="row param">
       <div class="col-md-4 md-mb-10 md-mt-10">
         <input class="form-control" type="text" name="label" required>
       </div>
@@ -176,12 +181,12 @@
       </div>
     </div>
     `);
-  }
+    }
 
-  function addDataset() {
-    let params_div = $('div.datasets');
-    params_div.append(`
-    <div class="form-row param">
+    function addDataset() {
+        let params_div = $('div.datasets');
+        params_div.append(`
+    <div class="row param">
     <div class="col-md-2 md-mb-10 md-mt-10">
                 <label class="control-label" for="field-name"><span title="This field is required"
                                                             class="control-required">*</span>
@@ -195,169 +200,169 @@
       </div>
     </div>
     `);
-  }
-
-  function checkStage(amount) {
-    let curr_stage = $("#service-new").data("stage");
-    let new_stage = curr_stage + amount;
-    if (new_stage == 1) {
-      $('#stage-1').show();
-      $('#stage-2').hide();
-      $('#stage-3').hide();
-      $('#pre-btn').hide();
-      $('#next-btn').show();
-      $('#finish-btn').hide();
-
-
-    } else if (new_stage == 2) {
-      $('#stage-1').hide();
-      $('#stage-2').show();
-      $('#stage-3').hide();
-      $('#pre-btn').show();
-      $('#next-btn').show();
-      $('#finish-btn').hide();
-    } else if (new_stage == 3) {
-      $('#stage-1').hide();
-      $('#stage-2').hide();
-      $('#stage-3').show();
-      $('#pre-btn').show();
-      $('#next-btn').hide();
-      $('#finish-btn').show();
     }
-    $("#service-new").data("stage", new_stage);
-    let status = $(`li.li-${new_stage}`).data('status');
-    $(`li.li-${new_stage}`).removeClass(status).addClass('active');
-    $(`li.li-${new_stage}`).data('status', 'active');
 
-    status = $(`li.li-${curr_stage}`).data('status');
-    $(`li.li-${curr_stage}`).removeClass(status).addClass('complete');
-    $(`li.li-${curr_stage}`).data('status', 'complete');
-  }
+    function checkStage(amount) {
+        let curr_stage = $("#service-new").data("stage");
+        let new_stage = curr_stage + amount;
+        if (new_stage == 1) {
+            $('#stage-1').show();
+            $('#stage-2').hide();
+            $('#stage-3').hide();
+            $('#pre-btn').hide();
+            $('#next-btn').show();
+            $('#finish-btn').hide();
 
-  document.addEventListener("DOMContentLoaded", function (event) {
-    $('#service-new').on('keyup keypress', function (e) {
-      var keyCode = e.keyCode || e.which;
-      if (keyCode === 13) {
-        e.preventDefault();
-        return false;
-      }
-    });
-    $('#service-new').ajaxForm({
 
-      url: '{% url_for 'service.new'%}',
-      type: 'post',
-      beforeSubmit: function (arr, $form, options) {
-        //check valid-form
-        let checkValid = true;
-        $("input[required]").each((i, e) => {
-          if ($(e).val() == "") {
-            checkValid = false;
-            swal({
-              title: "Something was wrong!",
-              text: "Some required inputs are not filled",
-              type: "error"
-            });
-            return false;
-          }
-        });
+        } else if (new_stage == 2) {
+            $('#stage-1').hide();
+            $('#stage-2').show();
+            $('#stage-3').hide();
+            $('#pre-btn').show();
+            $('#next-btn').show();
+            $('#finish-btn').hide();
+        } else if (new_stage == 3) {
+            $('#stage-1').hide();
+            $('#stage-2').hide();
+            $('#stage-3').show();
+            $('#pre-btn').show();
+            $('#next-btn').hide();
+            $('#finish-btn').show();
+        }
+        $("#service-new").data("stage", new_stage);
+        let status = $(`li.li-${new_stage}`).data('status');
+        $(`li.li-${new_stage}`).removeClass(status).addClass('active');
+        $(`li.li-${new_stage}`).data('status', 'active');
 
-        if (!checkValid) return false;
-        $("textarea[required]").each((i, e) => {
-          if ($(e).val() == "") {
-            checkValid = false;
-            swal({
-              title: "Something was wrong!",
-              text: "Some required inputs are not filled",
-              type: "error"
-            });
-            return false;
-          }
-        });
+        status = $(`li.li-${curr_stage}`).data('status');
+        $(`li.li-${curr_stage}`).removeClass(status).addClass('complete');
+        $(`li.li-${curr_stage}`).data('status', 'complete');
+    }
 
-        if (!checkValid) return false;
-        ///////////////
-        //handle tag
-        app_category = $('#others-app_category').tagsinput('items');
-        for (let i = arr.length - 1; i >= 0; i--) {
-          let willDelete = false;
-          if (arr[i].name.indexOf("app_category") == 0) {
-            if (arr[i].value != '' && app_category.indexOf(arr[i].value) < 0) {
-              app_category.push(arr[i].value);
+    document.addEventListener("DOMContentLoaded", function (event) {
+        $('#service-new').on('keyup keypress', function (e) {
+            var keyCode = e.keyCode || e.which;
+            if (keyCode === 13) {
+                e.preventDefault();
+                return false;
             }
-            willDelete = true;
-          }
+        });
+        $('#service-new').ajaxForm({
 
-          if (arr[i].name == "others-app_category") willDelete = true;
+            url: '{% url_for 'service.new'%}',
+            type: 'post',
+            beforeSubmit: function (arr, $form, options) {
+                //check valid-form
+                let checkValid = true;
+                $("input[required]").each((i, e) => {
+                    if ($(e).val() == "") {
+                        checkValid = false;
+                        swal({
+                            title: "Something was wrong!",
+                            text: "Some required inputs are not filled",
+                            type: "error"
+                        });
+                        return false;
+                    }
+                });
 
-          if (willDelete) arr.splice(i, 1);
-        }
-        arr.push({value: app_category.join(","), name: "app_category"})
-        console.log(arr)
-      },
-      success: function (response, statusText, xhr, $form) {
-        if (response.success) {
-          swal({
-            title: "Application created!",
-            {#text: "App created",#}
-            type: "success"
-          },function(){
-              location.href=`/service/${response.app_id}`;
-          });
-        } else {
-          swal({
-            title: "Something was wrong!",
-            text: response.error,
-            type: "error"
-          });
-        }
-      }
+                if (!checkValid) return false;
+                $("textarea[required]").each((i, e) => {
+                    if ($(e).val() == "") {
+                        checkValid = false;
+                        swal({
+                            title: "Something was wrong!",
+                            text: "Some required inputs are not filled",
+                            type: "error"
+                        });
+                        return false;
+                    }
+                });
+
+                if (!checkValid) return false;
+                ///////////////
+                //handle tag
+                app_category = $('#others-app_category').tagsinput('items');
+                for (let i = arr.length - 1; i >= 0; i--) {
+                    let willDelete = false;
+                    if (arr[i].name.indexOf("app_category") == 0) {
+                        if (arr[i].value != '' && app_category.indexOf(arr[i].value) < 0) {
+                            app_category.push(arr[i].value);
+                        }
+                        willDelete = true;
+                    }
+
+                    if (arr[i].name == "others-app_category") willDelete = true;
+
+                    if (willDelete) arr.splice(i, 1);
+                }
+                arr.push({value: app_category.join(","), name: "app_category"})
+                console.log(arr)
+            },
+            success: function (response, statusText, xhr, $form) {
+                if (response.success) {
+                    swal({
+                        title: "Application created!",
+                        {#text: "App created",#}
+                        type: "success"
+                    }, function () {
+                        location.href = `/service/${response.app_id}`;
+                    });
+                } else {
+                    swal({
+                        title: "Something was wrong!",
+                        text: response.error,
+                        type: "error"
+                    });
+                }
+            }
+        })
+        ;
     })
     ;
-  })
-  ;
 
 
 </script>
 
 <style>
-  .stages li {
-    width: 33%
-  }
+    .stages li {
+        width: 33%
+    }
 
-  .bootstrap-tagsinput {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-    display: inline-block;
-    padding: 4px 6px;
-    color: #555;
-    vertical-align: middle;
-    border-radius: 4px;
-    max-width: 100%;
-    line-height: 22px;
-    cursor: text;
-    width: 100%;
-  }
+    .bootstrap-tagsinput {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        display: inline-block;
+        padding: 4px 6px;
+        color: #555;
+        vertical-align: middle;
+        border-radius: 4px;
+        max-width: 100%;
+        line-height: 22px;
+        cursor: text;
+        width: 100%;
+    }
 
-  .label-info {
-    background-color: #5bc0de;
-  }
+    .label-info {
+        background-color: #5bc0de;
+    }
 
-  .bootstrap-tagsinput .tag {
-    margin-right: 2px;
-    color: white;
-  }
+    .bootstrap-tagsinput .tag {
+        margin-right: 2px;
+        color: white;
+    }
 
-  div.bootstrap-tagsinput .label {
-    display: inline;
-    padding: .2em .6em .3em;
-    font-size: 75%;
-    font-weight: 700;
-    line-height: 1;
-    color: #fff;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    border-radius: .25em;
-  }
+    div.bootstrap-tagsinput .label {
+        display: inline;
+        padding: .2em .6em .3em;
+        font-size: 75%;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: .25em;
+    }
 </style>

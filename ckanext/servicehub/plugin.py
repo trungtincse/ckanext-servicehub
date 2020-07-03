@@ -33,6 +33,8 @@ class ServicehubPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
         return [ServiceController.service,
                 AdminController.app_admin_blueprint,
                 AdminController.prj_admin_blueprint,
+                AdminController.log_admin_blueprint,
+                AdminController.sys_admin_blueprint,
                 CallController.call_blueprint,
                 PackageController.package_blueprint,
                 ProjectController.project_blueprint,

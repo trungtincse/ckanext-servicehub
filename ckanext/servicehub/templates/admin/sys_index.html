@@ -1,0 +1,97 @@
+{% extends "page.html" %}
+{% import 'macros/form.html' as form %}
+
+
+
+{% block breadcrumb_content %}
+    <li>{% link_for _('System monitor Management'), named_route='sysadmin.index' %}</li>
+    {#  <li class="active">{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>#}
+{% endblock %}
+
+
+{% block content_action %}{% endblock %}
+
+
+{% block primary %}
+    <article class="module">
+        <header class="module-content page-header">
+            <ul class="nav nav-tabs">
+                <li><a href={{ h.url_for('appadmin.index') }}><i class="fa fa-sitemap"></i> App
+                    Management</a></li>
+                <li><a href={{ h.url_for('prjadmin.index') }}><i class="fa fa-clock-o"></i> Propject Management</a></li>
+                <li><a href={{ h.url_for('logadmin.index') }}><i class="fa fa-cogs"></i> System log Management</a>
+                </li>
+                <li class="active"><a href={{ h.url_for('sysadmin.index') }}><i class="fa fa-cog"></i> System
+                    monitor
+                    Management</a></li>
+            </ul>
+        </header>
+        <div class="module-content">
+
+        </div><iframe src="http://kibana.ckan:5601/app/kibana#/dashboard/79ffd6e0-faa0-11e6-947f-177f697178b8-ecs?embed=true&_g=(refreshInterval:(pause:!t,value:0),time:(from:now-15m,to:now))&_a=(description:'Overview%20of%20host%20metrics',filters:!(),fullScreenMode:!f,options:(darkTheme:!f),panels:!((embeddableConfig:(),gridData:(h:15,i:'1',w:24,x:0,y:55),id:'6b7b9a40-faa1-11e6-86b1-cd7735ff7e23-ecs',panelIndex:'1',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'2',w:24,x:24,y:25),id:'4d546850-1b15-11e7-b09e-037021c4f8df-ecs',panelIndex:'2',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'3',w:24,x:24,y:55),id:'089b85d0-1b16-11e7-b09e-037021c4f8df-ecs',panelIndex:'3',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'4',w:24,x:0,y:40),id:bfa5e400-1b16-11e7-b09e-037021c4f8df-ecs,panelIndex:'4',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'5',w:24,x:24,y:70),id:e0f001c0-1b18-11e7-b09e-037021c4f8df-ecs,panelIndex:'5',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'6',w:24,x:0,y:70),id:'2e224660-1b19-11e7-b09e-037021c4f8df-ecs',panelIndex:'6',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'7',w:24,x:0,y:25),id:ab2d1e90-1b1a-11e7-b09e-037021c4f8df-ecs,panelIndex:'7',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'8',w:24,x:24,y:40),id:'4e4bb1e0-1b1b-11e7-b09e-037021c4f8df-ecs',panelIndex:'8',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'9',w:8,x:16,y:5),id:'26732e20-1b91-11e7-bec4-a5e9ec5cab8b-ecs',panelIndex:'9',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'10',w:8,x:0,y:5),id:'83e12df0-1b91-11e7-bec4-a5e9ec5cab8b-ecs',panelIndex:'10',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'11',w:8,x:8,y:5),id:d3166e80-1b91-11e7-bec4-a5e9ec5cab8b-ecs,panelIndex:'11',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'12',w:8,x:24,y:5),id:'522ee670-1b92-11e7-bec4-a5e9ec5cab8b-ecs',panelIndex:'12',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'13',w:8,x:32,y:5),id:'1aae9140-1b93-11e7-8ada-3df93aab833e-ecs',panelIndex:'13',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'14',w:16,x:32,y:15),id:'34f97ee0-1b96-11e7-8ada-3df93aab833e-ecs',panelIndex:'14',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:5,i:'16',w:24,x:0,y:0),id:System-Navigation-ecs,panelIndex:'16',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'21',w:8,x:0,y:15),id:'19e123b0-4d5a-11e7-aee5-fdc812cc3bec-ecs',panelIndex:'21',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'22',w:8,x:8,y:15),id:d2e80340-4d5c-11e7-aa29-87a97a796de6-ecs,panelIndex:'22',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'23',w:8,x:24,y:15),id:'825fdb80-4d1d-11e7-b5f2-2b7c1895bf32-ecs',panelIndex:'23',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:10,i:'25',w:8,x:40,y:5),id:'96976150-4d5d-11e7-aa29-87a97a796de6-ecs',panelIndex:'25',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'27',w:24,x:0,y:85),id:'99381c80-4d60-11e7-9a4c-ed99bbcaa42b-ecs',panelIndex:'27',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:15,i:'28',w:24,x:24,y:85),id:c5e3cf90-4d60-11e7-9a4c-ed99bbcaa42b-ecs,panelIndex:'28',type:visualization,version:'7.6.2'),(embeddableConfig:(vis:(defaultColors:('0%20-%20100':'rgb(0,104,55)'))),gridData:(h:10,i:'29',w:8,x:16,y:15),id:'590a60f0-5d87-11e7-8884-1bb4c3b890e4-ecs',panelIndex:'29',type:visualization,version:'7.6.2'),(embeddableConfig:(),gridData:(h:5,i:'30',w:24,x:24,y:0),id:'3d65d450-a9c3-11e7-af20-67db8aecb295-ecs',panelIndex:'30',type:visualization,version:'7.6.2')),query:(language:kuery,query:''),timeRestore:!f,title:'%5BMetricbeat%20System%5D%20Host%20overview%20ECS',viewMode:view)" height="600" width="100%"></iframe>
+    </article>
+{% endblock %}
+{% block secondary %}{% endblock %}
+
+
+
+{% block scripts %}
+    {{ super() }}
+    <style>
+        label:after {
+            content: "";
+        }
+    </style>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function (event) {
+            var oTable = $('#myDataTable').dataTable({
+                "ajax": {
+                    "url": "/prjadmin/ajax",
+                    "type": "GET",
+                    "dataSrc": ""
+                },
+                // "sPaginationType": "full_numbers",
+                "aoColumns": [
+                    {
+                        "sWidth": "15%",
+                        "mData": 0
+                    }, {
+                        "sWidth": "15%",
+                        "mData": 1
+                    },
+                    {
+                        "sWidth": "10%",
+                        "mData": 2
+                    },
+                    {
+                        "sWidth": "10%",
+                        "mData": 3
+                    },
+                    {
+                        "sWidth": "10%",
+                        "mData": 4
+                    },
+                    {
+                        "sWidth": "10%",
+                        "mData": 5
+                    },
+                    {
+                        "mData": 0,
+                        "sWidth": "25%",
+                        "bSortable": false,
+                        "mRender": function (data, type, full) {
+                            return `
+          <a class="btn btn-danger btn-sm" href={{ h.url_for('prjadmin.action',action_name='delete') }}?prj_id=${data}>Delete</a>
+          <a class="btn btn-danger btn-sm" href={{ h.url_for('prjadmin.action',action_name='reject') }}?prj_id=${data}>Reject</a>
+          <a class="btn btn-success btn-sm" href={{ h.url_for('prjadmin.action',action_name='approve') }}?prj_id=${data}>Approve</a>
+          <a class="btn btn-info btn-sm" href=/project/read/${data}>Detail</a>
+          `;
+                        }
+                    }]
+            });
+
+        });
+    </script>
+{% endblock %}

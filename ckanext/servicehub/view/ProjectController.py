@@ -2,6 +2,7 @@ import ast
 import os
 import shutil
 
+import logging
 import requests
 from flask.views import MethodView
 from werkzeug.datastructures import FileStorage
@@ -33,9 +34,8 @@ parse_params = logic.parse_params
 appserver_host = config.get('ckan.servicehub.appserver_host')
 storage_path = config.get('ckan.storage_path')
 site_url = config.get('ckan.site_url')
-
+central_logger = logging.getLogger('logserver')
 project_blueprint = Blueprint(u'project', __name__, url_prefix=u'/project')
-
 
 
 def store_file(upload_file, type, project_id):
@@ -148,6 +148,7 @@ class ProjectCreateView(MethodView):
                 data_dict['o_avatar_image'] = store_file(data_dict['o_avatar_image'], "o_avatar_image", ins.id)
                 data_dict['header_image'] = store_file(data_dict['header_image'], "header_image", ins.id)
             except:
+                central_logger.info("user=%s&action=project_create&error_code=1" % "default")
                 return jsonify(dict(success=False, error="Incorrect image format"))
             ins.setOption(**data_dict)
             session.add(ins)
@@ -181,7 +182,9 @@ class ProjectCreateView(MethodView):
             print type(ex)
             print ex.message
             error = getattr(ex, "err_message", 'Opps! Something is wrong')
+            central_logger.info("user=%s&action=project_create&error_code=1" % context['user'])
             return jsonify(dict(success=False, error=error))
+        central_logger.info("user=%s&action=project_create&error_code=0" % context['user'])
         return jsonify(dict(success=True))
 
     def get(self):

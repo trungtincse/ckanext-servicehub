@@ -30,9 +30,35 @@ appserver_host = config.get('ckan.servicehub.appserver_host')
 storage_path = config.get('ckan.storage_path')
 app_admin_blueprint = Blueprint(u'appadmin', __name__, url_prefix=u'/appadmin')
 prj_admin_blueprint = Blueprint(u'prjadmin', __name__, url_prefix=u'/prjadmin')
+log_admin_blueprint = Blueprint(u'logadmin', __name__, url_prefix=u'/logadmin')
+sys_admin_blueprint = Blueprint(u'sysadmin', __name__, url_prefix=u'/sysadmin')
 ckanapp_logger = logging.getLogger('ckanapp')
+central_logger = logging.getLogger('logserver')
 
-
+@sys_admin_blueprint.route('', methods=["GET"])
+def index():
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    try:
+        authz.is_sysadmin(context['user'])
+    except Exception as ex:
+        return base.abort(404, _(u'Page not found'))
+    return base.render('admin/sys_index.html', None)
+@log_admin_blueprint.route('', methods=["GET"])
+def index():
+    context = {
+        u'model': model,
+        u'session': model.Session,
+        u'user': g.user
+    }
+    try:
+        authz.is_sysadmin(context['user'])
+    except Exception as ex:
+        return base.abort(404, _(u'Page not found'))
+    return base.render('admin/log_index.html', None)
 @app_admin_blueprint.route('', methods=["GET"])
 def index():
     context = {
@@ -45,8 +71,6 @@ def index():
     except Exception as ex:
         return base.abort(404, _(u'Page not found'))
     return base.render('admin/app_index.html', None)
-
-
 @prj_admin_blueprint.route('', methods=["GET"])
 def index():
     context = {
@@ -160,13 +184,16 @@ def action(action_name):
             project_ins.active = True
             project_solr.activate_project(prj_id)
             session.add(project_ins)
+            central_logger.info("user=%s&action=project_approve&error_code=0" % context['user'])
         elif action_name == 'reject':
             project_ins.active = False
             project_solr.deactivate_project(prj_id)
+            central_logger.info("user=%s&action=project_reject&error_code=0" % context['user'])
             session.add(project_ins)
         if action_name == 'delete':
             project_solr.delete_project(prj_id)
             session.delete(project_ins)
+            central_logger.info("user=%s&action=project_delete&error_code=0" % context['user'])
         session.commit()
     except:
         session.rollback()

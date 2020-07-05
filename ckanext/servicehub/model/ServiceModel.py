@@ -147,7 +147,11 @@ class CallInput(Base):
         if self.type == 'FILE':
             _dict['value'] = os.path.join('/call', 'file', 'input', self.call_id, self.name)
         return _dict
-
+    def as_dict_for_api(self):
+        _dict = dict(call_id=self.call_id, name=self.name, type=self.type, value=self.value)
+        if self.type == 'FILE':
+            _dict['value'] = site_url+"/"+os.path.join('call', 'file', 'input', self.call_id, self.name)
+        return _dict
 
 class CallOutput(Base):
     __tablename__ = 'call_output'
@@ -165,7 +169,14 @@ class CallOutput(Base):
                 _dict['name']=self.name
             _dict['value'] = os.path.join('/call', 'file', 'output', self.call_id, self.name)
         return _dict
-
+    def as_dict_for_api(self):
+        _dict = dict(call_id=self.call_id, name=self.name, type=self.type, value=self.value)
+        if self.type not in ['TEXT', 'LIST', 'BOOLEAN', 'INTEGER', 'DOUBLE']:
+            if self.type != 'FILE':
+                self.name = self.name + "." + self.type.lower()
+                _dict['name']=self.name
+            _dict['value'] = site_url+"/"+os.path.join('call', 'file', 'output', self.call_id, self.name)
+        return _dict
 
 class AppCategory(Base):
     __tablename__ = 'app_category'

@@ -89,11 +89,14 @@ def service_by_slug_show(context, data_dict):
         return _asdict(service)
 
 
-@logic.side_effect_free
 def call_show(context, data_dict):
     model = context['model']
     session = context['session']
     id = _get_or_bust(data_dict, 'id')
+    try:
+        _check_access('call_show', context, dict(call_id=id))
+    except Exception as ex:
+        pass
     inputs = session.query(CallInput).filter(CallInput.call_id == id).all()
     outputs = session.query(CallOutput).filter(CallOutput.call_id == id).all()
     call = session.query(Call).filter(Call.call_id == id).first()
@@ -105,6 +108,31 @@ def call_show(context, data_dict):
         call = call.as_dict()
         call['inputs'] = [i.as_dict() for i in inputs]
         call['outputs'] = [o.as_dict() for o in outputs]
+        central_logger.info("user=%s&action=call_show&error_code=0" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "call_show", str(call)))
+        return call
+
+
+@logic.side_effect_free
+def call_result(context, data_dict):
+    model = context['model']
+    session = context['session']
+    id = _get_or_bust(data_dict, 'id')
+    try:
+        _check_access('call_show', context, dict(call_id=id))
+    except Exception as ex:
+        pass
+    inputs = session.query(CallInput).filter(CallInput.call_id == id).all()
+    outputs = session.query(CallOutput).filter(CallOutput.call_id == id).all()
+    call = session.query(Call).filter(Call.call_id == id).first()
+    if call == None:
+        central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
+        local_logger.info("%s %s %s" % (context['user'], "call_show", "Call %s not found" % id))
+        return dict(success=False, error="Not found")
+    else:
+        call =dict()
+        call['inputs'] = [i.as_dict_for_api() for i in inputs]
+        call['outputs'] = [o.as_dict_for_api() for o in outputs]
         central_logger.info("user=%s&action=call_show&error_code=0" % context['user'])
         local_logger.info("%s %s %s" % (context['user'], "call_show", str(call)))
         return call
@@ -126,15 +154,10 @@ def call_list(context, data_dict):
     return result
 
 
-
-
 public_functions = dict(
-    # service_list=service_list,
+    call_result=call_result,
     call_list=call_list,
     service_show=service_show,
     call_show=call_show,
-    # reqform_show=reqform_show,
-    # input_show=input_show,
-    # output_show=output_show,
     service_by_slug_show=service_by_slug_show
 )

@@ -7,6 +7,9 @@ COPY ./ ./
 RUN ["chmod", "+x", "/project/ckanext-servicehub/createadmin.cmd"]
 RUN ["chmod", "+x", "/project/ckanext-servicehub/vocab.cmd"]
 
+RUN mkdir -p /data/log
+RUN mkdir -p /ckan_data
+
 RUN cd /project/ckanext-servicehub &&\
 	. /usr/lib/ckan/default/bin/activate &&\
 	python setup.py develop &&\

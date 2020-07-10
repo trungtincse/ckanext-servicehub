@@ -102,6 +102,39 @@ def query_app(text, categories, language, organization, sort):
     r['response']['docs'] = list(map(recover_app_data, r['response']['docs']))
     return r
 
+
+def start_app(app_id):
+    r = requests.post(solr_url + '/update?commit=true', json=[
+        {
+            'id': app_id,
+            'app_status': {'set': 'START'}
+        }
+    ]).json()
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
+
+
+def stop_app(app_id):
+    r = requests.post(solr_url + '/update?commit=true', json=[
+        {
+            'id': app_id,
+            'app_status': {'set': 'STOP'}
+        }
+    ]).json()
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
+
+
+def debug_app(app_id):
+    r = requests.post(solr_url + '/update?commit=true', json=[
+        {
+            'id': app_id,
+            'app_status': {'set': 'DEBUG'}
+        }
+    ]).json()
+    if 'error' in r:
+        raise SearchError(r['error']['msg'])
+
 #########################
 # private functions
 

@@ -2,7 +2,7 @@ import ast
 import os
 
 import requests
-from ckanext.servicehub.action import project_solr
+from ckanext.servicehub.action import project_solr, app_solr
 from werkzeug.datastructures import FileStorage
 
 from ckan.lib import helpers
@@ -140,14 +140,17 @@ def action(action_name):
         base.abort(404, _(u'App not found'))
     try:
         if action_name == 'stop':
+            app_solr.stop_app(app_id)
             service_ins.app_status = 'STOP'
             session.add(service_ins)
             ckanapp_logger.info("app_id=%s&information=%s" % (app_id, "Change mode to STOP"))
         elif action_name == 'debug':
+            app_solr.debug_app(app_id)
             service_ins.app_status = 'DEBUG'
             session.add(service_ins)
             ckanapp_logger.info("app_id=%s&information=%s" % (app_id, "Change mode to DEBUG"))
         elif action_name == 'start':
+            app_solr.start_app(app_id)
             service_ins.app_status = 'START'
             session.add(service_ins)
             ckanapp_logger.info("app_id=%s&information=%s" % (app_id, "Change mode to START"))

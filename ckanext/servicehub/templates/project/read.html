@@ -1,9 +1,9 @@
 {% extends "page.html" %}
 
-{% block subtitle %}{{ _('Applications') }}{% endblock %}
+{% block subtitle %}{{ _('Projects') }}{% endblock %}
 
 {% block breadcrumb_content %}
-  <li class="active">{% link_for _('Application'), named_route='service.index' %}</li>
+  <li class="active">{% link_for _('Project'), named_route='project.index' %}</li>
 {% endblock %}
 
 {% block page_header %}{% endblock %}
@@ -25,7 +25,7 @@
         <p><span style="font-size:20px">Project summary:</span>{{ instance.prj_summary }}</p>
         <p><span style="font-size:20px">Project goal:</span>{{ instance.prj_goal }}</p>
         {% for app in apps %}
-          <a class="btn-success btn" href="{{ app.link }}">Run Project</a>
+          <a class="btn-success btn" href="{{ app.link }}">Run Application</a>
         {% endfor %}
       </div>
 

@@ -255,7 +255,7 @@ def build_code(session, code_file, app):
         build_url = os.path.join(appserver_host, 'app', app_id, code_id, 'build')
         # WILL DO
         session.commit()  # make appserver see code version
-        r = requests.post(build_url, timeout=30).json()
+        r = requests.post(build_url, timeout=500000).json()
         if r['error']:
             session.delete(code)
             raise BuildAppFailed(r['error'])

@@ -47,7 +47,7 @@ def query_project(text, organization_name, categories, tags, sort):
         # pprint('Not admin: just show active projects')
 
     query = {
-        'query': text,
+        'query': text or "",
         'filter': filters,
         'facet': query_facets,
         'sort': sort

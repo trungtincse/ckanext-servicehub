@@ -106,7 +106,7 @@ def query_app(text, categories, language, organization, sort):
 def start_app(app_id):
     r = requests.post(solr_url + '/update?commit=true', json=[
         {
-            'id': app_id,
+            'app_id': app_id,
             'app_status': {'set': 'START'}
         }
     ]).json()
@@ -117,7 +117,7 @@ def start_app(app_id):
 def stop_app(app_id):
     r = requests.post(solr_url + '/update?commit=true', json=[
         {
-            'id': app_id,
+            'app_id': app_id,
             'app_status': {'set': 'STOP'}
         }
     ]).json()
@@ -128,7 +128,7 @@ def stop_app(app_id):
 def debug_app(app_id):
     r = requests.post(solr_url + '/update?commit=true', json=[
         {
-            'id': app_id,
+            'app_id': app_id,
             'app_status': {'set': 'DEBUG'}
         }
     ]).json()

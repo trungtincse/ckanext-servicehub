@@ -172,8 +172,8 @@ class ProjectCreateView(MethodView):
                 'draft': ins.draft,
                 'active': ins.active,
                 'category': categories_names,
-                'tags': tags_names,
-                'datasets': datasets_ids
+                'tags': tags_names
+                # 'datasets': datasets_ids
             })
 
             session.commit()

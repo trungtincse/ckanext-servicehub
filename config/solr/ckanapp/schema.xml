@@ -95,7 +95,7 @@ schema. In this case the version should be set to the next CKAN version number.
     <field name="language_ci"     type="string_ci" indexed="true"  stored="true"  omitNorms="true"                 multiValued="false" />
     <field name="created_at"      type="date"   indexed="true"  stored="true"                   multiValued="false" />
     <field name="curr_code_id"    type="string" indexed="false" stored="true"                   multiValued="false" />  <!-- already indexed at app_name -->
-    <field name="app_status"      type="string" indexed="false" stored="true"                   multiValued="false" />
+    <field name="app_status"      type="string" indexed="true" stored="true"                   multiValued="false" />
     <field name="category"        type="string" indexed="true"  stored="true"                   multiValued="true"  />
     <field name="dataset_related" type="string" indexed="true"  stored="true"                   multiValued="true"  />
     <field name="permission_labels" type="string" indexed="true" stored="true"                  multiValued="true"/>

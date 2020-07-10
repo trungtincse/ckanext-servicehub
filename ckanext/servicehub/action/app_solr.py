@@ -86,6 +86,7 @@ def query_app(text, categories, language, organization, sort):
     else:
         # anonymous user/not login
         filters.append('app_status:START')
+        # print filters
         # pprint('Anonymous user')
 
     query = {

@@ -37,6 +37,8 @@ def service_show(context, data_dict=None):
     user = context['user']
     app_id = data_dict['app_id']
     app_ins = session.query(App).filter(App.app_id == app_id).first()
+    if app_ins.app_status=="START":
+        return {'success': True}
     if app_ins:
         if authz.users_role_for_group_or_org(app_ins.organization, user):
             return {'success': True}
@@ -97,6 +99,7 @@ def call_show(context, data_dict):
     session = context['session']
     user = context['user']
     call_id = data_dict.get('call_id')
+    
     if call_id == None:
         return {'success': False,
                 'msg': _('call_id not found')}

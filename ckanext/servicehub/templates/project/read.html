@@ -22,8 +22,10 @@
       <div class="col-md-12">
         <h1 class="xlarge-font"><b>The Project</b></h1>
         <h1 class="large-font" style="color:MediumSeaGreen;font-size:36px;"><b>{{ instance.project_name }}</b></h1>
-        <p><span style="font-size:20px">Project summary:</span>{{ instance.prj_summary }}</p>
-        <p><span style="font-size:20px">Project goal:</span>{{ instance.prj_goal }}</p>
+        <p><span style="font-size:20px">Project summary:</span></p>
+        {{ h.render_markdown( instance.prj_summary) }}
+        <p><span style="font-size:20px">Project goal:</span></p>
+        {{ h.render_markdown( instance.prj_goal) }}
         {% for app in apps %}
           <a class="btn-success btn" href="{{ app.link }}">Run Application</a>
         {% endfor %}
@@ -52,7 +54,7 @@
       <div class="column-66">
         <h1 class="xlarge-font"><b>Organization</b></h1>
         <h1 class="large-font" style="color:red;"><b>{{ instance.organization_name }}</b></h1>
-        <p>{{ instance.o_description }}</p>
+        {{ h.render_markdown( instance.o_description) }}
       </div>
     </div>
   </div>

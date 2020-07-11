@@ -18,9 +18,7 @@
           </a>
 
 
-          <p class="description">
-            {{ app.description }}
-          </p>
+            {{ h.render_markdown( app.description)|truncate(1024, True) }}
 
 
         </li>
@@ -44,9 +42,7 @@
           </a>
 
 
-          <p class="description">
-            {{ project.prj_summary }}
-          </p>
+            {{ h.render_markdown( project.prj_summary)|truncate(1024, True) }}
 
 
         </li>

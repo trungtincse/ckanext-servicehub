@@ -75,7 +75,7 @@
                 </div>
                 <div class=" md-ml-10">
                     <h3>Description</h3>
-                    <p>{{ ins.description }}</p>
+                    {{ h.render_markdown( ins.description) }}
                 </div>
                 <div class="request-zone"
                      style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
@@ -216,6 +216,32 @@
 
     </style>
     <script>
+            function swal_ajax(type) {
+        switch (type) {
+            case 'load':
+                swal({
+                    title: 'Loading',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
+                break;
+            case 'error':
+                setTimeout(function () {
+                    $('#swal2-content').html('<div class="sa"><div class="sa-error"><div class="sa-error-x"><div class="sa-error-left"></div><div class="sa-error-right"></div></div><div class="sa-error-placeholder"></div><div class="sa-error-fix"></div></div></div><div><h4>An error has occurred; please contact web support for assistance.</h4></div><button class="confirm swal-close" style="display: inline-block; border-left-color: rgb(48, 133, 214); border-right-color: rgb(48, 133, 214);">OK</button>');
+                }, 1000);
+                $('.swal-close').on('click', function () { swal.closeModal(); });
+                break;
+            case 'success':
+                setTimeout(function () {
+                    $('#swal2-content').html('<div class="sa"><div class="sa-success"><div class="sa-success-tip"></div><div class="sa-success-long"></div><div class="sa-success-placeholder"></div><div class="sa-success-fix"></div></div></div><div><h4>Save successful!</h4></div>');
+                }, 1000);
+                setTimeout(function () {
+                    swal.close(true);
+                }, 2000);
+                break;
+        }
+    }
+
         function addParam(type, name) {
             raw_html = `
         <div class="form-group ${name}-sub-param md-mt-5 md-mb-5">
@@ -245,14 +271,16 @@
             /////
             $("#request-form").ajaxForm(function (response) {
                 console.log(response)
+                swal_ajax('load');
                 if (response.error != '') {
-                    swal(response.error);
+                    swal("User is not allowed to make request!");
                 } else {
                     location.href = `/call/read/${response.call_id}`
                     {#swal("Success!");#}
                 }
             });
             $("#service-setting-form").ajaxForm(function (response) {
+                swal_ajax('load');
                 if (!response.success) {
                     swal(response.error);
                 } else {
@@ -261,6 +289,7 @@
                 }
             });
             $("#code-update-form").ajaxForm(function (response) {
+                swal_ajax('load');
                 if (!response.success) {
                     swal(response.error);
                 } else {

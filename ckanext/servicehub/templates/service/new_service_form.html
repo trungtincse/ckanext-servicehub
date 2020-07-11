@@ -253,6 +253,7 @@
             type: 'post',
             beforeSubmit: function (arr, $form, options) {
                 //check valid-form
+                swal_ajax('load');
                 let checkValid = true;
                 $("input[required]").each((i, e) => {
                     if ($(e).val() == "") {
@@ -303,7 +304,7 @@
                 if (response.success) {
                     swal({
                         title: "Application created!",
-                        {#text: "App created",#}
+                        // {#text: "App created",#}
                         type: "success"
                     }, function () {
                         location.href = `/service/${response.app_id}`;
@@ -321,10 +322,47 @@
     })
     ;
 
-
+    function swal_ajax(type) {
+        switch (type) {
+            case 'load':
+                swal({
+                    title: 'Loading',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
+                break;
+            case 'error':
+                setTimeout(function () {
+                    $('#swal2-content').html('<div class="sa"><div class="sa-error"><div class="sa-error-x"><div class="sa-error-left"></div><div class="sa-error-right"></div></div><div class="sa-error-placeholder"></div><div class="sa-error-fix"></div></div></div><div><h4>An error has occurred; please contact web support for assistance.</h4></div><button class="confirm swal-close" style="display: inline-block; border-left-color: rgb(48, 133, 214); border-right-color: rgb(48, 133, 214);">OK</button>');
+                }, 1000);
+                $('.swal-close').on('click', function () { swal.closeModal(); });
+                break;
+            case 'success':
+                setTimeout(function () {
+                    $('#swal2-content').html('<div class="sa"><div class="sa-success"><div class="sa-success-tip"></div><div class="sa-success-long"></div><div class="sa-success-placeholder"></div><div class="sa-success-fix"></div></div></div><div><h4>Save successful!</h4></div>');
+                }, 1000);
+                setTimeout(function () {
+                    swal.close(true);
+                }, 2000);
+                break;
+        }
+    }
 </script>
 
 <style>
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
     .stages li {
         width: 33%
     }

@@ -28,7 +28,7 @@ def list_all_projects_of_user(context, data_dict=None):
     filter_iterator = filter(lambda prj: prj.active, prj_list)
     return list(map(lambda prj: prj.id, filter_iterator))
 
-
+@logic.auth_allow_anonymous_access
 def service_show(context, data_dict=None):
     """
     la member

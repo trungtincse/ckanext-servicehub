@@ -49,6 +49,7 @@ central_logger = logging.getLogger('logserver')
 local_logger = logging.getLogger('local')
 ckanapp_logger = logging.getLogger('ckanapp')
 ckancall_logger = logging.getLogger('ckancall')
+debug_logger = logging.getLogger('call_result')
 
 
 def isidentifier(ident):
@@ -352,6 +353,7 @@ def call_create(context, data_dict):
         else:
             files[k] = (None, v)
     path = os.path.join(appserver_host, 'app', app_id, curr_code_id, 'execute')
+    debug_logger.info("Start request")
     if files:
         response = requests.post(path, files=files, params={'userId': user})
     else:

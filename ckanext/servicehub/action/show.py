@@ -130,28 +130,25 @@ def call_result(context, data_dict):
         local_logger.info("%s %s %s" % (context['user'], "call_result", "Call %s not found" % id))
         return dict(success=False, error="Not found")
     else:
+        call_result = dict(status=call.call_status)
         if call.call_status == 'STARTED':
-            call = dict(message="Call is handling")
             central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
-            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call)))
-            return call
+            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call_result)))
+            return call_result
         elif call.call_status == 'TIMEOUT':
-            call = dict(message="Call is timeout")
             central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
-            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call)))
-            return call
+            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call_result)))
+            return call_result
         elif call.call_status == 'FAILED':
-            call = dict(message="Call is failed")
             central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
-            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call)))
-            return call
+            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call_result)))
+            return call_result
         else:
-            call =dict()
-            call['inputs'] = [i.as_dict_for_api() for i in inputs]
-            call['outputs'] = [o.as_dict_for_api() for o in outputs]
+            call_result['inputs'] = [i.as_dict_for_api() for i in inputs]
+            call_result['outputs'] = [o.as_dict_for_api() for o in outputs]
             central_logger.info("user=%s&action=call_show&error_code=0" % context['user'])
-            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call)))
-            return call
+            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call_result)))
+            return call_result
 
 
 def call_list(context, data_dict):

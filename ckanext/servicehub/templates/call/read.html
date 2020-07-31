@@ -21,6 +21,16 @@
     <div class="col-12">
         <article class="module">
             <div class="module-content">
+                <div class="md-ml-12" style="margin-bottom: 20px;">
+                    <div class="request-zone"
+                         style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
+                        <h3>Status</h3>
+                        <form id="input-form" class="dataset-form md-mb-15 form-horizontal"
+                              data-module="basic-form" novalidate="">
+                              <p>{{ins.call_status}}</p>
+                        </form>
+                    </div>
+                </div>
                 <div class=" md-ml-12" style="margin-bottom: 20px;">
                     <div class="request-zone"
                          style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
@@ -34,6 +44,7 @@
                         </form>
                     </div>
                 </div>
+
                 <div class="md-ml-12" style="margin-bottom: 20px;">
                     <div class="request-zone"
                          style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
@@ -45,7 +56,11 @@
                                     {% snippet "call/snippets/redirect_input.html",field=output,call_id=ins.call_id ,type='output' %}
                                 {% endfor %}
                             {% elif ins.call_status=='FAILED' %}
-                                <p>Run failed: something go wrong</p>
+                                <p>Run failed: something went wrong.</p>
+                            {% elif ins.call_status=='TIMEOUT' %}
+                                <p>Timeout: Request taking too long time.</p>
+                            {% elif ins.call_status=='OUT_OF_MEMORY' %}
+                                <p>Out of memory: Can not handle request.</p>
                             {% else %}
                                 <p>Wait the minutes or check call status</p>
                             {% endif %}
@@ -139,7 +154,17 @@
                 },
             }
             $.ajax(setting).done((response) => {
-                $('#myModal .modal-body').html(response);
+                let time =0;
+                let interval = undefined;
+                interval= setInterval(()=>{
+                    $('#myModal .modal-body').html(response);
+                    time++;
+                    if (time>1){
+                        clearInterval(interval);
+                        interval=undefined;
+                    }
+                },4000);
+                
             });
         }
     </script>

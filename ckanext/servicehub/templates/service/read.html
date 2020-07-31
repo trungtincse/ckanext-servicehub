@@ -4,8 +4,8 @@
 
 
 {% block breadcrumb_content %}
-    <li>{% link_for _('Applications'), named_route='service.index' %}</li>
-    <li class="active">{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
+<li>{% link_for _('Applications'), named_route='service.index' %}</li>
+<li class="active">{% link_for ins.app_name, named_route='service.read', id=ins.app_id %}</li>
 {% endblock %}
 
 
@@ -13,183 +13,179 @@
 
 
 {% block primary %}
-    <div class="primary col-12">
-        <article class="module">
-            <header class="module-content page-header">
-                {% if h.check_access('delete_service',{'app_id':ins.app_id}) %}
-                    <div class="content_action md-ml-10 md-mb-10">
-                        <a class="btn btn-danger" href="/service/{{ ins.app_id }}/delete"><i class="fa fa-trash"></i>
-                            Delete</a>
-                    </div>
-                {% endif %}
-                {% if h.check_access('update_service',{'app_id':ins.app_id}) %}
-                    <div class="content_action md-mb-10">
-                        <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i
-                                class="fa fa-wrench"></i> Setting</a>
-                    </div>
-                    <div class="content_action md-mr-10 md-mb-10">
-                        <a class="btn btn-default" data-toggle="modal" data-target="#UpdateModal"><i
-                                class="fa fa-upload"></i>
-                            Upload code</a>
-                    </div>
-                {% endif %}
-                {% if h.check_access('service_monitor',{'app_id':ins.app_id}) %}
-                    <div class="content_action md-mr-10 md-mb-10">
-                        <a class="btn btn-default" href="/service/{{ ins.app_id }}/monitor"><i class="fa fa-eye"></i>
-                            Monitor</a>
-                    </div>
-                    <div class="content_action md-mr-10 md-mb-10">
-                        <a class="btn btn-default" href="/service/{{ ins.app_id }}/code"><i
-                                class="fa fa-code"></i>
-                            Code Management</a>
-                    </div>
-                {% endif %}
-                {% if h.check_access('report_show',{'app_id':ins.app_id}) %}
-                    <div class="content_action md-mr-10 md-mb-10">
-                        <a class="btn btn-default" href="/service/{{ ins.app_id }}/report"><i
-                                class="fa fa-code"></i>
-                            Test Report</a>
-                    </div>
-                {% endif %}
-            </header>
-            <div class="module-content">
-                <div class=" md-ml-10">
-                    {% snippet "service/snippets/additional_info.html", pkg_dict=ins %}
-                </div>
-                <div class=" md-ml-10">
-                    <h3>Status</h3>
-                    {% if ins.code.build_status == 'BUILD_FAILED' %}
-                        <label class="label label-danger">BUILDING FAILED</label>
-                    {% elif ins.code.build_status == 'BUILDING' %}
-                        <label class="label label-warning">BUILDING</label>
-                    {% elif ins.code.build_status == 'BUILD_DONE' %}
-                        <label class="label label-success">BUILD DONE</label>
-                    {% endif %}
-                    {% if ins.app_status == 'STOP' %}
-                        <label class="label label-danger">STOP</label>
-                    {% elif ins.app_status == 'DEBUG' %}
-                        <label class="label label-warning">DEBUG</label>
-                    {% elif ins.app_status == 'START' %}
-                        <label class="label label-success">START</label>
-                    {% endif %}
-                </div>
-                <div class=" md-ml-10">
-                    <h3>Description</h3>
-                    {{ h.render_markdown( ins.description) }}
-                </div>
-                <div class="request-zone"
-                     style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
-                    <h3>Request Form</h3>
-                    <form id="request-form" class="dataset-form md-mb-15 form-horizontal" method="post"
-                          action="/call/create/{{ ins.app_id }}"
-                          data-module="basic-form"
-                          novalidate="" enctype="multipart/form-data">
-                        {% for field in ins.params %}
-                            {% snippet "common_snippets/redirect_input.html",field=field %}
-                        {% endfor %}
-                        <div class="form-group param md-mt-5 md-mb-5">
-                            <div class="col-md-10"></div>
-                            <div class="col-md-2">
-                                <button class="btn btn-primary" type="submit">Send</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+<div class="primary col-12">
+    <article class="module">
+        <header class="module-content page-header">
+            {% if h.check_access('delete_service',{'app_id':ins.app_id}) %}
+            <div class="content_action md-ml-10 md-mb-10">
+                <a class="btn btn-danger" href="/service/{{ ins.app_id }}/delete"><i class="fa fa-trash"></i>
+                    Delete</a>
             </div>
-        </article>
-    </div>
-    <div class="modal fade" id="ManageModal" tabindex="-1" role="dialog" aria-labelledby="ManageModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ManageModalLabel">Service setting</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="service-setting-form" class="dataset-form" method="post" data-module="basic-form"
-                          enctype="multipart/form-data" action={% url_for 'service.setting',id=ins.app_id %}>
-                        <div class="form-group control-full">
-                            <label class="control-label" for="field-description">Description</label>
-                            <div class="controls editor">
-                <textarea id="field-description" name="description" cols="20" rows="5"
-                          placeholder="A little information about my service..."
-                          class="form-control">{{ ins.description }}</textarea>
-                                <span class="editor-info-block">You can use <a href="#markdown" title=""
-                                                                               data-target="popover"
-                                                                               data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='text-muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>"
-                                                                               data-html="true"
-                                                                               data-original-title="Markdown quick reference">Markdown formatting</a> here</span>
-                            </div>
+            {% endif %}
+            {% if h.check_access('update_service',{'app_id':ins.app_id}) %}
+            <div class="content_action md-mb-10">
+                <a class="btn btn-default" data-toggle="modal" data-target="#ManageModal"><i class="fa fa-wrench"></i>
+                    Setting</a>
+            </div>
+            <div class="content_action md-mr-10 md-mb-10">
+                <a class="btn btn-default" data-toggle="modal" data-target="#UpdateModal"><i class="fa fa-upload"></i>
+                    Upload code</a>
+            </div>
+            {% endif %}
+            {% if h.check_access('service_monitor',{'app_id':ins.app_id}) %}
+            <div class="content_action md-mr-10 md-mb-10">
+                <a class="btn btn-default" href="/service/{{ ins.app_id }}/monitor"><i class="fa fa-eye"></i>
+                    Monitor</a>
+            </div>
+            <div class="content_action md-mr-10 md-mb-10">
+                <a class="btn btn-default" href="/service/{{ ins.app_id }}/code"><i class="fa fa-code"></i>
+                    Code Management</a>
+            </div>
+            {% endif %}
+            {% if h.check_access('report_show',{'app_id':ins.app_id}) %}
+            <div class="content_action md-mr-10 md-mb-10">
+                <a class="btn btn-default" href="/service/{{ ins.app_id }}/report"><i class="fa fa-code"></i>
+                    Test Report</a>
+            </div>
+            {% endif %}
+        </header>
+        <div class="module-content">
+            <div class=" md-ml-10">
+                {% snippet "service/snippets/additional_info.html", pkg_dict=ins %}
+            </div>
+            <div class=" md-ml-10">
+                <h3>Status</h3>
+                {% if ins.code.build_status == 'BUILD_FAILED' %}
+                <label class="label label-danger">BUILDING FAILED</label>
+                {% elif ins.code.build_status == 'BUILDING' %}
+                <label class="label label-warning">BUILDING</label>
+                {% elif ins.code.build_status == 'BUILD_DONE' %}
+                <label class="label label-success">BUILD DONE</label>
+                {% endif %}
+                {% if ins.app_status == 'STOP' %}
+                <label class="label label-danger">STOP</label>
+                {% elif ins.app_status == 'DEBUG' %}
+                <label class="label label-warning">DEBUG</label>
+                {% elif ins.app_status == 'START' %}
+                <label class="label label-success">START</label>
+                {% endif %}
+            </div>
+            <div class=" md-ml-10">
+                <h3>Description</h3>
+                {{ h.render_markdown( ins.description) }}
+            </div>
+            <div class="request-zone"
+                style="border: 1px solid #ccc!important;border-radius: 16px;padding: 0.01em 15px; margin-left: 150px;margin-right: 150px">
+                <h3>Request Form</h3>
+                <form id="request-form" class="dataset-form md-mb-15 form-horizontal" method="post"
+                    action="/call/create/{{ ins.app_id }}" data-module="basic-form" novalidate=""
+                    enctype="multipart/form-data">
+                    {% for field in ins.params %}
+                    {% snippet "common_snippets/redirect_input.html",field=field %}
+                    {% endfor %}
+                    <div class="form-group param md-mt-5 md-mb-5">
+                        <div class="col-md-10"></div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary" type="submit">Send</button>
                         </div>
-                        {#                        <div class="form-group control-full control-select">#}
-                        {#                            <label class="control-label" for="mode">Select mode for service:</label>#}
-                        {#                            <div class="controls ">#}
-                        {##}
-                        {#                                <select id="mode" name="mode" class="form-control">#}
-                        {##}
-                        {#                                    <option value="STOP">Stop</option>#}
-                        {##}
-                        {#                                    <option value="DEBUG">Debug</option>#}
-                        {##}
-                        {#                                    <option value="START">Start</option>#}
-                        {##}
-                        {#                                </select>#}
-                        {##}
-                        {##}
-                        {#                            </div>#}
-                        {#                        </div>#}
-                        <div class="form-group control-full control-select">
-                            <label class="control-label" for="mode">Select version:</label>
-                            <div class="controls ">
-                                <select id="version" name="version" class="form-control">
-                                    {% for code in ins.all_codes %}
-                                        <option value="{{ code.code_id }}">{{ code.code_id }} ({{ code.created_at }})
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </article>
+</div>
+<div class="modal fade" id="ManageModal" tabindex="-1" role="dialog" aria-labelledby="ManageModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ManageModalLabel">Service setting</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="service-setting-form" class="dataset-form" method="post" data-module="basic-form"
+                    enctype="multipart/form-data" action={% url_for 'service.setting',id=ins.app_id %}>
+                    <div class="form-group control-full">
+                        <label class="control-label" for="field-description">Description</label>
+                        <div class="controls editor">
+                            <textarea id="field-description" name="description" cols="20" rows="5"
+                                placeholder="A little information about my service..."
+                                class="form-control">{{ ins.description }}</textarea>
+                            <span class="editor-info-block">You can use <a href="#markdown" title=""
+                                    data-target="popover"
+                                    data-content="<pre><p>__Bold text__ or _italic text_</p><p># title<br>## secondary title<br>### etc</p><p>* list<br>* of<br>* items</p><p>http://auto.link.ed/</p></pre><p><b><a href='http://daringfireball.net/projects/markdown/syntax' target='_blank'>Full markdown syntax</a></b></p><p class='text-muted'><b>Please note:</b> HTML tags are stripped out for security reasons</p>"
+                                    data-html="true" data-original-title="Markdown quick reference">Markdown
+                                    formatting</a> here</span>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" form="service-setting-form">Save changes</button>
-                </div>
+                    </div>
+                    {#                        <div class="form-group control-full control-select">#}
+                    {#                            <label class="control-label" for="mode">Select mode for service:</label>#}
+                    {#                            <div class="controls ">#}
+                    {##}
+                    {#                                <select id="mode" name="mode" class="form-control">#}
+                    {##}
+                    {#                                    <option value="STOP">Stop</option>#}
+                    {##}
+                    {#                                    <option value="DEBUG">Debug</option>#}
+                    {##}
+                    {#                                    <option value="START">Start</option>#}
+                    {##}
+                    {#                                </select>#}
+                    {##}
+                    {##}
+                    {#                            </div>#}
+                    {#                        </div>#}
+                    <div class="form-group control-full control-select">
+                        <label class="control-label" for="mode">Select version:</label>
+                        <div class="controls ">
+                            <select id="version" name="version" class="form-control">
+                                {% for code in ins.all_codes %}
+                                <option value="{{ code.code_id }}">{{ code.code_id }} ({{ code.created_at }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" form="service-setting-form">Save changes</button>
             </div>
         </div>
     </div>
-    <div class="modal fade" id="UpdateModal" tabindex="-1" role="dialog" aria-labelledby="ManageModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="UpdateModalLabel">Code Update Manager</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="code-update-form" class="dataset-form" method="post" data-module="basic-form"
-                          enctype="multipart/form-data" action={% url_for 'service.update',id=ins.app_id %}>
-                        <div class="form-group control-full control-select">
-                            <label class="control-label" for="mode">Upload code:</label>
-                            <div class="controls ">
-                                <input id="avatar" type="file" name="codeFile" class="form-control" required="">
-                                <input type="hidden" name="slug_name" value="{{ ins.slug_name }}">
-                            </div>
+</div>
+<div class="modal fade" id="UpdateModal" tabindex="-1" role="dialog" aria-labelledby="ManageModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="UpdateModalLabel">Code Update Manager</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="code-update-form" class="dataset-form" method="post" data-module="basic-form"
+                    enctype="multipart/form-data" action={% url_for 'service.update',id=ins.app_id %}>
+                    <div class="form-group control-full control-select">
+                        <label class="control-label" for="mode">Upload code:</label>
+                        <div class="controls ">
+                            <input id="avatar" type="file" name="codeFile" class="form-control" required="">
+                            <input type="hidden" name="slug_name" value="{{ ins.slug_name }}">
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" form="code-update-form">Save changes</button>
-                </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" form="code-update-form">Save changes</button>
             </div>
         </div>
     </div>
+</div>
 
 {% endblock %}
 
@@ -200,23 +196,22 @@
 
 
 {% block scripts %}
-    {{ super() }}
-    <style>
-        label:after {
-            content: "";
-        }
+{{ super() }}
+<style>
+    label:after {
+        content: "";
+    }
 
-        input[type='checkbox'] {
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 5px;
-            border: 2px solid #555;
-        }
-
-    </style>
-    <script>
-            function swal_ajax(type) {
+    input[type='checkbox'] {
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 5px;
+        border: 2px solid #555;
+    }
+</style>
+<script>
+    function swal_ajax(type) {
         switch (type) {
             case 'load':
                 swal({
@@ -242,8 +237,8 @@
         }
     }
 
-        function addParam(type, name) {
-            raw_html = `
+    function addParam(type, name) {
+        raw_html = `
         <div class="form-group ${name}-sub-param md-mt-5 md-mb-5">
           <div class="col-md-3">
           </div>
@@ -255,50 +250,61 @@
           </div>
         </div>
         `;
-            $(`#${name}-zone`).append(raw_html);
-        }
+        $(`#${name}-zone`).append(raw_html);
+    }
 
-        document.addEventListener("DOMContentLoaded", function (event) {
-            ///cookie
-            if ($.cookie("code-update") != undefined) {
-                swal("Updating code is successful");
-                $.removeCookie("code-update");
-            }
-            if ($.cookie("service-setting") != undefined) {
-                swal("Service setting is successful");
-                $.removeCookie("service-setting");
-            }
-            /////
-            $("#request-form").ajaxForm(function (response) {
-                console.log(response)
+    document.addEventListener("DOMContentLoaded", function (event) {
+        ///cookie
+        if ($.cookie("code-update") != undefined) {
+            swal("Updating code is successful");
+            $.removeCookie("code-update");
+        }
+        if ($.cookie("service-setting") != undefined) {
+            swal("Service setting is successful");
+            $.removeCookie("service-setting");
+        }
+        /////
+        $("#request-form").ajaxForm({
+            beforeSubmit: function (arr, $form, options) {
                 swal_ajax('load');
+            },
+            success: function (response) {
                 if (response.error != '') {
                     swal("User is not allowed to make request!");
                 } else {
                     location.href = `/call/read/${response.call_id}`
-                    {#swal("Success!");#}
                 }
-            });
-            $("#service-setting-form").ajaxForm(function (response) {
+            }
+        });
+        $("#service-setting-form").ajaxForm({
+            beforeSubmit: function (arr, $form, options) {
                 swal_ajax('load');
+            },
+            success: function (response) {
                 if (!response.success) {
                     swal(response.error);
                 } else {
                     $.cookie("service-setting", 1);
                     location.href = "{% url_for 'service.read',id=ins.app_id %}"
                 }
-            });
-            $("#code-update-form").ajaxForm(function (response) {
+            }
+        });
+        $("#code-update-form").ajaxForm({
+            beforeSubmit: function (arr, $form, options) {
                 swal_ajax('load');
+            },
+            success: function (response) {
                 if (!response.success) {
                     swal(response.error);
                 } else {
                     $.cookie("code-update", 1);
                     location.href = "{% url_for 'service.read',id=ins.app_id %}"
                 }
-            });
-            $("#version").val("{{ ins.curr_code_id }}");
+            }
         });
 
-    </script>
+        $("#version").val("{{ ins.curr_code_id }}");
+    });
+
+</script>
 {% endblock %}

@@ -139,6 +139,10 @@ def call_result(context, data_dict):
             central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
             local_logger.info("%s %s %s" % (context['user'], "call_result", str(call_result)))
             return call_result
+        elif call.call_status == 'OUT_OF_MEMORY':
+            central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
+            local_logger.info("%s %s %s" % (context['user'], "call_result", str(call_result)))
+            return call_result
         elif call.call_status == 'FAILED':
             central_logger.info("user=%s&action=call_show&error_code=1" % context['user'])
             local_logger.info("%s %s %s" % (context['user'], "call_result", str(call_result)))
@@ -164,6 +168,7 @@ def call_list(context, data_dict):
         result.append(dict_a)
     central_logger.info("user=%s&action=call_list&error_code=0" % context['user'])
     local_logger.info("%s %s %s" % (context['user'], "call_list", "Success"))
+    result.reverse()
     return result
 
 

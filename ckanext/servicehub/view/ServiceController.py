@@ -56,7 +56,6 @@ def index():
         u'for_view': True,
         u'with_private': False
     }
-
     # results = get_action(u'service_list')(context, dict())
     # return base.render('service/index.html', dict(results=results, len=len(results), appserver_host=appserver_host))
     return app_search_supporter.index()

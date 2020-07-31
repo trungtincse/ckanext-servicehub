@@ -81,7 +81,10 @@ def query_app(text, categories, language, organization, sort):
         pass
     elif g.user:
         # a user logged in
-        filters.append('app_status:START OR (organization:(%s))' % ' OR '.join(user_groups_names(g.user))) # 0 groups is ok
+        if len(list(user_groups_names(g.user)))>0:
+            filters.append('app_status:START OR (organization:(%s))' % ' OR '.join(user_groups_names(g.user))) # 0 groups is ok
+        else:
+            filters.append('app_status:START')
         # pprint('groups: %s' % list(user_groups_names(g.user)))
     else:
         # anonymous user/not login

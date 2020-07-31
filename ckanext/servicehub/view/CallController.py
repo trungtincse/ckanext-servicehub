@@ -196,13 +196,18 @@ def make_view(package_id, filename):
                 base.abort(404, _('Resource view not found'))
         else:
             current_resource_view = resource_views[0]
+    # print c.package, c.resource, current_resource_view
     vars = {'pkg': c.package,
             'resource_views': resource_views,
             'current_resource_view': current_resource_view,
             'dataset_type': dataset_type,
             'res': c.resource['has_views']
             }
-    return base.render(u'call/snippets/modal_content_output_view.html', vars)
+    if current_resource_view==None:
+        return dict(success=False)
+    else:
+        return dict(success=True,package_id=current_resource_view['package_id'],resource_id=current_resource_view['resource_id'],id=current_resource_view['id']) 
+    # return base.render(u'call/snippets/modal_content_output_view.html', vars)
 
 
 @call_blueprint.route('/output_read/<call_id>/<filename>', methods=["GET"])
@@ -221,7 +226,10 @@ def output_read(call_id, filename):
         dict_fns.unflatten(tuplize_dict(parse_params(request.params))))
     url = data_dict['url']
     create_output_view(call_id, filename, url)
-    return make_view(u'%s-output' % call_id, filename)
+    result_data= make_view(u'%s-output' % call_id, filename)
+    if not result_data['success']:
+        return "Not found any views."
+    return '<iframe width=\"100%\" height=\"100%\" src=\"/dataset/{}/resource/{}/view/{}\" frameBorder=\"0\"></iframe>'.format(result_data['package_id'],result_data['resource_id'],result_data['id'])
 
 
 @call_blueprint.route('/read/<id>', methods=["GET"])
@@ -251,7 +259,10 @@ def read(id):
 
 @call_blueprint.route('/file/<type>/<call_id>/<file_name>')
 def serve_file(type, call_id, file_name):
-    path = os.path.join(storage_path, '%s-files' % type, call_id, file_name)
+    if type=='output':
+        path = os.path.join(storage_path, '%s-files' % type, call_id, file_name)
+    else:
+        path = os.path.join(storage_path, '%s-files' % type, '%s-%s'%(call_id, file_name))
     return send_file(path)
 
 

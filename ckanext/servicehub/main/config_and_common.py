@@ -24,8 +24,9 @@ def simple_img_file():
 
 
 class ServiceLanguage(Enum):
-    __order__ = 'PYTHON_36 JAVA_8 JAVA_8_GRADLE'
+    __order__ = 'PYTHON_36 PYTHON_27 JAVA_8 JAVA_8_GRADLE NODEJS_14'
     PYTHON_36 = ('Python 3.6', 'python_36')
+    PYTHON_27 = ('Python 2.7', 'python_27')
     JAVA_8    = ('Java 8', 'java_8')
     JAVA_8_GRADLE = ('Java 8 Gradle', 'java_8_gradle')
     NODEJS_14 = ('NodeJS 14', 'nodejs_14')

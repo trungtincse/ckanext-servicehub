@@ -19,7 +19,7 @@ def update_service(context, data_dict):
                 'msg': _('Application not found')}
     if authz.is_sysadmin(user):
         return {'success': True}
-    if authz.has_user_permission_for_group_or_org(app.organization,user, 'update_service') and app.owner == user and app.app_status=='DEBUG':
+    if authz.has_user_permission_for_group_or_org(app.organization,user, 'update_service') and  app.app_status=='DEBUG':
         return {'success': True}
     return {'success': False,
             'msg': _('User %s not has permission to update application')%user}

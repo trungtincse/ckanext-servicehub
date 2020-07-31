@@ -34,8 +34,9 @@ def index():
             language=request.params.get('language'),
             sort=request.params.get('sort', 'score asc, created_at desc')
         )
-
+        print search_result
     except SearchError as e:
+        print "Âs"
         c.query_error = True
         return base.render('service/search.html', {
             'query': request.params.get('q', ''),

@@ -64,6 +64,7 @@
                     "type": "GET",
                      "dataSrc": ""
                 },
+                "aaSorting": [ [1,'desc'] ],
                 // "sPaginationType": "full_numbers",
                 "aoColumns": [
                     {
@@ -80,7 +81,6 @@
                     {
                         "mData": 3,
                         "sWidth": "25%",
-                        "bSortable": false,
                         "mRender": function (data, type, full) {
                             return `
           <a class="btn btn-success btn-sm" href="${data}">Download</a>

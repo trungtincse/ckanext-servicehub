@@ -63,7 +63,7 @@ def service_monitor(context, data_dict=None):
                 'msg': _('Application not found')}
     if authz.is_sysadmin(user):
         return {'success': True}
-    if authz.has_user_permission_for_group_or_org(app.organization, user, 'update_service') and app.owner == user:
+    if authz.has_user_permission_for_group_or_org(app.organization, user, 'update_service'):
         return {'success': True}
     else:
         return {'success': False,

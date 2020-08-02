@@ -4,7 +4,7 @@
         <label for="{{ field.name }}">{{ field.name }}:</label>
     </div>
     <div class="col-md-8">
-        {% if field.type not in ['TEXT', 'LIST', 'BOOLEAN', 'INTEGER', 'DOUBLE'] %}
+        {% if field.type not in ['TEXT', 'LIST', 'BOOLEAN', 'INTEGER', 'DOUBLE','NUMBER'] %}
             <a href="{{ field.value| urlencode  }}">Download file here</a>
             {% if type=='output' %}
                 <button type="button" class="btn btn-primary md-ml-10" onclick="output_view('{{ call_id }}','{{ field.name }}')">View
